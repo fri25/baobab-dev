@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
+/* Palette Baobab : sable, terre cuite, feuillage */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #fbf7f0;
+  --surface: #ffffff;
+  --foreground: #1f1a14;
+  --muted: #6b5e4e;
+  --border: #e8dfd1;
+  --primary: #b9561a;
+  --primary-ink: #ffffff;
+  --leaf: #2f6b3a;
+  --gold: #b8860b;
+  --bronze: #a8703f;
+  --silver: #8a939c;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #15120e;
+    --surface: #1e1a15;
+    --foreground: #f3ece2;
+    --muted: #a89a87;
+    --border: #342d25;
+    --primary: #e0823f;
+    --primary-ink: #1a120b;
+    --leaf: #7dbb7d;
+    --gold: #e7be4b;
+    --bronze: #d19a66;
+    --silver: #b9c1c9;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-leaf: var(--leaf);
+  --color-gold: var(--gold);
+  --color-bronze: var(--bronze);
+  --color-silver: var(--silver);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Mode « données réduites » : aucune image chargée (les images lazy masquées ne sont pas téléchargées) */
+html[data-lite] .lite-hide,
+html[data-lite] img[loading="lazy"] {
+  display: none;
+}
+.lite-only {
+  display: none;
+}
+html[data-lite] .lite-only {
+  display: inline-block;
 }

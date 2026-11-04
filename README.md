@@ -1,36 +1,365 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# Baobab Dev
 
-First, run the development server:
+**La plateforme d'échange africaine, pour les devs, par les devs.**
+
+Baobab Dev est l'endroit où les développeurs africains se rencontrent, s'entraident, montrent ce qu'ils construisent, collaborent et gagnent leur vie grâce à leur expertise. Le site est conçu pour les conditions réelles du continent : smartphone d'entrée de gamme, réseau 3G, paiements en Mobile Money.
+
+> « Ailleurs, l'IA a vidé les forums de développeurs. Chez nous, elle fait vivre la communauté et récompense ceux qui savent. »
+
+Projet réalisé pour la Coupe d'Afrique des développeurs 2026, d'après le cahier des charges du 29 octobre 2026.
+
+---
+
+## Sommaire
+
+- [Fonctionnalités](#fonctionnalités)
+- [Stack technique](#stack-technique)
+- [Démarrage rapide](#démarrage-rapide)
+- [Variables d'environnement](#variables-denvironnement)
+- [Comptes et scénario de démonstration](#comptes-et-scénario-de-démonstration)
+- [Structure du projet](#structure-du-projet)
+- [Base de données et sécurité](#base-de-données-et-sécurité)
+- [Le Griot](#le-griot)
+- [Tests](#tests)
+- [Déploiement](#déploiement)
+- [Feuille de route](#feuille-de-route)
+
+---
+
+## Fonctionnalités
+
+Le site est organisé autour d'une boucle : **aider → construire → être reconnu → gagner**.
+
+### Se rencontrer et échanger
+
+| Fonction | Description | Route |
+|---|---|---|
+| **Profil gamifié** | Pré-rempli depuis GitHub. On y trouve les XP, 7 niveaux (de Graine à Légende Baobab), des badges bronze, argent et or, un QR code et un bouton de partage WhatsApp. | `/u/[pseudo]`, `/parametres` |
+| **Fil personnalisé** | Questions dans tes technologies, projets de ton pays, Squads qui cherchent ton profil, tickets payés, défi de la semaine. | `/fil` |
+| **Questions-réponses** | Blocs de code, tags et jusqu'à 4 images. Tu votes, valides la meilleure réponse et commentes. Les questions proches sont suggérées avant publication, et les experts du tag sont notifiés. | `/questions` |
+| **Le Griot** | IA communautaire qui répond uniquement à partir des réponses validées. Elle cite leurs auteurs, qui gagnent +5 XP. Disponible dans l'app et sur WhatsApp. | `/griot`, `/griot/whatsapp` |
+| **Discussions** | Messages privés entre devs et sujets publics, en temps réel. Avec @mentions, réponses à un message, blocage et signalement. | `/discussions` |
+| **Classements** | Par ville, par pays ou sur tout le continent. | `/classements` |
+
+### Construire ensemble
+
+| Fonction | Description | Route |
+|---|---|---|
+| **Showroom** | Vitrine des projets africains : likes, projet de la semaine, appel à contributeurs. | `/showroom` |
+| **Squads** | Équipes formées par matching de compétences, avec candidatures, invitations, tableau de tâches et discussion en temps réel. | `/squads` |
+| **Pair-Debugging fantôme** | Débogage à plusieurs façon Google Docs, en texte pur, à moins de 5 Ko/s. Curseurs visibles, terminal partagé, « Prendre la main », secrets masqués et relecture de la session. | `/debug` |
+| **Défis** | Défi hebdomadaire noté par un jury. Le podium gagne +100, +60 ou +30 XP. Les défis peuvent être sponsorisés. | `/defis` |
+| **Stack Afrique** | Catalogue d'outils africains (paiement, SMS, USSD…). Un outil devient « vérifié » quand 5 devs l'utilisent en production et qu'un modérateur valide sa fiche. Alerte en cas de panne. | `/stack` |
+| **GitHub vivant** | Activité GitHub publique et carte des 30 derniers jours. Une issue peut devenir un ticket de la Micro-Bourse. | `/activite` |
+
+### Gagner sa vie
+
+| Fonction | Description | Route |
+|---|---|---|
+| **Micro-Bourse de code** | Bugs et fonctionnalités financés par la communauté. Voir le détail ci-dessous. | `/bourse` |
+| **Portefeuille** | Solde et historique dans un journal des transactions infalsifiable. En mode test, une recharge fictive permet la démo. | `/portefeuille` |
+
+Fonctionnement de la Micro-Bourse :
+- **Création du ticket** : la prime (2 000 FCFA minimum) est bloquée en séquestre dès la création.
+- **Abondement** : d'autres devs peuvent ajouter des fonds au ticket.
+- **Réservation** : un dev peut réserver le ticket 48 h pour éviter le travail en double.
+- **Tests verrouillés** : une Pull Request ne peut pas modifier les tests d'acceptation.
+- **Libération** : la prime est versée à la fusion, moins 10 % de commission.
+- **Expiration** : sans solution, les contributeurs sont remboursés au prorata.
+- **Prolongation** : votée par les contributeurs, pondérée par les montants.
+- **Litige** : arbitré par 3 seniors tirés au sort.
+
+### Pensé pour la 3G
+
+- **Accueil léger** : 106 Ko de JavaScript au premier chargement, sans image décorative.
+- **PWA installable** : les pages déjà consultées restent lisibles hors connexion, et les brouillons sont gardés sur le téléphone.
+- **Mode « données réduites »** : il désactive toutes les photos ; on l'active dans le pied de page.
+- **Images compressées dans le navigateur** avant l'envoi, en WebP 1 600 px (environ 150 Ko au lieu de plusieurs Mo).
+- **Utilisable dès 360 px de large.**
+
+### Communauté et modération
+
+- **Notifications en temps réel** : badges débloqués affichés à l'écran, citations du Griot, primes versées, mentions, messages privés.
+- **Espace modération** : signalements, sanctions (−15 XP), litiges, validation de la Stack Afrique, statistiques. Route : `/moderation`.
+- **Anti-triche** :
+  - plafond quotidien d'XP issus des votes ;
+  - poids réduit des comptes de moins de 7 jours ;
+  - interdiction de voter pour soi ;
+  - limite de 20 messages par minute.
+
+---
+
+## Stack technique
+
+| Couche | Choix |
+|---|---|
+| Front-end | [Next.js 15](https://nextjs.org) (App Router, Server Components, Server Actions), React 19, Tailwind CSS 4, PWA |
+| Back-end et données | [Supabase](https://supabase.com) : PostgreSQL 17, Auth, Realtime, Storage |
+| Recherche sémantique | pgvector (embeddings Voyage, 1024 dimensions), avec repli sur la recherche plein texte PostgreSQL |
+| IA | API Claude (`@anthropic-ai/sdk`) pour le Griot |
+| Temps réel | Supabase Realtime (changements de la base, broadcast, présence) |
+| Intégrations | WhatsApp Business Cloud API, webhooks GitHub, Vercel Cron |
+| Paiements (V1) | FedaPay, Kkiapay ou CinetPay : prévu, pas encore branché (le séquestre fonctionne en mode test) |
+
+---
+
+## Démarrage rapide
+
+### Prérequis
+
+- Node.js 22 ou plus récent
+- Docker Desktop, lancé
+
+### Installation
 
 ```bash
+cd baobab-dev
+npm install
+
+# 1. Démarrer Supabase en local (base, auth, temps réel, stockage)
+#    La première fois, le téléchargement des images Docker peut être long.
+npx supabase start
+
+# 2. Configurer l'environnement
+cp .env.example .env.local
+#    Copier dans .env.local l'URL, l'anon key et la service_role key affichées par :
+npx supabase status
+
+# 3. Lancer le site
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Le site est sur **http://localhost:3000**, et l'interface d'administration de la base (Supabase Studio) sur **http://127.0.0.1:54323**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Les migrations et les données de démo sont appliquées au démarrage. Pour repartir d'une base propre :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx supabase db reset
+```
 
-## Learn More
+### Si le téléchargement des images Docker échoue
 
-To learn more about Next.js, take a look at the following resources:
+Le registre public d'images de Supabase limite parfois les téléchargements (erreur `toomanyrequests`). Dans ce cas, récupère les images sur Docker Hub et démarre sans les services dont le site n'a pas besoin :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io npx supabase start \
+  -x imgproxy,mailpit,edge-runtime,logflare,vector,supavisor
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Commandes utiles
 
-## Deploy on Vercel
+| Commande | Effet |
+|---|---|
+| `npm run dev` | Serveur de développement |
+| `npm run build` puis `npm start` | Version de production (nécessaire pour tester le mode hors ligne) |
+| `npm run lint` | ESLint |
+| `npx tsc --noEmit` | Vérification des types |
+| `npm run test:e2e` | Tests de bout en bout (voir [Tests](#tests)) |
+| `npx supabase db reset` | Réinitialise la base : migrations et données de démo |
+| `npx supabase stop` | Arrête Supabase |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Variables d'environnement
+
+Toutes les variables sont listées dans [.env.example](.env.example). Seules les trois premières sont nécessaires pour faire tourner le site en local.
+
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | oui | URL de l'API Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | oui | Clé publique : toutes les requêtes passent par la sécurité par ligne de PostgreSQL (RLS) |
+| `SUPABASE_SERVICE_ROLE_KEY` | oui | Clé serveur, réservée aux webhooks, au Griot et au mode test. Ne jamais l'exposer au navigateur. |
+| `NEXT_PUBLIC_APP_URL` | non | URL publique du site (liens et QR codes) |
+| `NEXT_PUBLIC_DEMO_ACCOUNTS` | non | `false` masque les comptes de démo sur `/login` |
+| `SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID` / `_SECRET` | pour GitHub | Identifiants de l'OAuth App GitHub, à mettre dans `supabase/.env` (fichier lu par le CLI Supabase, pas par Next.js) |
+| `ANTHROPIC_API_KEY` | non | Synthèse du Griot par Claude. Sans clé, il assemble des extraits des réponses, toujours sourcés. |
+| `VOYAGE_API_KEY` | non | Recherche sémantique. Sans clé, le Griot utilise la recherche plein texte. |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | pour WhatsApp | Le Griot sur WhatsApp (webhook `/api/whatsapp`) |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | non | Numéro affiché sur la page du Griot |
+| `GITHUB_WEBHOOK_SECRET`, `GITHUB_TOKEN` | pour la Micro-Bourse réelle | Webhook `/api/github/webhook` : résultat des tests et fusion des Pull Requests |
+| `CRON_SECRET` | pour la tâche quotidienne | Protège `/api/cron` |
+
+### Connexion GitHub
+
+1. Crée une OAuth App sur GitHub : *Settings → Developer settings → OAuth Apps*.
+2. Indique comme adresse de retour (*Authorization callback URL*) `http://127.0.0.1:54321/auth/v1/callback` en local, ou celle de ton projet Supabase en production.
+3. Crée le fichier `supabase/.env` (il est ignoré par git) :
+   ```bash
+   SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID=<client id>
+   SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET=<secret>
+   ```
+4. Dans `supabase/config.toml`, passe `enabled = true` dans la section `[auth.external.github]`, puis redémarre Supabase (`npx supabase stop` puis `npx supabase start`).
+
+---
+
+## Comptes et scénario de démonstration
+
+### Comptes de démo
+
+Tous ont le mot de passe **`baobab2026`**. Sur `/login`, des boutons permettent de s'y connecter en un clic.
+
+| Compte | Profil |
+|---|---|
+| `aicha@baobab.dev` | Aïcha, dev Laravel à Cotonou (Jeune Baobab) |
+| `koffi@baobab.dev` | Koffi, senior PHP à Abidjan (Expert) : arbitre les litiges |
+| `moussa@baobab.dev` | Moussa, dev fullstack à Dakar |
+| `fatou@baobab.dev` | Fatou, dev Flutter à Lomé |
+| `ibrahim@baobab.dev` | Ibrahim, étudiant à Ouagadougou |
+| `modo@baobab.dev` | Équipe de modération (administrateur) |
+
+Les données de démo comprennent :
+- des questions avec leurs réponses ;
+- trois projets et deux Squads ;
+- un ticket de la Micro-Bourse en séquestre ;
+- un défi en cours ;
+- trois outils de la Stack Afrique ;
+- trois sujets de discussion et une conversation privée.
+
+### Scénario en 3 minutes (critères d'acceptation, §12.4)
+
+Ouvre deux navigateurs, l'un connecté en **Aïcha** et l'autre en **Koffi**.
+
+1. **Inscription** : sur `/login`, connexion GitHub. Le profil est pré-rempli avec les langages des dépôts publics.
+2. **Le Griot sur WhatsApp** : Aïcha ouvre `/griot/whatsapp` et demande « Comment intégrer FedaPay dans Laravel ? ». Le Griot cite Koffi, qui reçoit en direct la notification « +5 XP ».
+3. **Ticket financé** : Aïcha crée un ticket à 25 000 FCFA sur `/bourse/new`. Moussa ajoute des fonds depuis la page du ticket.
+4. **Pair-Debugging** : Aïcha lance une session sur `/debug` et partage le lien. Koffi la rejoint, et le débit s'affiche en Ko/s.
+5. **Libération** : Koffi soumet sa Pull Request et clique sur « Simuler : tests OK ». Aïcha clique sur « Fusionner et libérer » : Koffi reçoit la cagnotte moins 10 % de commission (27 000 FCFA si Moussa a ajouté 5 000 FCFA). En production, le webhook GitHub fait la même chose automatiquement.
+6. **Badge** : Koffi voit apparaître « Badge débloqué : Chasseur de primes », et le badge s'affiche sur son profil.
+
+---
+
+## Structure du projet
+
+```
+baobab-dev/
+├── src/
+│   ├── app/                    # Routes (App Router)
+│   │   ├── api/                # griot, whatsapp, github/webhook, cron
+│   │   ├── bourse/             # Micro-Bourse et portefeuille
+│   │   ├── debug/              # Pair-Debugging (DebugRoom : protocole texte)
+│   │   ├── discussions/        # Messages privés et sujets (ChatRoom temps réel)
+│   │   ├── griot/              # Le Griot (app et démo WhatsApp)
+│   │   ├── questions/          # Q&A
+│   │   ├── squads/  showroom/  defis/  stack/  classements/  fil/
+│   │   ├── u/[username]/       # Profils publics
+│   │   └── layout.tsx          # En-tête, pied de page, mode données réduites
+│   ├── components/             # Avatar, Markdown, ImageUploader, LiveNotifications…
+│   ├── lib/
+│   │   ├── supabase/           # Clients navigateur, serveur, admin et middleware
+│   │   ├── griot.ts            # Recherche, synthèse Claude et citations
+│   │   ├── github.ts           # Import du profil GitHub
+│   │   └── …                   # niveaux, libellés, notifications, formatage
+│   └── middleware.ts           # Rafraîchissement de la session
+├── supabase/
+│   ├── migrations/             # Schéma, fonctions, RLS (un fichier par lot de fonctionnalités)
+│   ├── seed.sql                # Comptes et contenu de démo
+│   └── config.toml
+├── public/                     # sw.js (service worker), icônes
+├── tests/e2e/                  # Tests de bout en bout
+└── vercel.json                 # Planification de la tâche quotidienne
+```
+
+---
+
+## Base de données et sécurité
+
+Toute la logique sensible (points, argent, badges) vit **dans PostgreSQL**, et non dans le code de l'application. Ainsi, aucune requête ne peut tricher en contournant l'interface.
+
+- **Sécurité par ligne (RLS) sur toutes les tables.** Chaque utilisateur ne peut modifier que certaines colonnes de ses propres lignes. Il ne peut donc changer lui-même ni son XP, ni son rôle, ni le score d'une réponse.
+- **Fonctions `security definer`** pour toutes les opérations sensibles. Elles vérifient l'utilisateur appelant :
+  - la Micro-Bourse : `create_bounty`, `release_bounty`… ;
+  - les XP : `add_points` ;
+  - les badges : `award_badge` ;
+  - l'arbitrage : `vote_dispute`.
+- **Argent** :
+  - les mouvements ne passent que par `wallet_move` ;
+  - le journal des transactions est **en ajout seul** : toute modification ou suppression est refusée ;
+  - chaque ligne est **chaînée à la précédente par une empreinte SHA-256**.
+- **Micro-Bourse** :
+  - le créateur ne peut pas résoudre son propre ticket ;
+  - une PR qui modifie les tests d'acceptation est rejetée ;
+  - seul le webhook GitHub, qui utilise la clé serveur, peut marquer des tests comme passés.
+- **Webhooks** (GitHub, WhatsApp) : leur signature HMAC est vérifiée. La tâche quotidienne est protégée par `CRON_SECRET`.
+- **Fichiers** : chacun ne dépose que dans son dossier ; seules les images sont acceptées, avec 1 Mo maximum.
+- **Pair-Debugging** : les secrets (`.env`, clés d'API, jetons JWT) sont masqués sur la machine de l'hôte, avant tout envoi.
+
+Les migrations de [supabase/migrations/](supabase/migrations/), dans l'ordre :
+
+| Migration | Contenu |
+|---|---|
+| `…_init.sql` | Profils, gamification, Q&A, Griot, Showroom, Squads, portefeuille, Micro-Bourse, Pair-Debugging, RLS |
+| `…_features.sql` | Recherche plein texte, notifications automatiques, matching, fil, classements, modération |
+| `…_v1.sql` | Défis, Stack Afrique, expiration, prolongation et arbitrage de la Micro-Bourse |
+| `…_question_images.sql`, `…_answer_images.sql` | Stockage des images |
+| `…_discussions.sql` | Messages privés, sujets, blocage, anti-spam |
+
+---
+
+## Le Griot
+
+Le Griot ne remplace pas les devs : il s'appuie sur leurs réponses, les cite et les récompense.
+
+1. **Recherche** : il cherche les réponses validées ou bien notées les plus proches de la question, par similarité sémantique (pgvector) ou, sans clé Voyage, par recherche plein texte.
+2. **Synthèse** : Claude (`claude-opus-5-5`, effort `low` pour répondre en moins de 8 s) rédige la réponse uniquement à partir de ces sources, en les numérotant `[1]`, `[2]`…
+3. **Contrôle** : une réponse sans citation valide est remplacée par un assemblage d'extraits des sources. 100 % des réponses sont donc sourcées.
+4. **Récompense** : chaque auteur cité gagne +5 XP et une notification. Le badge « Voix du Griot » se débloque à 10 citations.
+5. **Sans source fiable**, le Griot n'invente rien : il propose de publier la question, et les experts sont notifiés.
+
+Le Griot est gratuit, dans la limite de 20 questions par jour.
+
+---
+
+## Tests
+
+Les tests de bout en bout tournent contre Supabase local et le serveur de développement. Ils utilisent les vrais comptes de démo et vérifient aussi les règles de sécurité (RLS, anti-fraude, anti-spam).
+
+```bash
+npx supabase start
+npm run dev          # dans un autre terminal
+npm run test:e2e     # réinitialise la base avant chaque suite, puis à la fin
+```
+
+| Suite | Couvre |
+|---|---|
+| [tests/e2e/mvp.mjs](tests/e2e/mvp.mjs) | Les 6 étapes du scénario de démonstration, le séquestre, la commission, les badges, le journal chaîné |
+| [tests/e2e/v1.mjs](tests/e2e/v1.mjs) | Défis, Stack Afrique, prolongation, litiges, expiration et remboursements, PWA |
+| [tests/e2e/images.mjs](tests/e2e/images.mjs) | Envoi d'images, droits sur le stockage, limites, affichage en mode données réduites |
+| [tests/e2e/discussions.mjs](tests/e2e/discussions.mjs) | Messages privés, temps réel, non-lus, mentions, blocage, modération, anti-spam |
+
+Une suite seule : `npx supabase db reset && node tests/e2e/discussions.mjs`.
+
+---
+
+## Déploiement
+
+1. **Base de données** : crée un projet sur [supabase.com](https://supabase.com), puis applique les migrations depuis ton poste :
+   ```bash
+   npx supabase link --project-ref <ref-du-projet>
+   npx supabase db push
+   ```
+   N'exécute pas `seed.sql` en production : il crée les comptes de démo.
+2. **Site** : déploie le dossier `baobab-dev/` sur [Vercel](https://vercel.com), puis renseigne les variables d'environnement du projet.
+3. **Réglages de production** :
+   - mettre `NEXT_PUBLIC_DEMO_ACCOUNTS=false` ;
+   - passer `payments_mode` à `"live"` dans la table `app_settings`, une fois un prestataire de paiement agréé branché.
+4. **Tâche quotidienne** : `vercel.json` planifie `/api/cron` chaque matin. Vercel transmet automatiquement `CRON_SECRET`.
+5. **Webhooks** :
+   - GitHub : `https://<domaine>/api/github/webhook`, avec les événements `workflow_run` et `pull_request` ;
+   - WhatsApp : `https://<domaine>/api/whatsapp`.
+
+---
+
+## Feuille de route
+
+| Phase | État | Contenu |
+|---|---|---|
+| **MVP (P1)** | ✅ fait | Inscription, profil gamifié, Q&A, Showroom, Squads, Griot (avec démo WhatsApp), Pair-Debugging, Micro-Bourse en mode test, modération |
+| **V1 (P2)** | 🟡 en partie | ✅ Défis, Stack Afrique, GitHub vivant, Micro-Bourse complète, PWA hors ligne, images, discussions<br>⬜ Connexion Google et OTP SMS, paiements Mobile Money réels, notifications WhatsApp et email, traduction anglais, webhooks GitHub en temps réel, correction automatique des défis |
+| **V2 (P3)** | ⬜ à faire | Clone IA du senior, Code Forensic, Radar d'opportunités, détecteur de projets abandonnés, Centrale d'achat d'infrastructures, espace recruteurs |
+
+Pour le Pair-Debugging, il reste à faire l'extension VS Code et le client en ligne de commande. Le protocole texte qu'ils utiliseront est déjà en place.
+
+---
+
+*Cahier des charges : [`../Cahier des charges — Baobab Dev.docx`](../Cahier%20des%20charges%20—%20Baobab%20Dev.docx)*

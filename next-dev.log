@@ -1,0 +1,279 @@
+
+> baobab-dev@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.5.4 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.199:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1409ms
+ ✓ Ready in 6.7s
+ ○ Compiling /questions/[id] ...
+ ✓ Compiled /questions/[id] in 12.7s
+ GET /questions/02754213-f9ec-470e-a608-945974affdfb 200 in 16525ms
+ GET /questions/02754213-f9ec-470e-a608-945974affdfb 200 in 616ms
+ GET /questions/02754213-f9ec-470e-a608-945974affdfb 200 in 876ms
+ ○ Compiling /questions ...
+ ✓ Compiled /questions in 868ms
+ GET /questions 200 in 1428ms
+ ✓ Compiled middleware in 10ms
+ ✓ Compiled middleware in 6ms
+ ✓ Compiled in 122ms
+ ✓ Compiled in 111ms
+ ✓ Compiled middleware in 6ms
+ ✓ Compiled in 171ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1286ms
+ GET / 200 in 2245ms
+ ○ Compiling /discussions ...
+ ✓ Compiled /discussions in 655ms
+ GET /discussions 200 in 1278ms
+ GET /discussions?onglet=sujets 200 in 512ms
+ ○ Compiling /discussions/[id] ...
+ ✓ Compiled /discussions/[id] in 906ms
+ GET /discussions/e1000000-0000-4000-8000-000000000001 200 in 3341ms
+ GET /discussions/d28754e6-e9d3-4ed0-b537-03d585824539 200 in 698ms
+ GET /discussions/d28754e6-e9d3-4ed0-b537-03d585824539 404 in 812ms
+ ○ Compiling /discussions/new ...
+ ✓ Compiled /discussions/new in 934ms
+ GET /discussions/new 200 in 1852ms
+ ○ Compiling /u/[username] ...
+ ✓ Compiled /u/[username] in 980ms
+ GET /u/koffi 200 in 3804ms
+ GET /discussions/20a7853c-fde1-4296-9422-d9123eec3865 200 in 551ms
+ ○ Compiling /moderation ...
+ ✓ Compiled /moderation in 868ms
+ GET /moderation 200 in 2093ms
+ GET /discussions 200 in 642ms
+ GET /discussions?onglet=sujets 200 in 380ms
+ GET /discussions/e1000000-0000-4000-8000-000000000001 200 in 578ms
+ GET /discussions/b5063ae2-8047-4f33-8f46-6c4b2909c970 200 in 974ms
+ GET /discussions/b5063ae2-8047-4f33-8f46-6c4b2909c970 404 in 757ms
+ GET /discussions/new 200 in 802ms
+ GET /u/koffi 200 in 824ms
+ GET /discussions/d96bae0d-57fe-4000-92c9-8ae30f9e70c7 200 in 773ms
+ GET /moderation 200 in 857ms
+ GET / 200 in 477ms
+ ✓ Compiled /questions in 78ms
+ GET /questions 200 in 618ms
+ ○ Compiling /showroom ...
+ ✓ Compiled /showroom in 600ms
+ GET /showroom 200 in 972ms
+ ○ Compiling /squads ...
+ ✓ Compiled /squads in 507ms
+ GET /squads 200 in 1019ms
+ ○ Compiling /bourse ...
+ ✓ Compiled /bourse in 690ms
+ GET /bourse 200 in 1179ms
+ ○ Compiling /classements ...
+ ✓ Compiled /classements in 767ms
+ GET /classements 200 in 1219ms
+ GET /u/koffi 200 in 651ms
+ ○ Compiling /fil ...
+ ✓ Compiled /fil in 727ms
+ GET /fil 200 in 1829ms
+ ○ Compiling /griot ...
+ ✓ Compiled /griot in 816ms
+ GET /griot 200 in 1416ms
+ ○ Compiling /portefeuille ...
+ ✓ Compiled /portefeuille in 865ms
+ GET /portefeuille 200 in 1570ms
+ ○ Compiling /parametres ...
+ ✓ Compiled /parametres in 521ms
+ GET /parametres 200 in 1213ms
+ ○ Compiling /notifications ...
+ ✓ Compiled /notifications in 564ms
+ GET /notifications 200 in 1074ms
+ GET /moderation 200 in 653ms
+ ○ Compiling /squads/[id] ...
+ ✓ Compiled /squads/[id] in 588ms
+ GET /squads/d1000000-0000-4000-8000-000000000001 200 in 3091ms
+ ✓ Compiled /questions/[id] in 138ms
+ GET /questions/b1000000-0000-4000-8000-000000000001 200 in 2272ms
+ ○ Compiling /api/griot ...
+ ✓ Compiled /api/griot in 3.1s
+ POST /api/griot 200 in 4405ms
+ ○ Compiling /debug/[code] ...
+ ✓ Compiled /debug/[code] in 595ms
+ GET /debug/03c9733e1b96 200 in 3040ms
+ GET /u/koffi 200 in 650ms
+ ○ Compiling /bourse/[id] ...
+ ✓ Compiled /bourse/[id] in 808ms
+ GET /bourse/be92398d-ff4b-4ad4-ba53-0d14c2137ef2 200 in 4115ms
+ ○ Compiling /defis ...
+ ✓ Compiled /defis in 1142ms
+ GET /defis 200 in 1869ms
+ ○ Compiling /stack ...
+ ✓ Compiled /stack in 1393ms
+ GET /stack 200 in 2084ms
+ ○ Compiling /stack/[slug] ...
+ ✓ Compiled /stack/[slug] in 1610ms
+ GET /stack/fedapay 200 in 6529ms
+ ○ Compiling /activite ...
+ ✓ Compiled /activite in 1463ms
+ GET /activite 200 in 2154ms
+ ○ Compiling /offline ...
+ ✓ Compiled /offline in 856ms
+ GET /offline 200 in 1639ms
+ ○ Compiling /manifest.webmanifest ...
+ ✓ Compiled /manifest.webmanifest in 671ms
+ GET /manifest.webmanifest 200 in 1274ms
+ ○ Compiling /defis/new ...
+ ✓ Compiled /defis/new in 1446ms
+ GET /defis/new 200 in 2508ms
+ ○ Compiling /defis/[id] ...
+ ✓ Compiled /defis/[id] in 1089ms
+ GET /defis/1e0d87b6-65ac-4555-b619-2a7dd7a69850 200 in 7069ms
+ GET /bourse/7d6ca72b-c090-4d10-9ee3-b878eadd04a6 200 in 2492ms
+ ○ Compiling /api/cron ...
+ ✓ Compiled /api/cron in 1391ms
+ GET /api/cron 200 in 3745ms
+ GET /api/cron 401 in 763ms
+ GET /questions/4def963f-427c-4a56-86cf-0f154ea36c32 200 in 1384ms
+ GET /questions/4def963f-427c-4a56-86cf-0f154ea36c32 200 in 1438ms
+ GET /questions/4def963f-427c-4a56-86cf-0f154ea36c32 200 in 1712ms
+ GET /questions 200 in 1200ms
+ GET /discussions 200 in 1471ms
+ GET /discussions?onglet=sujets 200 in 875ms
+ GET /discussions/e1000000-0000-4000-8000-000000000001 200 in 2888ms
+ GET /discussions/524e13b4-783d-43ab-89cb-b2a1d29c00ba 200 in 1135ms
+ GET /discussions/524e13b4-783d-43ab-89cb-b2a1d29c00ba 404 in 1028ms
+ GET /discussions/new 200 in 1147ms
+ GET /u/koffi 200 in 2015ms
+ GET /discussions/a90d3697-7e0a-43c8-8c40-9e60aa26cded 200 in 912ms
+ GET /moderation 200 in 1544ms
+AuthApiError: Invalid Refresh Token: Refresh Token Not Found
+    at handleError (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13649:11)
+    at async _handleRequest (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13699:9)
+    at async _request (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13679:18)
+    at async (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:16352:24)
+    at async (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13427:36) {
+  __isAuthError: true,
+  status: 400,
+  code: 'refresh_token_not_found'
+}
+AuthApiError: Invalid Refresh Token: Refresh Token Not Found
+    at handleError (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13649:11)
+    at async _handleRequest (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13699:9)
+    at async _request (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13679:18)
+    at async (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:16352:24)
+    at async (C:\xampp\htdocs\BA\baobab-dev\.next\server\edge\chunks\_624bacd2._.js:13427:36) {
+  __isAuthError: true,
+  status: 400,
+  code: 'refresh_token_not_found'
+}
+ GET / 200 in 1303ms
+ GET /manifest.webmanifest 200 in 601ms
+ GET /discussions 200 in 691ms
+ GET /manifest.webmanifest 200 in 738ms
+ GET /discussions/e1000000-0000-4000-8000-000000000002 200 in 862ms
+ GET /manifest.webmanifest 200 in 815ms
+ GET /discussions?onglet=sujets 200 in 660ms
+ GET /manifest.webmanifest 200 in 650ms
+ GET /discussions/new 200 in 542ms
+ ○ Compiling /login ...
+ GET /manifest.webmanifest 200 in 707ms
+ ✓ Compiled /login in 1768ms
+ GET /login?next=%2Fdiscussions%2Fnew 200 in 2816ms
+ GET /login?next=%2Fdiscussions%2Fnew 200 in 771ms
+ GET /login 200 in 535ms
+ GET /manifest.webmanifest 200 in 748ms
+ GET /fil 200 in 1848ms
+ POST /login 303 in 2655ms
+ GET /fil 200 in 1454ms
+ POST /login 303 in 2026ms
+ POST /fil 200 in 2591ms
+ GET /manifest.webmanifest 200 in 649ms
+ GET /discussions 200 in 818ms
+ GET /manifest.webmanifest 200 in 594ms
+ GET /discussions?onglet=sujets 200 in 993ms
+ GET /manifest.webmanifest 200 in 1297ms
+ GET /discussions/new 200 in 1028ms
+ GET /manifest.webmanifest 200 in 586ms
+ GET /questions 200 in 1074ms
+ GET /manifest.webmanifest 200 in 713ms
+ GET /u/aicha 200 in 1388ms
+ ○ Compiling /_not-found/page ...
+ GET /manifest.webmanifest 200 in 714ms
+ ✓ Compiled /_not-found/page in 2.1s
+ POST /api/auth/login 404 in 2902ms
+ GET /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 2300ms
+ POST /u/aicha 303 in 3314ms
+ GET /manifest.webmanifest 200 in 636ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 610ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 691ms
+ GET / 200 in 1649ms
+ GET /manifest.webmanifest 200 in 900ms
+ GET /notifications 200 in 1016ms
+ GET /manifest.webmanifest 200 in 796ms
+ GET /u/moussa 200 in 1385ms
+ GET /manifest.webmanifest 200 in 639ms
+ GET /u/moussa 200 in 1140ms
+ GET /manifest.webmanifest 200 in 751ms
+ ○ Compiling /auth/signout ...
+ ✓ Compiled /auth/signout in 632ms
+ POST /auth/signout 303 in 1382ms
+ GET / 200 in 1659ms
+ GET /manifest.webmanifest 200 in 1033ms
+ GET /login 200 in 664ms
+ GET /manifest.webmanifest 200 in 861ms
+ GET /fil 200 in 1442ms
+ POST /login 303 in 2086ms
+ GET /manifest.webmanifest 200 in 793ms
+ GET /discussions 200 in 868ms
+ GET /manifest.webmanifest 200 in 850ms
+ GET /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 1095ms
+ GET /manifest.webmanifest 200 in 587ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 536ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 517ms
+ GET / 200 in 1321ms
+ GET /manifest.webmanifest 200 in 1223ms
+ GET /login 200 in 550ms
+ GET /manifest.webmanifest 200 in 670ms
+ GET /fil 200 in 1291ms
+ POST /login 303 in 1771ms
+ GET /manifest.webmanifest 200 in 660ms
+ GET /discussions 200 in 709ms
+ GET /manifest.webmanifest 200 in 585ms
+ GET /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 1066ms
+ GET /manifest.webmanifest 200 in 907ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 626ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 580ms
+ POST /discussions/51917b73-9b6e-49f2-a30a-e25f3316162e 200 in 545ms
+ GET /fil 200 in 1056ms
+ GET /manifest.webmanifest 200 in 716ms
+ GET /fil 200 in 1214ms
+ GET /manifest.webmanifest 200 in 572ms
+ GET /discussions 200 in 1130ms
+ GET /manifest.webmanifest 200 in 905ms
+ GET /discussions 200 in 1005ms
+ GET /manifest.webmanifest 200 in 968ms
+ GET /discussions?onglet=sujets 200 in 1046ms
+ GET /manifest.webmanifest 200 in 3003ms
+ GET /discussions/e1000000-0000-4000-8000-000000000003 200 in 4384ms
+ GET /manifest.webmanifest 200 in 669ms
+ POST /discussions/e1000000-0000-4000-8000-000000000003 200 in 2836ms
+ POST /discussions/e1000000-0000-4000-8000-000000000003 200 in 1256ms
+ GET /discussions 200 in 922ms
+ GET /manifest.webmanifest 200 in 1134ms
+ GET /discussions?onglet=sujets 200 in 1085ms
+ GET /manifest.webmanifest 200 in 672ms
+ GET /discussions/e1000000-0000-4000-8000-000000000003 200 in 1174ms
+ GET /manifest.webmanifest 200 in 908ms
+ POST /discussions/e1000000-0000-4000-8000-000000000003 200 in 751ms
+ GET /u/fatou 200 in 3391ms
+ GET /manifest.webmanifest 200 in 951ms
+ ○ Compiling /showroom/[slug] ...
+ ✓ Compiled /showroom/[slug] in 4s
+ GET /showroom/zem-partage 200 in 10564ms
+ GET /manifest.webmanifest 200 in 744ms
+ GET /squads/d1000000-0000-4000-8000-000000000001 200 in 997ms
+ GET /manifest.webmanifest 200 in 558ms
+ POST /squads/d1000000-0000-4000-8000-000000000001 200 in 1103ms
+ ○ Compiling /favicon.ico ...
+ GET /manifest.webmanifest 200 in 682ms
+ ✓ Compiled /favicon.ico in 856ms
+ GET /favicon.ico?favicon.0b3bf435.ico 200 in 1425ms

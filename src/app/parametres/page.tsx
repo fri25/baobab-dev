@@ -1,0 +1,144 @@
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireSession } from "@/lib/auth";
+import { parseTags } from "@/lib/format";
+
+export const metadata = { title: "Paramètres · Baobab Dev" };
+
+const input = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2";
+const GOALS = ["apprendre", "aider", "collaborer", "missions"];
+const COUNTRIES = ["Bénin", "Burkina Faso", "Côte d'Ivoire", "Sénégal", "Togo", "Mali", "Niger", "Cameroun", "Ghana", "Nigeria", "Kenya", "Autre"];
+
+async function saveProfile(formData: FormData) {
+  "use server";
+  const { supabase, user } = await requireSession("/parametres");
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      full_name: String(formData.get("full_name") || "") || null,
+      bio: String(formData.get("bio") || "") || null,
+      country: String(formData.get("country") || "") || null,
+      city: String(formData.get("city") || "") || null,
+      languages: parseTags(formData.get("languages")),
+      timezone: String(formData.get("timezone") || "Africa/Porto-Novo"),
+      availability: String(formData.get("availability")),
+      goals: GOALS.filter((g) => formData.get(`goal_${g}`) === "on"),
+      pinned_badges: formData.getAll("pinned").map(String).slice(0, 3),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+  if (error) redirect(`/parametres?error=${encodeURIComponent(error.message)}`);
+
+  // Technologies déclarées à la main (les détectées sur GitHub sont conservées)
+  const manual = parseTags(formData.get("skills"));
+  await supabase.from("user_skills").delete().eq("user_id", user.id).eq("source", "manual");
+  if (manual.length) {
+    await supabase.from("skills").upsert(manual.map((name) => ({ name })), { onConflict: "name", ignoreDuplicates: true });
+    const { data: skills } = await supabase.from("skills").select("id").in("name", manual);
+    await supabase
+      .from("user_skills")
+      .upsert((skills ?? []).map((s) => ({ user_id: user.id, skill_id: s.id, source: "manual", weight: 1 })), { ignoreDuplicates: true });
+  }
+  revalidatePath("/", "layout");
+  redirect("/parametres?ok=1");
+}
+
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+  const { supabase, user } = await requireSession("/parametres");
+  const { error, ok } = await searchParams;
+  const [{ data: p }, { data: skills }, { data: badges }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase.from("user_skills").select("source, skills(name)").eq("user_id", user.id),
+    supabase.from("user_badges").select("badges(code, name, tier)").eq("user_id", user.id),
+  ]);
+  const skillNames = (source: string) =>
+    (skills ?? [])
+      .filter((s) => s.source === source)
+      .map((s) => (s.skills as unknown as { name: string }).name);
+
+  return (
+    <main className="mx-auto max-w-2xl px-4 py-8">
+      <h1 className="text-2xl font-bold">Mon profil</h1>
+      {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
+      {ok && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">Profil enregistré.</p>}
+
+      <form action={saveProfile} className="mt-6 space-y-4">
+        <label className="block text-sm font-medium">
+          Nom affiché
+          <input name="full_name" defaultValue={p.full_name ?? ""} className={input} />
+        </label>
+        <label className="block text-sm font-medium">
+          Bio
+          <textarea name="bio" rows={3} defaultValue={p.bio ?? ""} className={input} />
+        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm font-medium">
+            Pays
+            <select name="country" defaultValue={p.country ?? ""} className={input}>
+              <option value="">—</option>
+              {COUNTRIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-medium">
+            Ville
+            <input name="city" defaultValue={p.city ?? ""} className={input} />
+          </label>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm font-medium">
+            Langues (fr, en, wo, fon…)
+            <input name="languages" defaultValue={p.languages.join(", ")} className={input} />
+          </label>
+          <label className="block text-sm font-medium">
+            Fuseau horaire
+            <input name="timezone" defaultValue={p.timezone ?? ""} className={input} />
+          </label>
+        </div>
+        <label className="block text-sm font-medium">
+          Disponibilité
+          <select name="availability" defaultValue={p.availability ?? "available"} className={input}>
+            <option value="available">Disponible</option>
+            <option value="limited">Disponibilité limitée</option>
+            <option value="busy">Occupé·e</option>
+          </select>
+        </label>
+        <fieldset>
+          <legend className="text-sm font-medium">Objectifs</legend>
+          <div className="mt-1 flex flex-wrap gap-3 text-sm">
+            {GOALS.map((g) => (
+              <label key={g} className="flex items-center gap-1.5">
+                <input type="checkbox" name={`goal_${g}`} defaultChecked={p.goals.includes(g)} /> {g}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label className="block text-sm font-medium">
+          Technologies déclarées (séparées par des virgules)
+          <input name="skills" defaultValue={skillNames("manual").join(", ")} className={input} />
+          {skillNames("github").length > 0 && (
+            <span className="mt-1 block text-xs font-normal text-muted">Détectées sur GitHub : {skillNames("github").join(", ")}</span>
+          )}
+        </label>
+        {badges && badges.length > 0 && (
+          <fieldset>
+            <legend className="text-sm font-medium">Badges épinglés (3 max.)</legend>
+            <div className="mt-1 flex flex-wrap gap-3 text-sm">
+              {badges.map((b) => {
+                const badge = b.badges as unknown as { code: string; name: string; tier: string };
+                return (
+                  <label key={badge.code} className="flex items-center gap-1.5">
+                    <input type="checkbox" name="pinned" value={badge.code} defaultChecked={p.pinned_badges.includes(badge.code)} />
+                    {badge.name} ({badge.tier})
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
+        <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Enregistrer</button>
+      </form>
+    </main>
+  );
+}

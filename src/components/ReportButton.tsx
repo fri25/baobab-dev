@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 
-type Target = "question" | "answer" | "project" | "comment" | "profile" | "griot_query" | "message";
+type Target = "question" | "answer" | "project" | "comment" | "profile" | "griot_query" | "message" | "audit_finding";
 
 export function ReportButton({ targetType, targetId, path }: { targetType: Target; targetId: string; path: string }) {
   async function report(formData: FormData) {

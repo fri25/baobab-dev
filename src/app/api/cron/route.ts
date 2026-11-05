@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { checkStaleProjects } from "@/lib/abandoned";
+import { collectSources } from "@/lib/radar";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Tâche quotidienne (Vercel Cron, cf. vercel.json) :
-// remboursement des tickets expirés et surveillance des API de la Stack Afrique.
+// tickets et audits expirés, Pass Clones, API de la Stack Afrique, projets abandonnés, collecte du Radar.
 export async function GET(request: Request) {
   if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}` || !process.env.CRON_SECRET) {
     return new Response("Unauthorized", { status: 401 });
@@ -26,5 +28,6 @@ export async function GET(request: Request) {
     }),
   );
 
-  return NextResponse.json({ ...daily, health });
+  const [projects, radar] = await Promise.all([checkStaleProjects(), collectSources()]);
+  return NextResponse.json({ ...daily, health, projects, radar });
 }

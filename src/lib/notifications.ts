@@ -46,6 +46,38 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: `Message de @${p.from}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
     case "mention":
       return { id: n.id, title: `@${p.from} t'a mentionné·e dans # ${p.title}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
+    case "clone_flagged":
+      return { id: n.id, title: "Une réponse de ton clone a été signalée", detail: String(p.question), href: "/clones/mon-clone" };
+    case "clone_suspended":
+      return { id: n.id, title: "Ton clone est suspendu", detail: `Note moyenne : ${p.rating}`, href: "/clones/mon-clone" };
+    case "audit_auditor_joined":
+      return { id: n.id, title: "Un auditeur a rejoint ton audit", detail: String(p.title), href: `/forensic/${p.audit_id}` };
+    case "audit_contest":
+      return { id: n.id, title: "Constat contesté : ton vote est attendu", detail: String(p.title), href: `/forensic/${p.audit_id}` };
+    case "audit_paid":
+      return { id: n.id, title: "Audit clôturé : tu es payé·e", detail: `+${Number(p.amount).toLocaleString("fr-FR")} FCFA`, href: `/forensic/${p.audit_id}` };
+    case "audit_refunded":
+      return { id: n.id, title: "Audit expiré sans auditeur : forfait remboursé", href: `/forensic/${p.audit_id}` };
+    case "project_abandoned":
+      return { id: n.id, title: `${p.name} semble à l'arrêt`, detail: "Relance-le avec une Squad, cède-le ou archive-le.", href: `/showroom/${p.slug}` };
+    case "project_adopted":
+      return { id: n.id, title: `${p.by} reprend ${p.name}`, detail: "Tu restes crédité·e comme fondateur·rice.", href: `/showroom/${p.slug}` };
+    case "opportunity_match":
+      return { id: n.id, title: `🎯 ${p.organization_name ?? p.organization} cherche ton profil`, detail: `${p.title} · correspondance ${p.score}/100`, href: `/radar/${p.opportunity_id}` };
+    case "opportunity_response":
+      return { id: n.id, title: `Nouvelle réponse de ${p.from}`, detail: String(p.title), href: `/radar/${p.opportunity_id}` };
+    case "opportunity_response_status": {
+      const label: Record<string, string> = { shortlisted: "Présélectionné·e", accepted: "Retenu·e !", declined: "Non retenu·e" };
+      return { id: n.id, title: `${label[String(p.status)] ?? p.status} : ${p.title}`, href: `/radar/${p.opportunity_id}` };
+    }
+    case "infra_paused": {
+      const why: Record<string, string> = { solde: "solde épuisé", budget: "plafond mensuel atteint", abus_sms: "envoi massif de SMS" };
+      return { id: n.id, title: "Ressources de la Centrale en pause", detail: why[String(p.reason)] ?? String(p.reason), href: "/centrale" };
+    }
+    case "infra_budget":
+      return { id: n.id, title: `Centrale : ${p.level} % de ton plafond mensuel`, detail: `${Number(p.spend).toLocaleString("fr-FR")} / ${Number(p.cap).toLocaleString("fr-FR")} FCFA`, href: "/centrale" };
+    case "infra_credits":
+      return { id: n.id, title: `+${Number(p.amount).toLocaleString("fr-FR")} FCFA de crédits d'infrastructure`, detail: String(p.reason), href: "/centrale" };
     default:
       return null;
   }

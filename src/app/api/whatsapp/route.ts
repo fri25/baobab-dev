@@ -1,9 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { askGriot } from "@/lib/griot";
+import { sendWhatsApp as reply, toWhatsApp } from "@/lib/whatsapp";
 
 // WhatsApp Business Cloud API : le Griot répond aux messages reçus (§6.1)
-const GRAPH = "https://graph.facebook.com/v21.0";
 
 // Vérification du webhook par Meta
 export async function GET(request: Request) {
@@ -20,18 +20,6 @@ function validSignature(body: string, header: string | null) {
   const expected = Buffer.from(`sha256=${createHmac("sha256", secret).update(body).digest("hex")}`);
   const received = Buffer.from(header);
   return expected.length === received.length && timingSafeEqual(expected, received);
-}
-
-function toWhatsApp(text: string) {
-  return text.replace(/\*\*([^*]+)\*\*/g, "*$1*").replace(/```\w*\n?/g, "```");
-}
-
-async function reply(to: string, body: string) {
-  await fetch(`${GRAPH}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ messaging_product: "whatsapp", to, type: "text", text: { body: body.slice(0, 4000) } }),
-  });
 }
 
 type Payload = {

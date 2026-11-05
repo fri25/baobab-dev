@@ -37,6 +37,12 @@ export default async function ProfilePage({ params }: Props) {
       ? await supabase.from("user_blocks").select("blocked_id").eq("blocker_id", auth.user.id).eq("blocked_id", profile.id).maybeSingle()
       : { data: null };
 
+  const { data: clone } = await supabase
+    .from("ai_clones")
+    .select("id, name, specialty")
+    .eq("owner_id", profile.id)
+    .eq("status", "published")
+    .maybeSingle();
   const activities = profile.github_username ? await githubActivity(profile.github_username, 30) : [];
   const lvl = levelForXp(profile.xp);
   const pinned = profile.pinned_badges
@@ -179,6 +185,14 @@ export default async function ProfilePage({ params }: Props) {
               </details>
             )}
           </section>
+
+          {clone && (
+            <Link href={`/clones/${clone.id}`} className="block rounded-xl border border-primary bg-surface p-4 hover:bg-background">
+              <span className="text-xs font-medium uppercase tracking-wide text-primary">🤖 Clone IA</span>
+              <span className="mt-1 block font-semibold">{clone.name}</span>
+              <span className="block text-sm text-muted">{clone.specialty} · première question gratuite</span>
+            </Link>
+          )}
 
           {/* GitHub vivant */}
           {profile.github_username && (

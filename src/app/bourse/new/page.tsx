@@ -6,9 +6,9 @@ export const metadata = { title: "Créer un ticket · Micro-Bourse" };
 
 const input = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2";
 
-export default async function NewBountyPage({ searchParams }: { searchParams: Promise<{ error?: string; question?: string; issue?: string; titre?: string }> }) {
+export default async function NewBountyPage({ searchParams }: { searchParams: Promise<{ error?: string; question?: string; issue?: string; titre?: string; depot?: string; desc?: string }> }) {
   const { supabase, user } = await requireSession("/bourse/new");
-  const { error, question: questionId, issue, titre } = await searchParams;
+  const { error, question: questionId, issue, titre, depot, desc } = await searchParams;
   // Une issue GitHub peut devenir un ticket (§7.2)
   const issueRepo = issue?.match(/^https:\/\/github\.com\/[^/]+\/[^/]+/)?.[0];
 
@@ -37,11 +37,11 @@ export default async function NewBountyPage({ searchParams }: { searchParams: Pr
         </label>
         <label className="block text-sm font-medium">
           Description du bug ou de la fonctionnalité
-          <textarea name="description" required rows={4} defaultValue={question?.body ?? (issue ? `Issue : ${issue}` : undefined)} className={input} />
+          <textarea name="description" required rows={4} defaultValue={question?.body ?? desc ?? (issue ? `Issue : ${issue}` : undefined)} className={input} />
         </label>
         <label className="block text-sm font-medium">
           Dépôt GitHub
-          <input name="repo_url" type="url" required defaultValue={issueRepo} placeholder="https://github.com/moi/mon-projet" className={input} />
+          <input name="repo_url" type="url" required defaultValue={issueRepo ?? depot} placeholder="https://github.com/moi/mon-projet" className={input} />
         </label>
         <label className="block text-sm font-medium">
           Critères d&apos;acceptation

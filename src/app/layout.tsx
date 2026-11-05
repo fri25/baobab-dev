@@ -51,6 +51,9 @@ export default async function RootLayout({
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
             <span>Baobab Dev · Coupe d&apos;Afrique des développeurs 2026</span>
             <nav className="flex flex-wrap gap-4">
+              <Link href="/classements" className="hover:text-foreground">
+                Classements
+              </Link>
               <Link href="/defis" className="hover:text-foreground">
                 Défis
               </Link>

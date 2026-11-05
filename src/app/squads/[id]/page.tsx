@@ -178,6 +178,9 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
                 <h2 className="mb-3 font-semibold">Discussion</h2>
                 <SquadChat squadId={id} initial={messages ?? []} members={names} />
               </section>
+              <Link href={`/centrale/nouvelle?squad=${id}`} className="mr-4 text-sm text-primary">
+                Créer un environnement pour la Squad (Centrale d&apos;achat) →
+              </Link>
               {squad.project?.repo_url && (
                 <a href={squad.project.repo_url} className="text-sm text-primary">
                   Dépôt du projet →

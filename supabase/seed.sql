@@ -313,3 +313,175 @@ order by (v.ago)::int desc;
 update public.conversation_members set last_read_at = now() - interval '290 minutes'
 where user_id = 'a1000000-0000-4000-8000-000000000001'
   and conversation_id = (select id from public.conversations where kind = 'direct' limit 1);
+
+-- ============================================================
+-- V2 : clone IA de Koffi (niveau Expert)
+-- ============================================================
+insert into public.ai_clones (id, owner_id, name, specialty, description, style_notes, status, published_at) values
+  ('f1000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000002',
+   'Koffi IA', 'PHP, Laravel et paiements en ligne (FedaPay, Kkiapay, Mobile Money)',
+   'Huit ans d''intégrations de paiement en Côte d''Ivoire. Je réponds comme Koffi : direct, avec du code.',
+   'direct et bienveillant, va droit au code, insiste sur la sécurité et l''idempotence, tutoie',
+   'published', now() - interval '6 days');
+
+insert into public.clone_sources (clone_id, kind, answer_id, title, content)
+select 'f1000000-0000-4000-8000-000000000001', 'answer', a.id, q.title, a.body
+from public.answers a join public.questions q on q.id = a.question_id
+where a.author_id = 'a1000000-0000-4000-8000-000000000002';
+
+insert into public.clone_sources (clone_id, kind, title, content) values
+  ('f1000000-0000-4000-8000-000000000001', 'note', 'Files d''attente Laravel pour les paiements',
+   E'Ne traite jamais un webhook de paiement dans la requête HTTP : réponds 200 tout de suite et pousse un job.\n\n```php\npublic function webhook(Request $request) {\n    ProcessPayment::dispatch($request->all());\n    return response()->noContent();\n}\n```\n\nAvec `php artisan queue:work --tries=3`, un échec temporaire de ta base ne fait pas perdre le paiement. Sur un petit VPS, Redis ou même le driver `database` suffisent.'),
+  ('f1000000-0000-4000-8000-000000000001', 'note', 'Rendre un paiement Mobile Money idempotent',
+   E'Le même événement peut arriver plusieurs fois (réseau instable, relances de l''agrégateur). Règle d''or : une contrainte unique sur l''identifiant de transaction de l''agrégateur, et une mise à jour conditionnelle.\n\n```php\nOrder::where(''id'', $orderId)->where(''status'', ''pending'')->update([''status'' => ''paid'']);\n```\n\nSi la ligne est déjà payée, la requête ne fait rien : pas de double livraison.');
+
+select public.record_clone_query('a1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000001',
+  'Comment éviter de livrer deux fois une commande payée par Mobile Money ?',
+  E'Rends le traitement idempotent : contrainte unique sur l''identifiant de transaction et mise à jour conditionnelle `where status = pending` [1].',
+  'answered', array(select id from public.clone_sources where title like 'Rendre un paiement%'));
+select public.record_clone_query('a1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000001',
+  'Faut-il traiter le webhook FedaPay dans le contrôleur ?',
+  E'Non : réponds 200 tout de suite et pousse un job dans une file d''attente [1].',
+  'answered', array(select id from public.clone_sources where title like 'Files d''attente%'));
+select public.record_clone_query('a1000000-0000-4000-8000-000000000005', 'f1000000-0000-4000-8000-000000000001',
+  'Comment vérifier la signature d''un webhook FedaPay ?',
+  E'Utilise `Webhook::constructEvent` avec l''en-tête `X-FEDAPAY-SIGNATURE` et ton secret [1].',
+  'answered', array(select id from public.clone_sources where kind = 'answer' limit 1));
+update public.clone_queries set rating = 5 where user_id = 'a1000000-0000-4000-8000-000000000003';
+update public.clone_queries set rating = 4 where user_id = 'a1000000-0000-4000-8000-000000000005';
+
+-- ============================================================
+-- V2 : Code Forensic (Aïcha fait auditer Tontine Pay, Koffi audite)
+-- ============================================================
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated"}', false);
+select public.create_audit('Tontine Pay avant la levée de fonds', 'https://github.com/aicha-dev/tontine-pay',
+  'Levée de fonds d''amorçage en janvier : les investisseurs demandent un audit du code de paiement.', 'private', 3, 15000, 14);
+update public.audits set auto_report = '{"analyzed_at":"2026-11-04T10:00:00Z","accessible":true,"language":"PHP","files":214,"source_files":121,"test_files":4,"dependencies_checked":18,"dependencies_outdated":3}'
+where title like 'Tontine Pay%';
+insert into public.audit_findings (audit_id, source, category, severity, title, description, fix, file_path, effort_hours)
+select a.id, 'auto', v.category, v.severity, v.title, v.description, v.fix, v.file_path, v.effort
+from public.audits a, (values
+  ('securite', 'critique', 'Secret probablement commis : fichier .env', 'Le fichier `.env` est versionné. S''il contient des clés, elles restent dans l''historique git.', 'Révoquer les clés FedaPay, purger l''historique (git filter-repo) et ajouter .env au .gitignore.', '.env', 2.0),
+  ('dependances', 'moyen', '3 dépendance(s) Composer avec une version majeure de retard', E'- `laravel/framework` : ^9.0 → 11.x\n- `fedapay/fedapay-php` : ^0.3 → 1.x\n- `phpunit/phpunit` : ^9.5 → 11.x', 'Mettre à jour une dépendance à la fois et faire tourner les tests à chaque étape.', 'composer.json', 6.0),
+  ('tests', 'mineur', 'Couverture de tests faible', '4 fichier(s) de test pour 121 fichiers de code (3 %).', 'Tester d''abord le parcours de cotisation et le webhook de paiement.', null, 15.0)
+) as v(category, severity, title, description, fix, file_path, effort)
+where a.title like 'Tontine Pay%';
+
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-4000-8000-000000000002","role":"authenticated"}', false);
+select public.join_audit((select id from public.audits where title like 'Tontine Pay%'), true);
+select public.add_audit_finding((select id from public.audits where title like 'Tontine Pay%'), 'securite', 'critique',
+  'Webhook FedaPay accepté sans vérification de signature',
+  E'Dans `PaymentController@webhook`, l''événement est traité sans appeler `Webhook::constructEvent` : n''importe qui peut marquer une cotisation comme payée avec un simple POST.',
+  'Vérifier l''en-tête X-FEDAPAY-SIGNATURE avec le secret du webhook, et rejeter en 400 sinon.', 'app/Http/Controllers/PaymentController.php', 2);
+select public.add_audit_finding((select id from public.audits where title like 'Tontine Pay%'), 'architecture', 'moyen',
+  'Traitement du paiement dans la requête HTTP',
+  'Le webhook met à jour la base et envoie les SMS dans la même requête : au moindre ralentissement, FedaPay relance et le paiement est traité deux fois.',
+  'Répondre 200 immédiatement et pousser un job dans une file d''attente, avec une mise à jour idempotente.', 'app/Http/Controllers/PaymentController.php', 4);
+select public.add_audit_finding((select id from public.audits where title like 'Tontine Pay%'), 'performance', 'mineur',
+  'Requête N+1 sur la liste des membres',
+  'La page des tontines charge les cotisations de chaque membre une par une (une requête par membre).',
+  'Utiliser `with(''cotisations'')` dans la requête Eloquent.', 'app/Http/Controllers/TontineController.php', 1);
+
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated"}', false);
+select public.contest_finding((select id from public.audit_findings where title like 'Requête N+1%'),
+  'Corrigé la semaine dernière, la version auditée date d''avant le correctif.');
+select set_config('request.jwt.claims', '', false);
+
+-- ============================================================
+-- V2 : projets en sommeil (détecteur de projets abandonnés)
+-- ============================================================
+insert into public.projects (owner_id, name, slug, description, repo_url, stack, status,
+                             last_commit_at, repo_stars, repo_forks, unanswered_issues, repo_checked_at, abandon_status, abandon_detected_at)
+values
+  ('a1000000-0000-4000-8000-000000000003', 'Météo Agri Sénégal', 'meteo-agri-senegal',
+   'Alertes météo par SMS pour les agriculteurs du bassin arachidier, en wolof et en français.',
+   'https://github.com/moussa/meteo-agri', '{Node.js,"Africa''s Talking",PostgreSQL}', 'abandoned',
+   now() - interval '8 months', 34, 6, 4, now() - interval '1 day', 'detected', now() - interval '1 day');
+
+insert into public.projects (owner_id, name, slug, description, repo_url, stack, status,
+                             last_commit_at, repo_stars, repo_forks, unanswered_issues, repo_checked_at, abandon_status, founder_id)
+values
+  ('a1000000-0000-4000-8000-000000000005', 'Annuaire des artisans de Ouaga', 'artisans-ouaga',
+   'Trouver un menuisier, un soudeur ou un tailleur près de chez soi, avec avis et contact WhatsApp.',
+   'https://github.com/ibrahim/artisans-ouaga', '{Django,PostgreSQL}', 'abandoned',
+   now() - interval '11 months', 12, 3, 2, now() - interval '2 days', 'ceded', 'a1000000-0000-4000-8000-000000000005');
+
+-- ============================================================
+-- V2 : Radar d'opportunités (compte organisation : mairie@baobab.dev)
+-- ============================================================
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+                        raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+                        confirmation_token, recovery_token, email_change_token_new, email_change)
+values ('00000000-0000-0000-0000-000000000000', 'a1000000-0000-4000-8000-000000000007', 'authenticated', 'authenticated',
+        'mairie@baobab.dev', extensions.crypt('baobab2026', extensions.gen_salt('bf')), now(),
+        '{"provider":"email","providers":["email"]}', '{"user_name":"mairie_cotonou","full_name":"Mairie de Cotonou"}',
+        now() - interval '10 days', now(), '', '', '', '');
+insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+values (gen_random_uuid(), 'a1000000-0000-4000-8000-000000000007', 'a1000000-0000-4000-8000-000000000007',
+        '{"sub":"a1000000-0000-4000-8000-000000000007","email":"mairie@baobab.dev","email_verified":true}', 'email', now(), now(), now());
+update public.profiles set role = 'organization', city = 'Cotonou', country = 'Bénin',
+  bio = 'Direction de la transformation numérique de la ville de Cotonou.'
+where id = 'a1000000-0000-4000-8000-000000000007';
+
+insert into public.opportunities (id, source, publisher_id, organization_name, org_type, title, raw_text, need, technologies,
+                                  budget_min, budget_max, deadline, country, city, contact, source_url, extracted_by, status, created_at) values
+  ('a2000000-0000-4000-8000-000000000001', 'publiee', 'a1000000-0000-4000-8000-000000000007', 'Mairie de Cotonou', 'collectivite',
+   'Paiement des taxes de marché par Mobile Money et USSD',
+   E'La Mairie de Cotonou souhaite permettre aux commerçants des marchés Dantokpa et Ganhi de payer leurs taxes journalières par Mobile Money (MTN, Moov) et par USSD, sans smartphone.\nLes agents collecteurs doivent pouvoir vérifier un paiement en scannant un reçu.\nBudget : 8 000 000 à 12 000 000 FCFA. Réponses attendues avant le 15/12/2026.',
+   'Permettre aux commerçants des marchés de payer leurs taxes par Mobile Money et USSD, avec vérification des reçus par les agents.',
+   '{Laravel,"Mobile Money",USSD,FedaPay}', 8000000, 12000000, (now() + interval '40 days')::date, 'Bénin', 'Cotonou',
+   'numerique@mairie-cotonou.bj', null, 'manuel', 'open', now() - interval '2 days'),
+  ('a2000000-0000-4000-8000-000000000002', 'collectee', null, 'ONG Santé Communautaire Togo', 'ong',
+   'Application mobile hors ligne de collecte de données de santé',
+   E'Recrutement d''un prestataire pour une application Android de collecte de données de santé communautaire, utilisable sans connexion dans les villages de la région des Plateaux, avec synchronisation à Lomé.\nBudget indicatif : 6 millions FCFA.',
+   'Une application Android hors ligne pour les agents de santé communautaires, synchronisée avec un serveur à Lomé.',
+   '{Flutter,Dart,PostgreSQL}', 6000000, 6000000, (now() + interval '25 days')::date, 'Togo', 'Lomé',
+   null, 'https://exemple.org/appels-offres/sante-plateaux', 'regles', 'open', now() - interval '5 days'),
+  ('a2000000-0000-4000-8000-000000000003', 'collectee', null, 'Boutique Akwaba', 'pme',
+   'Boutique en ligne avec paiement Wave et Orange Money',
+   E'PME de prêt-à-porter à Abidjan, nous cherchons un développeur ou une petite équipe pour une boutique en ligne avec paiement Wave et Orange Money et livraison à domicile.\nBudget entre 2 500 000 et 4 000 000 FCFA.',
+   'Une boutique en ligne de prêt-à-porter avec paiement Wave et Orange Money et suivi des livraisons.',
+   '{React,Node.js,"Mobile Money"}', 2500000, 4000000, (now() + interval '20 days')::date, 'Côte d''Ivoire', 'Abidjan',
+   null, 'https://exemple.org/annonces/boutique-akwaba', 'regles', 'open', now() - interval '1 day');
+
+select public.compute_opportunity_matches(id) from public.opportunities;
+select public.notify_opportunity_matches(id) from public.opportunities;
+
+-- ============================================================
+-- V2 : Centrale d'achat d'infrastructures
+-- ============================================================
+insert into public.infra_offers (code, category, name, provider, description, unit, billing_mode, wholesale_price, price, public_price) values
+  ('vps-s', 'calcul', 'Serveur cloud S', 'Partenaire cloud (Afrique de l''Ouest)', '1 vCPU, 1 Go de RAM, 25 Go SSD, IP publique. Idéal pour une API Laravel ou Node.', 'heure', 'horaire', 9.00, 10.00, 14.00),
+  ('vps-m', 'calcul', 'Serveur cloud M', 'Partenaire cloud (Afrique de l''Ouest)', '2 vCPU, 4 Go de RAM, 80 Go SSD. Pour une application en production.', 'heure', 'horaire', 18.00, 20.00, 28.00),
+  ('pg-s', 'base_de_donnees', 'PostgreSQL managé S', 'Partenaire cloud (Europe)', '10 Go, sauvegarde automatique quotidienne, connexion chiffrée.', 'heure', 'horaire', 7.00, 8.00, 12.00),
+  ('build', 'build', 'Instance de build', 'Partenaire cloud (Europe)', '4 vCPU pour compiler une application Flutter ou exécuter des tests. Facturée à l''heure.', 'heure', 'horaire', 13.50, 15.00, 22.00),
+  ('monitoring', 'monitoring', 'Monitoring et alertes', 'Partenaire monitoring', 'Disponibilité, temps de réponse et alertes par SMS ou WhatsApp.', 'heure', 'horaire', 0.60, 0.68, 1.10),
+  ('sms', 'sms', 'Passerelle SMS', 'Passerelle SMS régionale', 'Envoi de SMS vers les opérateurs d''Afrique de l''Ouest par API. Limite anti-spam : 100 SMS par heure.', 'sms', 'a_l_usage', 18.00, 20.00, 30.00),
+  ('ia', 'ia', 'Clé d''API d''IA (Claude)', 'Anthropic, via la Centrale', 'Une clé personnelle compatible avec l''API Messages, facturée au millier de jetons.', '1k_jetons', 'a_l_usage', 5.40, 6.00, 7.50),
+  ('domaine', 'domaine', 'Nom de domaine .com ou .africa', 'Registraire partenaire', 'Un an de nom de domaine, DNS géré.', 'an', 'unique', 8000.00, 9000.00, 12000.00);
+
+-- Koffi est membre : un serveur et une base pour Tontine Pay, avec un mois de consommation
+insert into public.infra_members (user_id) values ('a1000000-0000-4000-8000-000000000002'), ('a1000000-0000-4000-8000-000000000001');
+insert into public.infra_credits (user_id, balance) values ('a1000000-0000-4000-8000-000000000002', 0), ('a1000000-0000-4000-8000-000000000001', 2000);
+insert into public.infra_credit_grants (user_id, amount, reason) values ('a1000000-0000-4000-8000-000000000001', 2000, 'Bienvenue dans la coopérative');
+insert into public.infra_budgets (user_id, monthly_cap) values ('a1000000-0000-4000-8000-000000000002', 15000);
+insert into public.infra_resources (id, owner_id, offer_id, project_id, name, last_billed_at, last_backup_at, created_at)
+select 'a3000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000002', o.id,
+       (select id from public.projects where slug = 'wari-map'), 'api-wari-map', now() - interval '20 minutes', null, now() - interval '12 days'
+from public.infra_offers o where o.code = 'vps-s';
+insert into public.infra_resources (id, owner_id, offer_id, project_id, name, last_billed_at, last_backup_at, created_at)
+select 'a3000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000002', o.id,
+       (select id from public.projects where slug = 'wari-map'), 'base-wari-map', now() - interval '20 minutes', now() - interval '3 hours', now() - interval '12 days'
+from public.infra_offers o where o.code = 'pg-s';
+select public.record_usage('a3000000-0000-4000-8000-000000000001', 24) from generate_series(1, 12);
+select public.record_usage('a3000000-0000-4000-8000-000000000002', 24) from generate_series(1, 12);
+update public.usage_records set created_at = now() - ((id % 12) || ' days')::interval where owner_id = 'a1000000-0000-4000-8000-000000000002';
+update public.infra_resources set last_billed_at = now() - interval '20 minutes' where owner_id = 'a1000000-0000-4000-8000-000000000002';
+
+insert into public.infra_proposals (title, description, proposed_by, created_at) values
+  ('Négocier un stockage objet type S3', 'Pour les images des boutiques en ligne et les sauvegardes.', 'a1000000-0000-4000-8000-000000000002', now() - interval '6 days'),
+  ('Ajouter une passerelle WhatsApp Business', 'Beaucoup de nos clients préfèrent WhatsApp aux SMS.', 'a1000000-0000-4000-8000-000000000001', now() - interval '3 days');
+insert into public.infra_proposal_votes (proposal_id, user_id)
+select p.id, u from public.infra_proposals p,
+  unnest(array['a1000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000002']::uuid[]) u
+where p.title like 'Négocier%';

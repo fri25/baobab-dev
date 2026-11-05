@@ -24,6 +24,8 @@ async function saveProfile(formData: FormData) {
       availability: String(formData.get("availability")),
       goals: GOALS.filter((g) => formData.get(`goal_${g}`) === "on"),
       pinned_badges: formData.getAll("pinned").map(String).slice(0, 3),
+      whatsapp_number: String(formData.get("whatsapp_number") || "").replace(/[\s.-]/g, "") || null,
+      whatsapp_alerts: formData.get("whatsapp_alerts") === "on",
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -137,6 +139,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </div>
           </fieldset>
         )}
+        <fieldset className="rounded-lg border border-border bg-surface p-3">
+          <legend className="px-1 text-sm font-medium">Alertes WhatsApp</legend>
+          <label className="block text-sm">
+            Numéro WhatsApp (format international)
+            <input name="whatsapp_number" defaultValue={p.whatsapp_number ?? ""} placeholder="+229 97 00 00 00" className={input} />
+          </label>
+          <label className="mt-2 flex items-center gap-2 text-sm">
+            <input type="checkbox" name="whatsapp_alerts" defaultChecked={p.whatsapp_alerts} /> Recevoir sur WhatsApp les opportunités du Radar qui
+            correspondent à mon profil
+          </label>
+        </fieldset>
         <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Enregistrer</button>
       </form>
     </main>

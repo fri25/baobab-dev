@@ -1,13 +1,14 @@
-supabase start is already running.
-Stopped services: [supabase_inbucket_baobab-dev supabase_imgproxy_baobab-dev supabase_edge_runtime_baobab-dev supabase_analytics_baobab-dev supabase_vector_baobab-dev supabase_pooler_baobab-dev]
-supabase local development setup is running.
+Starting database from backup...
+Starting containers...
+Waiting for health checks...
+Started supabase local development setup.
 
-         API URL: http://127.0.0.1:54321
-     GraphQL URL: http://127.0.0.1:54321/graphql/v1
-  S3 Storage URL: http://127.0.0.1:54321/storage/v1/s3
-         MCP URL: http://127.0.0.1:54321/mcp
-    Database URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-      Studio URL: http://127.0.0.1:54323
+         API URL: http://127.0.0.1:57321
+     GraphQL URL: http://127.0.0.1:57321/graphql/v1
+  S3 Storage URL: http://127.0.0.1:57321/storage/v1/s3
+         MCP URL: http://127.0.0.1:57321/mcp
+    Database URL: postgresql://postgres:postgres@127.0.0.1:57322/postgres
+      Studio URL: http://127.0.0.1:57323
  Publishable key: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
       Secret key: sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz
    S3 Access Key: 625729a08b95bf1b7ff351a663f3a23c

@@ -24,7 +24,7 @@ export type GriotResult = {
 };
 
 // Embeddings Voyage (1024 dimensions, cf. migration). Sans clé : recherche plein texte.
-async function embed(text: string, inputType: "query" | "document") {
+export async function embed(text: string, inputType: "query" | "document") {
   if (!process.env.VOYAGE_API_KEY) return null;
   const res = await fetch("https://api.voyageai.com/v1/embeddings", {
     method: "POST",
@@ -96,7 +96,7 @@ function extractive(sources: GriotSource[]) {
     .join("\n\n");
 }
 
-const hasAnthropicCredentials = () => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+export const hasAnthropicCredentials = () => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 
 export async function askGriot(question: string, userId: string | null, channel: "app" | "whatsapp"): Promise<GriotResult> {
   const admin = createAdminClient();

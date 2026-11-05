@@ -1,0 +1,138 @@
+
+> baobab-dev@0.1.0 test:e2e
+> npm run db:reset && node tests/e2e/mvp.mjs && npm run db:reset && node tests/e2e/v1.mjs && npm run db:reset && node tests/e2e/images.mjs && npm run db:reset && node tests/e2e/discussions.mjs && npm run db:reset && node tests/e2e/clones.mjs && npm run db:reset && node tests/e2e/forensic.mjs && npm run db:reset && node tests/e2e/abandoned.mjs && npm run db:reset && node tests/e2e/radar.mjs && npm run db:reset && node tests/e2e/centrale.mjs && npm run db:reset
+
+
+> baobab-dev@0.1.0 db:reset
+> node tests/e2e/reset.mjs
+
+Resetting local database...
+Recreating database...
+Initialising schema...
+Seeding globals from roles.sql...
+Applying migration 20261103000000_init.sql...
+NOTICE (42710): extension "pgcrypto" already exists, skipping
+Applying migration 20261103010000_features.sql...
+Applying migration 20261103020000_v1.sql...
+Applying migration 20261103030000_question_images.sql...
+Applying migration 20261104000000_answer_images.sql...
+Applying migration 20261104010000_discussions.sql...
+Applying migration 20261104020000_ai_clones.sql...
+Applying migration 20261105000000_code_forensic.sql...
+Applying migration 20261105010000_abandoned_projects.sql...
+Applying migration 20261105020000_radar.sql...
+Applying migration 20261106000000_centrale.sql...
+Seeding data from supabase/seed.sql...
+Restarting containers...
+Finished supabase db reset on branch main.
+A new version of Supabase CLI is available: v3.0.0 (currently installed v2.48.3)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+Base réinitialisée.
+OK   page / — 200
+OK   page /questions — 200
+OK   page /showroom — 200
+OK   page /squads — 200
+OK   page /bourse — 200
+OK   page /classements — 200
+OK   page /u/koffi — 200
+OK   page /fil — 200
+OK   page /griot — 200
+OK   page /portefeuille — 200
+OK   page /parametres — 200
+OK   page /notifications — 200
+OK   page /moderation — 200
+OK   page /squads/d1000000-0000-4000-8000-000000000001 — 200
+OK   page /questions/b1000000-0000-4000-8000-000000000001 — 200
+OK   profil Aïcha — 395 XP
+OK   Griot répond avec sources — 1010 ms, sources: koffi, aicha
+OK   Griot cite Koffi
+OK   Griot < 8 s
+OK   Koffi +5 XP par citation — 2200 → 2205
+OK   ticket créé (25 000 FCFA)
+OK   Moussa abonde — 30000 FCFA
+OK   anti-fraude : la créatrice ne peut pas résoudre son ticket
+OK   RLS : portefeuille non modifiable directement — solde 60000
+OK   RLS : XP non modifiable directement — permission denied for table profiles
+OK   session de Pair-Debugging
+OK   page /debug/a1d284f380d7 — 200
+OK   Koffi soumet sa PR
+OK   sécurité : Koffi ne peut pas marquer ses tests comme passés
+OK   pas de libération sans tests passés
+OK   Aïcha fusionne : prime libérée
+OK   Koffi reçoit 27 000 FCFA (30 000 - 10 %) — 94886 → 121886
+OK   badge Chasseur de primes débloqué
+OK   notifications reçues par Koffi — badge_unlocked, griot_citation, badge_unlocked, bounty_paid
+OK   page /u/koffi — 200
+OK   page /bourse/32083698-7215-476d-8eff-de4af3ff80f6 — 200
+OK   journal des transactions chaîné (SHA-256) — 39 lignes
+
+Tout passe.
+
+> baobab-dev@0.1.0 db:reset
+> node tests/e2e/reset.mjs
+
+Resetting local database...
+Recreating database...
+Initialising schema...
+Seeding globals from roles.sql...
+Applying migration 20261103000000_init.sql...
+NOTICE (42710): extension "pgcrypto" already exists, skipping
+Applying migration 20261103010000_features.sql...
+Applying migration 20261103020000_v1.sql...
+Applying migration 20261103030000_question_images.sql...
+Applying migration 20261104000000_answer_images.sql...
+Applying migration 20261104010000_discussions.sql...
+Applying migration 20261104020000_ai_clones.sql...
+Applying migration 20261105000000_code_forensic.sql...
+Applying migration 20261105010000_abandoned_projects.sql...
+Applying migration 20261105020000_radar.sql...
+Applying migration 20261106000000_centrale.sql...
+Seeding data from supabase/seed.sql...
+Restarting containers...
+Finished supabase db reset on branch main.
+A new version of Supabase CLI is available: v3.0.0 (currently installed v2.48.3)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+Base réinitialisée.
+OK   page /defis — 200
+OK   page /stack — 200
+OK   page /stack/fedapay — 200
+OK   page /activite — 200
+OK   page /offline — 200
+OK   page /manifest.webmanifest — 200
+OK   page /sw.js — 200
+OK   page /defis/new — 200
+OK   page /defis/74132d32-1fbe-4b8b-9300-5fef910d2073 — 200
+OK   Aïcha participe au défi
+OK   anti-triche : on ne s'attribue pas sa note
+OK   clôture du défi par la modération
+OK   podium +100 / +60 / +30 XP — 100 / 60 / 30
+OK   pas de double attribution
+OK   validation refusée sous 5 attestations — Il faut au moins 5 attestations en production (actuellement 4)
+OK   5e attestation
+OK   seule la modération valide
+OK   FedaPay vérifié
+OK   proposer un outil
+OK   impossible de proposer un outil déjà « vérifié »
+OK   alerte de panne aux devs en production — 5 notifiés
+OK   Ibrahim (5 000 / 20 000) vote : pas encore prolongé
+OK   seuls les contributeurs votent
+OK   majorité des fonds : prolongé de 7 jours (minimum voté) — 7.0 j
+OK   Aïcha ouvre un litige
+OK   arbitres tirés au sort hors parties (seniors) — 1 arbitre(s)
+OK   PR contestée rattachée
+OK   ticket passé en litige
+OK   une partie ne peut pas arbitrer
+OK   Koffi arbitre : prime versée — pay
+OK   Aïcha reçoit 18 000 FCFA (20 000 - 10 %)
+OK   page /bourse/8ef75324-ab94-44eb-b677-08fe9494776a — 200
+OK   tâche quotidienne — {"infra":{"billed":0,"backups":0},"refunded_audits":0,"expired_bounties":1,"clone_pass_payouts":0,"health":[{"id":"8dde0
+OK   contributeurs remboursés au prorata
+OK   tâche quotidienne protégée
+OK   journal des transactions chaîné — 41 lignes
+
+Tout passe.
+
+> baobab-dev@0.1.0 db:reset
+> node tests/e2e/reset.mjs
+
+Resetting local database...

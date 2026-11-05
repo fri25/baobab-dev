@@ -12,6 +12,15 @@ const KIND: Record<string, string> = {
   escrow_release: "Prime reçue",
   escrow_refund: "Remboursement",
   commission: "Commission",
+  clone_payment: "Question à un clone IA",
+  clone_earning: "Revenu de ton clone IA",
+  clone_refund: "Remboursement (clone IA)",
+  clone_pass: "Pass Clones",
+  clone_pass_payout: "Part des Pass Clones",
+  audit_payment: "Forfait Code Forensic bloqué",
+  audit_payout: "Paiement d'un audit",
+  audit_refund: "Forfait d'audit remboursé",
+  infra_usage: "Centrale d'achat (consommation)",
 };
 
 export default async function WalletPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {

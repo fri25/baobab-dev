@@ -10,6 +10,7 @@ export default async function ShowroomPage() {
   const { data: projects } = await supabase
     .from("projects")
     .select("id, name, slug, description, stack, status, likes_count, looking_for_contributors, project_of_week_at, owner:profiles!projects_owner_id_fkey(username, full_name, avatar_url, city)")
+    .or("abandon_status.is.null,abandon_status.in.(revival,adopted)")
     .order("project_of_week_at", { ascending: false, nullsFirst: false })
     .order("likes_count", { ascending: false })
     .order("created_at", { ascending: false })
@@ -22,9 +23,14 @@ export default async function ShowroomPage() {
           <h1 className="text-2xl font-bold">Showroom</h1>
           <p className="text-muted">Ce que les devs africains construisent.</p>
         </div>
-        <Link href="/showroom/new" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-          Publier un projet
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/showroom/relancer" className="rounded-full border border-border px-4 py-2 text-sm hover:bg-surface">
+            Projets à relancer
+          </Link>
+          <Link href="/showroom/new" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
+            Publier un projet
+          </Link>
+        </div>
       </div>
 
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

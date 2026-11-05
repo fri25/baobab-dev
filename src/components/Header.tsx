@@ -24,12 +24,13 @@ const NAV = [
   ["/questions", "Questions"],
   ["/discussions", "Discussions"],
   ["/griot", "Griot"],
+  ["/clones", "Clones IA"],
   ["/showroom", "Showroom"],
   ["/squads", "Squads"],
   ["/bourse", "Micro-Bourse"],
-  ["/defis", "Défis"],
-  ["/stack", "Stack"],
-  ["/classements", "Classements"],
+  ["/radar", "Radar"],
+  ["/forensic", "Forensic"],
+  ["/centrale", "Centrale"],
 ];
 
 export async function Header() {
@@ -42,7 +43,7 @@ export async function Header() {
           <Logo className="h-7 w-7" />
           <span>Baobab Dev</span>
         </Link>
-        <nav className="hidden gap-4 text-sm text-muted lg:flex">
+        <nav className="hidden gap-3 text-sm text-muted xl:flex">
           {NAV.filter(([href]) => profile || href !== "/fil").map(([href, label]) => (
             <Link key={href} href={href} className="flex items-center gap-1 hover:text-foreground">
               {label}
@@ -80,7 +81,7 @@ export async function Header() {
         )}
       </div>
       {/* Navigation mobile, défilante (utilisable dès 360 px) */}
-      <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm text-muted lg:hidden">
+      <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm text-muted xl:hidden">
         {NAV.filter(([href]) => profile || href !== "/fil").map(([href, label]) => (
           <Link key={href} href={href} className="flex shrink-0 items-center gap-1 hover:text-foreground">
             {label}

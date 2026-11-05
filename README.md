@@ -51,6 +51,7 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 | **Pair-Debugging fantôme** | Débogage à plusieurs façon Google Docs, en texte pur, à moins de 5 Ko/s. Curseurs visibles, terminal partagé, « Prendre la main », secrets masqués et relecture de la session. | `/debug` |
 | **Défis** | Défi hebdomadaire noté par un jury. Le podium gagne +100, +60 ou +30 XP. Les défis peuvent être sponsorisés. | `/defis` |
 | **Stack Afrique** | Catalogue d'outils africains (paiement, SMS, USSD…). Un outil devient « vérifié » quand 5 devs l'utilisent en production et qu'un modérateur valide sa fiche. Alerte en cas de panne. | `/stack` |
+| **Projets à relancer** | Détecteur de projets abandonnés : un projet du Showroom sans commit depuis 6 mois, avec des étoiles ou des forks et des issues sans réponse, est signalé à son propriétaire. Il peut le relancer avec une Squad, le céder à la communauté ou l'archiver. Le repreneur gagne +15 XP ; le fondateur reste crédité et reçoit le badge « Passeur de flambeau ». | `/showroom/relancer` |
 | **GitHub vivant** | Activité GitHub publique et carte des 30 derniers jours. Une issue peut devenir un ticket de la Micro-Bourse. | `/activite` |
 
 ### Gagner sa vie
@@ -58,6 +59,10 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 | Fonction | Description | Route |
 |---|---|---|
 | **Micro-Bourse de code** | Bugs et fonctionnalités financés par la communauté. Voir le détail ci-dessous. | `/bourse` |
+| **Clone IA du senior** | Dès le niveau Expert, un senior crée un assistant à partir de ses réponses validées et de ses notes. Le clone répond dans son style, cite ses contenus et refuse ce qui sort de sa spécialité. Première question gratuite, puis 100 FCFA, ou Pass Clones à 2 000 FCFA par mois. Le senior touche 70 %. Une mauvaise réponse peut être signalée et remboursée ; sous 2,5/5 de moyenne, le clone est suspendu. | `/clones`, `/clones/mon-clone` |
+| **Radar d'opportunités** | Les besoins numériques des PME, ONG et collectivités, publiés sur la plateforme ou collectés dans des flux RSS d'appels d'offres. Le besoin, les technologies, le budget, le délai et le lieu sont extraits automatiquement (Claude, ou règles sans clé). Chaque opportunité reçoit un score de correspondance avec chaque profil et chaque Squad. Au-dessus de 50/100, alerte dans l'app et sur WhatsApp (opt-in). Réponse seul ou au nom de sa Squad ; l'organisation présélectionne et retient. | `/radar`, `/radar/publier` |
+| **Code Forensic** | Audit de dette technique avant un lancement ou une levée de fonds. Voir le détail ci-dessous. | `/forensic` |
+| **Centrale d'achat** | Coopérative d'infrastructures au prix de gros. Voir le détail ci-dessous. | `/centrale` |
 | **Portefeuille** | Solde et historique dans un journal des transactions infalsifiable. En mode test, une recharge fictive permet la démo. | `/portefeuille` |
 
 Fonctionnement de la Micro-Bourse :
@@ -69,6 +74,23 @@ Fonctionnement de la Micro-Bourse :
 - **Expiration** : sans solution, les contributeurs sont remboursés au prorata.
 - **Prolongation** : votée par les contributeurs, pondérée par les montants.
 - **Litige** : arbitré par 3 seniors tirés au sort.
+
+Fonctionnement de Code Forensic :
+- **Forfait** : 10 000 FCFA minimum, bloqué à la création. Il est remboursé si aucun auditeur n'intervient avant l'échéance.
+- **Analyse automatique** d'un dépôt GitHub public : secrets commis, dépendances npm et Composer en retard d'une version majeure, fichiers dupliqués, part de tests, dossiers de dépendances versionnés.
+- **Auditeurs** : 3 à 5, de niveau Expert, qui signent un accord de confidentialité électronique. Chaque constat est classé critique, moyen ou mineur, avec une piste de correction.
+- **Confrontation** : le porteur conteste un constat, les autres auditeurs tranchent à la majorité (la modération tranche s'il n'y en a pas d'autre).
+- **Rapport final** : score sur 100 (critique −15, moyen −6, mineur −2), effort estimé, certificat public vérifiable avec QR code. Les constats peuvent devenir des tickets de la Micro-Bourse.
+- **Paiement** : 70 % du forfait partagés entre les auditeurs dont au moins un constat est maintenu. Le porteur note ensuite ses auditeurs.
+- **Confidentialité** : en mode confidentiel, le dépôt et les constats ne sont visibles que des parties.
+
+Fonctionnement de la Centrale d'achat :
+- **Catalogue négocié** : serveurs cloud, PostgreSQL managé, instance de build, monitoring, passerelle SMS, clé d'API d'IA, nom de domaine. La base refuse toute offre dont la marge sort de 10 à 15 % ou dont le prix dépasse le prix public.
+- **En un clic** depuis un projet du Showroom ou une Squad. 5 ressources par compte.
+- **Facturation au réel** : à l'heure (tâche planifiée), au SMS ou au millier de jetons. Les crédits offerts sont utilisés avant le portefeuille.
+- **Jamais de facture surprise** : plafond mensuel avec alertes à 50, 80 et 100 %, puis pause automatique ; à solde nul, pause plutôt que dette.
+- **Clés d'API personnelles** (`bk_…`), dont seule l'empreinte est conservée. Le proxy `/api/centrale/ia/v1/messages` est compatible avec l'API Messages de Claude ; la passerelle `/api/centrale/sms` fonctionne en bac à sable (SMS validés et facturés, pas encore transmis aux opérateurs) et suspend une clé qui dépasse 100 SMS par heure.
+- **Coopérative** : les membres votent les prochains services à négocier ; 20 % de la marge annuelle leur revient en crédits, au prorata de leur consommation ; les lauréats des défis et les projets de la semaine reçoivent des crédits.
 
 ### Pensé pour la 3G
 
@@ -130,7 +152,7 @@ npx supabase status
 npm run dev
 ```
 
-Le site est sur **http://localhost:3000**, et l'interface d'administration de la base (Supabase Studio) sur **http://127.0.0.1:54323**.
+Le site est sur **http://localhost:3000**, et l'interface d'administration de la base (Supabase Studio) sur **http://127.0.0.1:57323**.
 
 Les migrations et les données de démo sont appliquées au démarrage. Pour repartir d'une base propre :
 
@@ -156,7 +178,7 @@ SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io npx supabase start \
 | `npm run lint` | ESLint |
 | `npx tsc --noEmit` | Vérification des types |
 | `npm run test:e2e` | Tests de bout en bout (voir [Tests](#tests)) |
-| `npx supabase db reset` | Réinitialise la base : migrations et données de démo |
+| `npm run db:reset` | Réinitialise la base (migrations et données de démo) et attend que l'API réponde |
 | `npx supabase stop` | Arrête Supabase |
 
 ---
@@ -183,7 +205,7 @@ Toutes les variables sont listées dans [.env.example](.env.example). Seules les
 ### Connexion GitHub
 
 1. Crée une OAuth App sur GitHub : *Settings → Developer settings → OAuth Apps*.
-2. Indique comme adresse de retour (*Authorization callback URL*) `http://127.0.0.1:54321/auth/v1/callback` en local, ou celle de ton projet Supabase en production.
+2. Indique comme adresse de retour (*Authorization callback URL*) `http://127.0.0.1:57321/auth/v1/callback` en local, ou celle de ton projet Supabase en production.
 3. Crée le fichier `supabase/.env` (il est ignoré par git) :
    ```bash
    SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID=<client id>
@@ -207,6 +229,7 @@ Tous ont le mot de passe **`baobab2026`**. Sur `/login`, des boutons permettent 
 | `fatou@baobab.dev` | Fatou, dev Flutter à Lomé |
 | `ibrahim@baobab.dev` | Ibrahim, étudiant à Ouagadougou |
 | `modo@baobab.dev` | Équipe de modération (administrateur) |
+| `mairie@baobab.dev` | Mairie de Cotonou (compte organisation) : publie des besoins sur le Radar |
 
 Les données de démo comprennent :
 - des questions avec leurs réponses ;
@@ -293,6 +316,11 @@ Les migrations de [supabase/migrations/](supabase/migrations/), dans l'ordre :
 | `…_v1.sql` | Défis, Stack Afrique, expiration, prolongation et arbitrage de la Micro-Bourse |
 | `…_question_images.sql`, `…_answer_images.sql` | Stockage des images |
 | `…_discussions.sql` | Messages privés, sujets, blocage, anti-spam |
+| `…_code_forensic.sql` | Audits, auditeurs et accord de confidentialité, constats, votes, score, clôture et paiement, expiration |
+| `…_abandoned_projects.sql` | Statistiques des dépôts, détection, choix du propriétaire, cession et reprise |
+| `…_radar.sql` | Opportunités, score de correspondance, alertes, réponses, sources de collecte, alertes WhatsApp |
+| `…_centrale.sql` | Centrale d'achat : catalogue, ressources, facturation, crédits, plafonds, anti-spam, coopérative ; correctif d'accès aux XP et badges |
+| `…_ai_clones.sql` | Clones IA : sources, facturation 70/30, Pass Clones et répartition mensuelle, avis, remboursement, suspension |
 
 ---
 
@@ -326,8 +354,13 @@ npm run test:e2e     # réinitialise la base avant chaque suite, puis à la fin
 | [tests/e2e/v1.mjs](tests/e2e/v1.mjs) | Défis, Stack Afrique, prolongation, litiges, expiration et remboursements, PWA |
 | [tests/e2e/images.mjs](tests/e2e/images.mjs) | Envoi d'images, droits sur le stockage, limites, affichage en mode données réduites |
 | [tests/e2e/discussions.mjs](tests/e2e/discussions.mjs) | Messages privés, temps réel, non-lus, mentions, blocage, modération, anti-spam |
+| [tests/e2e/forensic.mjs](tests/e2e/forensic.mjs) | Code Forensic : confidentialité, recrutement, contestation et vote, clôture, paiement, certificat, analyse d'un vrai dépôt, remboursement |
+| [tests/e2e/abandoned.mjs](tests/e2e/abandoned.mjs) | Projets abandonnés : règles de détection, relance, archivage, cession et reprise, vérification d'un vrai dépôt |
+| [tests/e2e/radar.mjs](tests/e2e/radar.mjs) | Radar : scores, alertes, confidentialité, réponses, collecte d'un flux RSS local avec extraction et déduplication |
+| [tests/e2e/centrale.mjs](tests/e2e/centrale.mjs) | Centrale d'achat : marges, clés d'API, SMS et anti-spam, facturation horaire, crédits, plafond et pause, solde, quota, ristourne, proxy d'IA |
+| [tests/e2e/clones.mjs](tests/e2e/clones.mjs) | Clone IA : réponses sourcées, facturation, répétitions, Pass, remboursement, suspension, création et publication |
 
-Une suite seule : `npx supabase db reset && node tests/e2e/discussions.mjs`.
+Une suite seule : `npm run db:reset && node tests/e2e/clones.mjs`.
 
 ---
 
@@ -356,7 +389,7 @@ Une suite seule : `npx supabase db reset && node tests/e2e/discussions.mjs`.
 |---|---|---|
 | **MVP (P1)** | ✅ fait | Inscription, profil gamifié, Q&A, Showroom, Squads, Griot (avec démo WhatsApp), Pair-Debugging, Micro-Bourse en mode test, modération |
 | **V1 (P2)** | 🟡 en partie | ✅ Défis, Stack Afrique, GitHub vivant, Micro-Bourse complète, PWA hors ligne, images, discussions<br>⬜ Connexion Google et OTP SMS, paiements Mobile Money réels, notifications WhatsApp et email, traduction anglais, webhooks GitHub en temps réel, correction automatique des défis |
-| **V2 (P3)** | ⬜ à faire | Clone IA du senior, Code Forensic, Radar d'opportunités, détecteur de projets abandonnés, Centrale d'achat d'infrastructures, espace recruteurs |
+| **V2 (P3)** | 🟡 en partie | ✅ Clone IA du senior, Code Forensic, détecteur de projets abandonnés, Radar d'opportunités, Centrale d'achat d'infrastructures<br>⬜ espace recruteurs |
 
 Pour le Pair-Debugging, il reste à faire l'extension VS Code et le client en ligne de commande. Le protocole texte qu'ils utiliseront est déjà en place.
 

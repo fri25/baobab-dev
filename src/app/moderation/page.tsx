@@ -15,7 +15,33 @@ const TARGET_HREF: Record<string, (id: string) => string> = {
   profile: () => "/classements",
   griot_query: () => "/griot",
   message: () => "/discussions?onglet=sujets",
+  audit_finding: () => "/forensic",
 };
+
+async function addRadarSource(formData: FormData) {
+  "use server";
+  const { supabase } = await requireSession("/moderation");
+  await supabase.from("radar_sources").insert({
+    name: String(formData.get("name")).trim(),
+    url: String(formData.get("url")).trim(),
+    country: String(formData.get("country") || "") || null,
+  });
+  revalidatePath("/moderation");
+}
+
+async function toggleRadarSource(id: string, active: boolean) {
+  "use server";
+  const { supabase } = await requireSession("/moderation");
+  await supabase.from("radar_sources").update({ active }).eq("id", id);
+  revalidatePath("/moderation");
+}
+
+async function distributeRebate(formData: FormData) {
+  "use server";
+  const { supabase } = await requireSession("/moderation");
+  await supabase.rpc("distribute_infra_rebate", { p_year: Number(formData.get("year")) });
+  revalidatePath("/moderation");
+}
 
 async function moderate(reportId: number, action: "remove" | "dismiss") {
   "use server";
@@ -28,6 +54,7 @@ export default async function ModerationPage() {
   const { supabase, profile } = await requireSession("/moderation");
   if (!["moderator", "admin"].includes(profile.role)) notFound();
 
+  const { data: sources } = await supabase.from("radar_sources").select("id, name, url, country, active, last_fetched_at").order("name");
   const [{ data: reports }, { data: disputes }, stats] = await Promise.all([
     supabase
       .from("reports")
@@ -102,6 +129,40 @@ export default async function ModerationPage() {
           })}
           {!disputes?.length && <li className="text-sm text-muted">Aucun litige.</li>}
         </ul>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-semibold">Sources du Radar (flux RSS ou Atom d&apos;appels d&apos;offres)</h2>
+        <p className="text-xs text-muted">Collectées chaque jour : seules les annonces liées au numérique sont retenues.</p>
+        <ul className="mt-3 space-y-2">
+          {sources?.map((s) => (
+            <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface p-3 text-sm">
+              <span className="min-w-0">
+                <span className="font-medium">{s.name}</span> {s.country && <span className="text-muted">· {s.country}</span>}
+                <span className="block truncate font-mono text-xs text-muted">{s.url}</span>
+                <span className="text-xs text-muted">{s.last_fetched_at ? `collectée ${timeAgo(s.last_fetched_at)}` : "jamais collectée"}</span>
+              </span>
+              <form action={toggleRadarSource.bind(null, s.id, !s.active)}>
+                <button className="rounded-full border border-border px-3 py-1 text-xs">{s.active ? "Désactiver" : "Activer"}</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+        <form action={addRadarSource} className="mt-3 grid gap-2 sm:grid-cols-[1fr_2fr_1fr_auto]">
+          <input name="name" required placeholder="Nom de la source" className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+          <input name="url" type="url" required placeholder="https://…/flux.rss" className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm" />
+          <input name="country" placeholder="Pays" className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+          <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">Ajouter</button>
+        </form>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-semibold">Centrale d&apos;achat : ristourne annuelle</h2>
+        <p className="text-xs text-muted">20 % de la marge de l&apos;année, reversés en crédits au prorata de la consommation de chaque membre. Une seule fois par an.</p>
+        <form action={distributeRebate} className="mt-2 flex gap-2">
+          <input name="year" type="number" defaultValue={new Date().getFullYear() - 1} className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+          <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">Verser la ristourne</button>
+        </form>
       </section>
     </main>
   );

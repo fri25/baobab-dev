@@ -73,3 +73,20 @@ export async function commentProject(projectId: string, slug: string, formData: 
   if (body) await supabase.from("comments").insert({ author_id: user.id, target_type: "project", target_id: projectId, body });
   revalidatePath(`/showroom/${slug}`);
 }
+
+export async function decideAbandoned(projectId: string, slug: string, choice: "relancer" | "ceder" | "archiver") {
+  const { supabase } = await requireSession(`/showroom/${slug}`);
+  const { data: squadId, error } = await supabase.rpc("decide_abandoned_project", { p_project: projectId, p_choice: choice });
+  if (error) redirect(`/showroom/${slug}?error=${encodeURIComponent(error.message)}`);
+  if (squadId) redirect(`/squads/${squadId}`);
+  revalidatePath(`/showroom/${slug}`);
+  revalidatePath("/showroom/relancer");
+}
+
+export async function adoptProject(projectId: string, slug: string) {
+  const { supabase } = await requireSession(`/showroom/${slug}`);
+  const { error } = await supabase.rpc("adopt_project", { p_project: projectId });
+  if (error) redirect(`/showroom/${slug}?error=${encodeURIComponent(error.message)}`);
+  revalidatePath(`/showroom/${slug}`);
+  revalidatePath("/showroom/relancer");
+}

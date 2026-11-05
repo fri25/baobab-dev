@@ -55,5 +55,7 @@ export const XP_REASONS: Record<string, string> = {
   bounty_resolved: "Ticket de la Micro-Bourse résolu",
   content_removed: "Contenu supprimé par la modération",
   challenge_won: "Podium d'un défi",
+  audit_completed: "Audit Code Forensic",
+  project_adopted: "Reprise d'un projet abandonné",
   seed_history: "Contributions passées",
 };

@@ -6,9 +6,17 @@ import { getSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
 import { PROJECT_STATUS } from "@/lib/labels";
 import { commentProject, electProjectOfWeek, toggleLike } from "../actions";
+import { AbandonPanel } from "./AbandonPanel";
 
-export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProjectPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { slug } = await params;
+  const { error } = await searchParams;
   const { supabase, user, profile } = await getSession();
 
   const { data: project } = await supabase
@@ -30,6 +38,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       .order("created_at"),
   ]);
   const isModerator = profile && ["moderator", "admin"].includes(profile.role);
+  const { data: founder } =
+    project.founder_id && project.founder_id !== project.owner_id
+      ? await supabase.from("profiles").select("username, full_name").eq("id", project.founder_id).single()
+      : { data: null };
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -41,7 +53,23 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
         <UserChip user={project.owner} />
         <span className="rounded-full border border-border px-2 py-0.5 text-xs">{PROJECT_STATUS[project.status]}</span>
+        {founder && project.abandon_status === "adopted" && (
+          <span className="text-xs text-muted">
+            Fondé par{" "}
+            <Link href={`/u/${founder.username}`} className="text-foreground hover:text-primary">
+              {founder.full_name ?? founder.username}
+            </Link>
+            , repris {timeAgo(project.adopted_at)}
+          </span>
+        )}
       </div>
+      {error && <p className="mt-3 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
+      <AbandonPanel project={project} userId={user?.id ?? null} founderName={founder?.full_name ?? founder?.username ?? null} />
+      {user?.id === project.owner_id && !["ceded", "archived"].includes(project.abandon_status ?? "") && (
+        <Link href={`/centrale/nouvelle?projet=${project.id}`} className="mt-4 inline-block text-sm text-primary hover:underline">
+          Héberger ce projet via la Centrale d&apos;achat →
+        </Link>
+      )}
 
       <p className="mt-6 text-lg">{project.description}</p>
       <div className="mt-4 flex flex-wrap gap-1.5">

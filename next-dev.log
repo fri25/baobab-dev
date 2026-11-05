@@ -285,3 +285,21 @@
  GET /u/koffi 200 in 2110ms
  ✓ Compiled /bourse/[id] in 195ms
  GET /bourse/32083698-7215-476d-8eff-de4af3ff80f6 200 in 3047ms
+ ✓ Compiled /defis in 216ms
+ GET /defis 200 in 1033ms
+ ✓ Compiled /stack in 149ms
+ GET /stack 200 in 1036ms
+ ✓ Compiled /stack/[slug] in 203ms
+ GET /stack/fedapay 200 in 1981ms
+ ✓ Compiled /activite in 149ms
+ GET /activite 200 in 927ms
+ ✓ Compiled /offline in 137ms
+ GET /offline 200 in 859ms
+ GET /manifest.webmanifest 200 in 1301ms
+ ✓ Compiled /defis/new in 203ms
+ GET /defis/new 200 in 1195ms
+ ✓ Compiled /defis/[id] in 137ms
+ GET /defis/74132d32-1fbe-4b8b-9300-5fef910d2073 200 in 1416ms
+ GET /bourse/8ef75324-ab94-44eb-b677-08fe9494776a 200 in 1916ms
+ GET /api/cron 200 in 2438ms
+ GET /api/cron 401 in 601ms

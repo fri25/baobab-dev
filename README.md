@@ -63,6 +63,7 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 | **Radar d'opportunités** | Les besoins numériques des PME, ONG et collectivités, publiés sur la plateforme ou collectés dans des flux RSS d'appels d'offres. Le besoin, les technologies, le budget, le délai et le lieu sont extraits automatiquement (Claude, ou règles sans clé). Chaque opportunité reçoit un score de correspondance avec chaque profil et chaque Squad. Au-dessus de 50/100, alerte dans l'app et sur WhatsApp (opt-in). Réponse seul ou au nom de sa Squad ; l'organisation présélectionne et retient. | `/radar`, `/radar/publier` |
 | **Code Forensic** | Audit de dette technique avant un lancement ou une levée de fonds. Voir le détail ci-dessous. | `/forensic` |
 | **Centrale d'achat** | Coopérative d'infrastructures au prix de gros. Voir le détail ci-dessous. | `/centrale` |
+| **Espace recruteurs** | Recherche avancée de profils vérifiés pour les entreprises, ONG et collectivités. Voir le détail ci-dessous. | `/recruteurs`, `/propositions` |
 | **Portefeuille** | Solde et historique dans un journal des transactions infalsifiable. En mode test, une recharge fictive permet la démo. | `/portefeuille` |
 
 Fonctionnement de la Micro-Bourse :
@@ -91,6 +92,14 @@ Fonctionnement de la Centrale d'achat :
 - **Jamais de facture surprise** : plafond mensuel avec alertes à 50, 80 et 100 %, puis pause automatique ; à solde nul, pause plutôt que dette.
 - **Clés d'API personnelles** (`bk_…`), dont seule l'empreinte est conservée. Le proxy `/api/centrale/ia/v1/messages` est compatible avec l'API Messages de Claude ; la passerelle `/api/centrale/sms` fonctionne en bac à sable (SMS validés et facturés, pas encore transmis aux opérateurs) et suspend une clé qui dépasse 100 SMS par heure.
 - **Coopérative** : les membres votent les prochains services à négocier ; 20 % de la marge annuelle leur revient en crédits, au prorata de leur consommation ; les lauréats des défis et les projets de la semaine reçoivent des crédits.
+
+Fonctionnement de l'espace recruteurs :
+- **Abonnement** : 25 000 FCFA pour 30 jours, payés depuis le portefeuille, avec 20 propositions de contact par période. Une prolongation s'ajoute à la fin de la période déjà payée.
+- **Profil vérifié** : calculé, jamais déclaré. Il faut un GitHub relié et au moins deux autres familles de preuves : réponses acceptées, Squads menées à terme, primes gagnées, podiums de défi, audits Code Forensic, projets au Showroom. Le badge apparaît aussi sur le profil public.
+- **Recherche** : mots-clés, technologies, pays, ville, niveau, disponibilité, type de contrat, vérifiés uniquement. Score sur 100 : compétences demandées (50), preuves (30), réputation (20). Les visiteurs ne voient que des chiffres agrégés.
+- **Présélection** avec notes privées, et suivi des propositions avec taux d'acceptation.
+- **Le dev garde la main** : il peut se masquer dans `/parametres` et choisir les contrats qui l'intéressent. Un recruteur ne peut pas lui écrire directement : il envoie une proposition, que le dev accepte (la conversation privée s'ouvre avec l'offre en premier message) ou décline, avec une raison s'il le souhaite. Une seule proposition en attente à la fois, pas de relance pendant 30 jours après un refus, expiration au bout de 14 jours. Le blocage s'applique aussi aux recruteurs.
+- **Consultations** : le dev voit combien de recruteurs, et lesquels, ont ouvert sa fiche sur 30 jours (une vue par jour et par recruteur), sans le détail ligne par ligne.
 
 ### Pensé pour la 3G
 
@@ -229,7 +238,7 @@ Tous ont le mot de passe **`baobab2026`**. Sur `/login`, des boutons permettent 
 | `fatou@baobab.dev` | Fatou, dev Flutter à Lomé |
 | `ibrahim@baobab.dev` | Ibrahim, étudiant à Ouagadougou |
 | `modo@baobab.dev` | Équipe de modération (administrateur) |
-| `mairie@baobab.dev` | Mairie de Cotonou (compte organisation) : publie des besoins sur le Radar |
+| `mairie@baobab.dev` | Mairie de Cotonou (compte organisation) : publie des besoins sur le Radar, abonnée à l'espace recruteurs (une présélection, une proposition en attente auprès de Koffi) |
 
 Les données de démo comprennent :
 - des questions avec leurs réponses ;
@@ -320,6 +329,7 @@ Les migrations de [supabase/migrations/](supabase/migrations/), dans l'ordre :
 | `…_abandoned_projects.sql` | Statistiques des dépôts, détection, choix du propriétaire, cession et reprise |
 | `…_radar.sql` | Opportunités, score de correspondance, alertes, réponses, sources de collecte, alertes WhatsApp |
 | `…_centrale.sql` | Centrale d'achat : catalogue, ressources, facturation, crédits, plafonds, anti-spam, coopérative ; correctif d'accès aux XP et badges |
+| `…_recruiters.sql` | Espace recruteurs : abonnement, preuves et statut vérifié, recherche, présélection, propositions consenties, consultations |
 | `…_ai_clones.sql` | Clones IA : sources, facturation 70/30, Pass Clones et répartition mensuelle, avis, remboursement, suspension |
 
 ---
@@ -358,6 +368,7 @@ npm run test:e2e     # réinitialise la base avant chaque suite, puis à la fin
 | [tests/e2e/abandoned.mjs](tests/e2e/abandoned.mjs) | Projets abandonnés : règles de détection, relance, archivage, cession et reprise, vérification d'un vrai dépôt |
 | [tests/e2e/radar.mjs](tests/e2e/radar.mjs) | Radar : scores, alertes, confidentialité, réponses, collecte d'un flux RSS local avec extraction et déduplication |
 | [tests/e2e/centrale.mjs](tests/e2e/centrale.mjs) | Centrale d'achat : marges, clés d'API, SMS et anti-spam, facturation horaire, crédits, plafond et pause, solde, quota, ristourne, proxy d'IA |
+| [tests/e2e/recruteurs.mjs](tests/e2e/recruteurs.mjs) | Espace recruteurs : accès réservé, filtres et score, profils masqués et blocage, vues agrégées, prolongations, propositions (acceptation, refus, relance, quota, expiration), revenus |
 | [tests/e2e/clones.mjs](tests/e2e/clones.mjs) | Clone IA : réponses sourcées, facturation, répétitions, Pass, remboursement, suspension, création et publication |
 
 Une suite seule : `npm run db:reset && node tests/e2e/clones.mjs`.
@@ -389,7 +400,7 @@ Une suite seule : `npm run db:reset && node tests/e2e/clones.mjs`.
 |---|---|---|
 | **MVP (P1)** | ✅ fait | Inscription, profil gamifié, Q&A, Showroom, Squads, Griot (avec démo WhatsApp), Pair-Debugging, Micro-Bourse en mode test, modération |
 | **V1 (P2)** | 🟡 en partie | ✅ Défis, Stack Afrique, GitHub vivant, Micro-Bourse complète, PWA hors ligne, images, discussions<br>⬜ Connexion Google et OTP SMS, paiements Mobile Money réels, notifications WhatsApp et email, traduction anglais, webhooks GitHub en temps réel, correction automatique des défis |
-| **V2 (P3)** | 🟡 en partie | ✅ Clone IA du senior, Code Forensic, détecteur de projets abandonnés, Radar d'opportunités, Centrale d'achat d'infrastructures<br>⬜ espace recruteurs |
+| **V2 (P3)** | ✅ fait | Clone IA du senior, Code Forensic, détecteur de projets abandonnés, Radar d'opportunités, Centrale d'achat d'infrastructures, espace recruteurs |
 
 Pour le Pair-Debugging, il reste à faire l'extension VS Code et le client en ligne de commande. Le protocole texte qu'ils utiliseront est déjà en place.
 

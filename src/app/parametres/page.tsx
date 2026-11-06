@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { parseTags } from "@/lib/format";
+import { OPEN_TO } from "@/lib/recruiter-labels";
 
 export const metadata = { title: "Paramètres · Baobab Dev" };
 
@@ -26,6 +27,8 @@ async function saveProfile(formData: FormData) {
       pinned_badges: formData.getAll("pinned").map(String).slice(0, 3),
       whatsapp_number: String(formData.get("whatsapp_number") || "").replace(/[\s.-]/g, "") || null,
       whatsapp_alerts: formData.get("whatsapp_alerts") === "on",
+      recruiter_visible: formData.get("recruiter_visible") === "on",
+      open_to: OPEN_TO.filter((o) => formData.get(`open_${o.value}`) === "on").map((o) => o.value),
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -139,6 +142,28 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </div>
           </fieldset>
         )}
+        <fieldset className="rounded-lg border border-border bg-surface p-3">
+          <legend className="px-1 text-sm font-medium">Recruteurs</legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="recruiter_visible" defaultChecked={p.recruiter_visible} /> Mon profil apparaît dans la recherche des
+            recruteurs abonnés
+          </label>
+          <p className="mt-1 text-xs text-muted">
+            Aucun recruteur ne peut t&apos;écrire directement : tu reçois une proposition, que tu acceptes ou déclines dans{" "}
+            <a href="/propositions" className="text-primary">
+              Propositions
+            </a>
+            .
+          </p>
+          <p className="mt-3 text-sm">Ouvert·e à</p>
+          <div className="mt-1 flex flex-wrap gap-3 text-sm">
+            {OPEN_TO.map((o) => (
+              <label key={o.value} className="flex items-center gap-1.5">
+                <input type="checkbox" name={`open_${o.value}`} defaultChecked={p.open_to.includes(o.value)} /> {o.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <fieldset className="rounded-lg border border-border bg-surface p-3">
           <legend className="px-1 text-sm font-medium">Alertes WhatsApp</legend>
           <label className="block text-sm">

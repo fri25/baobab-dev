@@ -485,3 +485,31 @@ insert into public.infra_proposal_votes (proposal_id, user_id)
 select p.id, u from public.infra_proposals p,
   unnest(array['a1000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000002']::uuid[]) u
 where p.title like 'Négocier%';
+
+-- ============================================================
+-- Espace recruteurs : préférences des devs, un recruteur abonné, une proposition en attente
+-- ============================================================
+-- Comptes GitHub de démo (inexistants : l'activité affichée reste vide)
+update public.profiles set github_username = 'baobab-demo-' || username
+where username in ('koffi', 'aicha', 'moussa');
+update public.profiles set open_to = d.open_to from (values
+  ('koffi', '{freelance,mission,remote}'::text[]),
+  ('aicha', '{cdi,freelance}'::text[]),
+  ('moussa', '{cdi,remote}'::text[]),
+  ('fatou', '{stage,cdd}'::text[]),
+  ('ibrahim', '{stage}'::text[])
+) as d(username, open_to) where profiles.username = d.username;
+-- Ibrahim préfère rester invisible des recruteurs
+update public.profiles set recruiter_visible = false where username = 'ibrahim';
+
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-4000-8000-000000000007","role":"authenticated"}', false);
+select public.wallet_move('a1000000-0000-4000-8000-000000000007', 100000, 'topup', null, null);
+select public.subscribe_recruiter('Mairie de Cotonou');
+select public.toggle_shortlist('a1000000-0000-4000-8000-000000000001', 'Profil Laravel + Mobile Money, idéal pour la régie des marchés.');
+select public.recruiter_view_profile('a1000000-0000-4000-8000-000000000001');
+select public.recruiter_view_profile('a1000000-0000-4000-8000-000000000002');
+select public.send_recruiter_contact('a1000000-0000-4000-8000-000000000002', 'mission',
+  'Audit de la plateforme de paiement des taxes',
+  'Bonjour Koffi, la Mairie de Cotonou modernise l''encaissement des taxes de marché par Mobile Money. Nous cherchons un senior pour auditer l''intégration existante et accompagner l''équipe pendant 6 semaines.',
+  '1 500 000 FCFA');
+select set_config('request.jwt.claims', '', false);

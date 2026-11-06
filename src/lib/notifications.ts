@@ -76,6 +76,12 @@ export function toToast(n: Notification): Toast | null {
     }
     case "infra_budget":
       return { id: n.id, title: `Centrale : ${p.level} % de ton plafond mensuel`, detail: `${Number(p.spend).toLocaleString("fr-FR")} / ${Number(p.cap).toLocaleString("fr-FR")} FCFA`, href: "/centrale" };
+    case "recruiter_contact":
+      return { id: n.id, title: `${p.company} te propose une opportunité`, detail: String(p.title), href: "/propositions" };
+    case "recruiter_contact_answer":
+      return p.accepted
+        ? { id: n.id, title: `@${p.dev} a accepté ta proposition`, detail: String(p.title), href: `/discussions/${p.conversation_id}` }
+        : { id: n.id, title: `@${p.dev} a décliné ta proposition`, detail: String(p.title), href: "/recruteurs/selection" };
     case "infra_credits":
       return { id: n.id, title: `+${Number(p.amount).toLocaleString("fr-FR")} FCFA de crédits d'infrastructure`, detail: String(p.reason), href: "/centrale" };
     default:

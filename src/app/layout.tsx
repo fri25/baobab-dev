@@ -66,6 +66,12 @@ export default async function RootLayout({
               <Link href="/debug" className="hover:text-foreground">
                 Pair-Debugging
               </Link>
+              <Link href="/recruteurs" className="hover:text-foreground">
+                Espace recruteurs
+              </Link>
+              <Link href="/propositions" className="hover:text-foreground">
+                Mes propositions
+              </Link>
               <form action={toggleLite}>
                 <button className="hover:text-foreground">{lite ? "Désactiver" : "Activer"} le mode données réduites</button>
               </form>

@@ -43,6 +43,8 @@ export default async function ProfilePage({ params }: Props) {
     .eq("owner_id", profile.id)
     .eq("status", "published")
     .maybeSingle();
+  const { data: evidence } = await supabase.rpc("talent_evidence", { p_user: profile.id });
+  const verified = (evidence as { verified?: boolean } | null)?.verified === true;
   const activities = profile.github_username ? await githubActivity(profile.github_username, 30) : [];
   const lvl = levelForXp(profile.xp);
   const pinned = profile.pinned_badges
@@ -69,7 +71,17 @@ export default async function ProfilePage({ params }: Props) {
           </div>
         )}
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{profile.full_name ?? profile.username}</h1>
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold">
+            {profile.full_name ?? profile.username}
+            {verified && (
+              <span
+                className="rounded-full bg-leaf/15 px-2 py-0.5 text-xs font-medium text-leaf"
+                title="GitHub relié et au moins deux autres preuves d'activité (réponses acceptées, Squads, primes, défis, audits, projets)"
+              >
+                ✓ Profil vérifié
+              </span>
+            )}
+          </h1>
           <p className="text-muted">
             @{profile.username}
             {(profile.city || profile.country) && <> · {[profile.city, profile.country].filter(Boolean).join(", ")}</>}

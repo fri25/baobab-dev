@@ -21,6 +21,7 @@ const KIND: Record<string, string> = {
   audit_payout: "Paiement d'un audit",
   audit_refund: "Forfait d'audit remboursé",
   infra_usage: "Centrale d'achat (consommation)",
+  recruiter_subscription: "Abonnement recruteurs (30 jours)",
 };
 
 export default async function WalletPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {

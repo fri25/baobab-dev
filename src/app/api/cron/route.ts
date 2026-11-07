@@ -28,6 +28,8 @@ export async function GET(request: Request) {
     }),
   );
 
-  const [projects, radar] = await Promise.all([checkStaleProjects(), collectSources()]);
+  // Les étapes qui dépendent de services externes sont isolées : l'échec de l'une n'annule pas les autres
+  const safely = <T,>(step: Promise<T>) => step.catch((e: unknown) => ({ error: e instanceof Error ? e.message : String(e) }));
+  const [projects, radar] = await Promise.all([safely(checkStaleProjects()), safely(collectSources())]);
   return NextResponse.json({ ...daily, health, projects, radar });
 }

@@ -490,3 +490,119 @@
  GET /u/koffi 200 in 1609ms
  ✓ Compiled /bourse/[id] in 89ms
  GET /bourse/a82e835a-9729-45ae-be1f-d9db7c009b4b 200 in 1448ms
+ ✓ Compiled /defis in 306ms
+ GET /defis 200 in 1867ms
+ ✓ Compiled /stack in 207ms
+ GET /stack 200 in 1860ms
+ ✓ Compiled /stack/[slug] in 168ms
+ GET /stack/fedapay 200 in 2358ms
+ ✓ Compiled /activite in 177ms
+ GET /activite 200 in 2310ms
+ ✓ Compiled /offline in 193ms
+ GET /offline 200 in 1151ms
+ GET /manifest.webmanifest 200 in 991ms
+ ✓ Compiled /defis/new in 151ms
+ GET /defis/new 200 in 1170ms
+ ✓ Compiled /defis/[id] in 384ms
+ GET /defis/33cf0871-9720-45eb-93af-e313c68618ad 200 in 3736ms
+ GET /bourse/8745831e-3972-4040-a410-727751830342 200 in 1728ms
+ GET /api/cron 200 in 5566ms
+ GET /api/cron 401 in 578ms
+ GET /questions/b5fb4bfa-568d-4c1c-9d13-b189b0846ac7 200 in 485ms
+ GET /questions/b5fb4bfa-568d-4c1c-9d13-b189b0846ac7 200 in 598ms
+ GET /questions/b5fb4bfa-568d-4c1c-9d13-b189b0846ac7 200 in 903ms
+ GET /questions 200 in 607ms
+ ✓ Compiled /discussions in 79ms
+ GET /discussions 200 in 534ms
+ GET /discussions?onglet=sujets 200 in 369ms
+ ✓ Compiled /discussions/[id] in 81ms
+ GET /discussions/e1000000-0000-4000-8000-000000000001 200 in 637ms
+ GET /discussions/d31c887a-31e6-45d8-b449-3203905fc9d4 200 in 1753ms
+ GET /discussions/d31c887a-31e6-45d8-b449-3203905fc9d4 404 in 710ms
+ ✓ Compiled /discussions/new in 88ms
+ GET /discussions/new 200 in 576ms
+ GET /u/koffi 200 in 1758ms
+ GET /discussions/68b277e8-5003-4d7c-b838-044026f6587a 200 in 437ms
+ GET /moderation 200 in 612ms
+ ✓ Compiled /clones in 75ms
+ GET /clones 200 in 472ms
+ ✓ Compiled /clones/[id] in 87ms
+ GET /clones/f1000000-0000-4000-8000-000000000001 200 in 689ms
+ ✓ Compiled /clones/mon-clone in 81ms
+ GET /clones/mon-clone 200 in 658ms
+ GET /clones/mon-clone 200 in 605ms
+ POST /api/clones/f1000000-0000-4000-8000-000000000001/ask 200 in 632ms
+ POST /api/clones/f1000000-0000-4000-8000-000000000001/ask 200 in 495ms
+ POST /api/clones/f1000000-0000-4000-8000-000000000001/ask 200 in 491ms
+ POST /api/clones/f1000000-0000-4000-8000-000000000001/ask 200 in 611ms
+ POST /api/clones/f1000000-0000-4000-8000-000000000001/ask 200 in 596ms
+ POST /api/clones/f1000000-0000-4000-8000-000000000001/ask 200 in 1236ms
+ ✓ Compiled /forensic in 100ms
+ GET /forensic 200 in 449ms
+ ✓ Compiled /forensic/new in 87ms
+ GET /forensic/new 200 in 589ms
+ ✓ Compiled /forensic/[id] in 82ms
+ GET /forensic/1effb901-4b86-4dbe-bf6e-c0d0b7e7e317 200 in 1042ms
+ GET /forensic/1effb901-4b86-4dbe-bf6e-c0d0b7e7e317 200 in 741ms
+ GET /forensic/1effb901-4b86-4dbe-bf6e-c0d0b7e7e317 200 in 1087ms
+ ✓ Compiled /forensic/certificat/[code] in 100ms
+ GET /forensic/certificat/AEB116ED06 200 in 732ms
+ POST /api/forensic/caa9dcb2-c0f9-4b16-99d4-76bc12f6db1d/analyze 200 in 4121ms
+ POST /api/forensic/caa9dcb2-c0f9-4b16-99d4-76bc12f6db1d/analyze 404 in 541ms
+ GET /api/cron 200 in 1930ms
+ GET /showroom 200 in 459ms
+ ✓ Compiled /showroom/relancer in 95ms
+ GET /showroom/relancer 200 in 481ms
+ ✓ Compiled /showroom/[slug] in 91ms
+ GET /showroom/meteo-agri-senegal 200 in 771ms
+ GET /showroom/meteo-agri-senegal 200 in 789ms
+ GET /showroom/artisans-ouaga 200 in 640ms
+ GET /showroom/relancer 200 in 423ms
+ GET /showroom 200 in 407ms
+ GET /showroom/artisans-ouaga 200 in 542ms
+ POST /api/projects/455f51c9-d143-4d90-ad7d-0e752b85932f/check 200 in 1859ms
+ POST /api/projects/455f51c9-d143-4d90-ad7d-0e752b85932f/check 404 in 545ms
+ GET /api/cron 200 in 1981ms
+ ✓ Compiled /radar in 92ms
+ GET /radar 200 in 772ms
+ ✓ Compiled /radar/[id] in 96ms
+ GET /radar/a2000000-0000-4000-8000-000000000001 200 in 823ms
+ GET /radar/a2000000-0000-4000-8000-000000000001 200 in 785ms
+ ✓ Compiled /radar/publier in 103ms
+ GET /radar/publier 200 in 626ms
+ GET /api/cron 200 in 1807ms
+ GET /api/cron 200 in 1136ms
+ ✓ Compiled /centrale in 280ms
+ GET /centrale 200 in 2698ms
+ GET /centrale 200 in 1406ms
+ ✓ Compiled /centrale/ressources/[id] in 385ms
+ GET /centrale/ressources/a3000000-0000-4000-8000-000000000001 200 in 2895ms
+ GET /centrale/ressources/a3000000-0000-4000-8000-000000000001 404 in 1405ms
+ GET /centrale/ressources/4f44017a-22a8-4f8e-9106-8e508eace2b0 200 in 1216ms
+ POST /api/centrale/sms 200 in 800ms
+ POST /api/centrale/sms 200 in 635ms
+ POST /api/centrale/sms 401 in 586ms
+ POST /api/centrale/ia/v1/messages 401 in 769ms
+ POST /api/centrale/sms 200 in 611ms
+ POST /api/centrale/sms 200 in 615ms
+ POST /api/centrale/sms 429 in 542ms
+TypeError: fetch failed
+    at async gh (src\lib\abandoned.ts:7:15)
+    at async checkProjectRepo (src\lib\abandoned.ts:24:17)
+    at async checkStaleProjects (src\lib\abandoned.ts:58:19)
+    at async GET (src\app\api\cron\route.ts:31:29)
+   5 |
+   6 | const gh = async (path: string) => {
+>  7 |   const res = await fetch(`https://api.github.com${path}`, {
+     |               ^
+   8 |     headers: {
+   9 |       Accept: "application/vnd.github+json",
+  10 |       ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}), {
+  [cause]: [Error: getaddrinfo ENOTFOUND api.github.com] {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'api.github.com'
+  }
+}
+ GET /api/cron 500 in 1334ms

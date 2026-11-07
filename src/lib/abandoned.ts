@@ -3,15 +3,20 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // Détecteur de projets abandonnés (§7.3) : dernier commit, intérêt passé, issues restées sans réponse.
 
+// Une API GitHub lente ou injoignable ne doit jamais faire échouer l'appelant : le projet est simplement revu plus tard.
 const gh = async (path: string) => {
-  const res = await fetch(`https://api.github.com${path}`, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
-    },
-    signal: AbortSignal.timeout(10_000),
-  });
-  return res.ok ? res.json() : null;
+  try {
+    const res = await fetch(`https://api.github.com${path}`, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
 };
 
 export type RepoCheck = { checked: boolean; detected?: boolean; last_commit?: string; stars?: number; forks?: number; unanswered?: number };

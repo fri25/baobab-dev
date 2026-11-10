@@ -26,14 +26,20 @@ export type GriotResult = {
 // Embeddings Voyage (1024 dimensions, cf. migration). Sans clé : recherche plein texte.
 export async function embed(text: string, inputType: "query" | "document") {
   if (!process.env.VOYAGE_API_KEY) return null;
-  const res = await fetch("https://api.voyageai.com/v1/embeddings", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.VOYAGE_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ input: [text], model: "voyage-3.5", input_type: inputType, output_dimension: 1024 }),
-  });
-  if (!res.ok) return null;
-  const json = (await res.json()) as { data: { embedding: number[] }[] };
-  return json.data[0].embedding;
+  // Quota dépassé, réseau lent ou coupé : on renvoie null et l'appelant passe à la recherche plein texte
+  try {
+    const res = await fetch("https://api.voyageai.com/v1/embeddings", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.VOYAGE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ input: [text], model: "voyage-3.5", input_type: inputType, output_dimension: 1024 }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data: { embedding: number[] }[] };
+    return json.data[0].embedding;
+  } catch {
+    return null;
+  }
 }
 
 export async function embedAnswer(answerId: string, text: string) {
@@ -45,7 +51,8 @@ async function findSources(question: string): Promise<GriotSource[]> {
   const admin = createAdminClient();
   const vector = await embed(question, "query");
   if (vector) {
-    const { data } = await admin.rpc("match_answers", { query_embedding: JSON.stringify(vector), match_count: 5 });
+    // Seuil calibré sur voyage-3.5 : questions pertinentes ≥ 0,50, hors sujet ≤ 0,41. En dessous, plein texte.
+    const { data } = await admin.rpc("match_answers", { query_embedding: JSON.stringify(vector), match_count: 5, min_similarity: 0.45 });
     if (data?.length) return data;
   }
   const { data } = await admin.rpc("match_answers_text", { p_query: question, match_count: 5 });

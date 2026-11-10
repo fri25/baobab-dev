@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "npm run db:reset && node tests/e2e/mvp.mjs && npm run db:reset && node tests/e2e/v1.mjs && npm run db:reset && node tests/e2e/images.mjs && npm run db:reset && node tests/e2e/discussions.mjs && npm run db:reset && node tests/e2e/clones.mjs && npm run db:reset && node tests/e2e/forensic.mjs && npm run db:reset && node tests/e2e/abandoned.mjs && npm run db:reset && node tests/e2e/radar.mjs && npm run db:reset && node tests/e2e/centrale.mjs && npm run db:reset && node tests/e2e/recruteurs.mjs && npm run db:reset",
-    "db:reset": "node tests/e2e/reset.mjs"
+    "db:reset": "node tests/e2e/reset.mjs",
+    "embed:backfill": "node scripts/embed-backfill.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0",

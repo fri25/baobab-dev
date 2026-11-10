@@ -205,7 +205,7 @@ Toutes les variables sont listées dans [.env.example](.env.example). Seules les
 | `NEXT_PUBLIC_DEMO_ACCOUNTS` | non | `false` masque les comptes de démo sur `/login` |
 | `SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID` / `_SECRET` | pour GitHub | Identifiants de l'OAuth App GitHub, à mettre dans `supabase/.env` (fichier lu par le CLI Supabase, pas par Next.js) |
 | `ANTHROPIC_API_KEY` | non | Synthèse du Griot par Claude. Sans clé, il assemble des extraits des réponses, toujours sourcés. |
-| `VOYAGE_API_KEY` | non | Recherche sémantique. Sans clé, le Griot utilise la recherche plein texte. |
+| `VOYAGE_API_KEY` | non | Recherche sémantique (Griot et clones). Sans clé, ou si Voyage refuse la requête, l'app utilise la recherche plein texte. Sans moyen de paiement enregistré chez Voyage, le compte est limité à 3 requêtes par minute (les tokens offerts restent gratuits). Après un `db:reset`, lance `npm run embed:backfill` pour indexer les contenus de démo. |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | pour WhatsApp | Le Griot sur WhatsApp (webhook `/api/whatsapp`) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | non | Numéro affiché sur la page du Griot |
 | `GITHUB_WEBHOOK_SECRET`, `GITHUB_TOKEN` | pour la Micro-Bourse réelle | Webhook `/api/github/webhook` : résultat des tests et fusion des Pull Requests |
@@ -221,6 +221,10 @@ Toutes les variables sont listées dans [.env.example](.env.example). Seules les
    SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET=<secret>
    ```
 4. Dans `supabase/config.toml`, passe `enabled = true` dans la section `[auth.external.github]`, puis redémarre Supabase (`npx supabase stop` puis `npx supabase start`).
+
+### Webhooks en local
+
+GitHub et Meta (WhatsApp) doivent pouvoir joindre l'app : ouvre un tunnel avec `npx cloudflared tunnel --url http://localhost:3000`, puis déclare les adresses `https://<tunnel>/api/github/webhook` et `https://<tunnel>/api/whatsapp`. L'adresse change à chaque lancement du tunnel : mets à jour les webhooks en conséquence. Les secrets à saisir chez GitHub et Meta sont `GITHUB_WEBHOOK_SECRET` et `WHATSAPP_VERIFY_TOKEN` de `.env.local`.
 
 ---
 

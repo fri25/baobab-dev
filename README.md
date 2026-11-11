@@ -38,7 +38,7 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 | **Profil gamifié** | Pré-rempli depuis GitHub. On y trouve les XP, 7 niveaux (de Graine à Légende Baobab), des badges bronze, argent et or, un QR code et un bouton de partage WhatsApp. | `/u/[pseudo]`, `/parametres` |
 | **Fil personnalisé** | Questions dans tes technologies, projets de ton pays, Squads qui cherchent ton profil, tickets payés, défi de la semaine. | `/fil` |
 | **Questions-réponses** | Blocs de code, tags et jusqu'à 4 images. Tu votes, valides la meilleure réponse et commentes. Les questions proches sont suggérées avant publication, et les experts du tag sont notifiés. | `/questions` |
-| **Le Griot** | IA communautaire qui répond uniquement à partir des réponses validées. Elle cite leurs auteurs, qui gagnent +5 XP. Disponible dans l'app et sur WhatsApp. | `/griot`, `/griot/whatsapp` |
+| **Le Griot** | Assistant de développement accessible depuis une bulle flottante pour les membres connectés ou sa page dédiée : privilégie les réponses validées de la communauté, cite les auteurs (+5 XP), conserve l'historique privé par compte et permet de demander un avis expert dans une discussion publique. | Bulle flottante, `/griot`, `/griot/whatsapp` |
 | **Discussions** | Messages privés entre devs et sujets publics, en temps réel. Avec @mentions, réponses à un message, blocage et signalement. | `/discussions` |
 | **Classements** | Par ville, par pays ou sur tout le continent. | `/classements` |
 
@@ -128,7 +128,7 @@ Fonctionnement de l'espace recruteurs :
 | Front-end | [Next.js 15](https://nextjs.org) (App Router, Server Components, Server Actions), React 19, Tailwind CSS 4, PWA |
 | Back-end et données | [Supabase](https://supabase.com) : PostgreSQL 17, Auth, Realtime, Storage |
 | Recherche sémantique | pgvector (embeddings Voyage, 1024 dimensions), avec repli sur la recherche plein texte PostgreSQL |
-| IA | API Claude (`@anthropic-ai/sdk`) pour le Griot |
+| IA | API Z AI pour la synthèse du Griot; API Claude (`@anthropic-ai/sdk`) pour les clones, le radar et la Centrale |
 | Temps réel | Supabase Realtime (changements de la base, broadcast, présence) |
 | Intégrations | WhatsApp Business Cloud API, webhooks GitHub, Vercel Cron |
 | Paiements (V1) | FedaPay, Kkiapay ou CinetPay : prévu, pas encore branché (le séquestre fonctionne en mode test) |
@@ -204,7 +204,8 @@ Toutes les variables sont listées dans [.env.example](.env.example). Seules les
 | `NEXT_PUBLIC_APP_URL` | non | URL publique du site (liens et QR codes) |
 | `NEXT_PUBLIC_DEMO_ACCOUNTS` | non | `false` masque les comptes de démo sur `/login` |
 | `SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID` / `_SECRET` | pour GitHub | Identifiants de l'OAuth App GitHub, à mettre dans `supabase/.env` (fichier lu par le CLI Supabase, pas par Next.js) |
-| `ANTHROPIC_API_KEY` | non | Synthèse du Griot par Claude. Sans clé, il assemble des extraits des réponses, toujours sourcés. |
+| `ZAI_API_URL` | non | Endpoint du Griot (par défaut `https://zai-backend-fz6j.onrender.com/api/chat`). Requête `POST` JSON `{ "message": "..." }`, réponse `{ "reply": "..." }`. Si Z AI est indisponible et que des sources communautaires existent, le Griot renvoie des extraits; sans source, il signale l'indisponibilité. |
+| `ANTHROPIC_API_KEY` | selon les fonctions | API Claude pour les clones, le radar et la Centrale IA. |
 | `VOYAGE_API_KEY` | non | Recherche sémantique. Sans clé, le Griot utilise la recherche plein texte. |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | pour WhatsApp | Le Griot sur WhatsApp (webhook `/api/whatsapp`) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | non | Numéro affiché sur la page du Griot |
@@ -338,13 +339,15 @@ Les migrations de [supabase/migrations/](supabase/migrations/), dans l'ordre :
 
 Le Griot ne remplace pas les devs : il s'appuie sur leurs réponses, les cite et les récompense.
 
-1. **Recherche** : il cherche les réponses validées ou bien notées les plus proches de la question, par similarité sémantique (pgvector) ou, sans clé Voyage, par recherche plein texte.
-2. **Synthèse** : Claude (`claude-opus-5-5`, effort `low` pour répondre en moins de 8 s) rédige la réponse uniquement à partir de ces sources, en les numérotant `[1]`, `[2]`…
-3. **Contrôle** : une réponse sans citation valide est remplacée par un assemblage d'extraits des sources. 100 % des réponses sont donc sourcées.
-4. **Récompense** : chaque auteur cité gagne +5 XP et une notification. Le badge « Voix du Griot » se débloque à 10 citations.
-5. **Sans source fiable**, le Griot n'invente rien : il propose de publier la question, et les experts sont notifiés.
+1. **Filtrage** : Z AI vérifie que la question porte sur le développement; sinon le Griot renvoie son refus exact.
+2. **Recherche** : il cherche les réponses validées ou bien notées les plus proches de la question, par similarité sémantique (pgvector) ou, sans clé Voyage, par recherche plein texte.
+3. **Synthèse communautaire** : Z AI (`POST /api/chat`) répond à partir des sources, en les numérotant `[1]`, `[2]`… Les auteurs réellement cités gagnent +5 XP et une notification. Le badge « Voix du Griot » se débloque à 10 citations.
+4. **Sans source communautaire pertinente**, Z AI répond avec ses connaissances techniques; l'interface indique clairement que cette réponse n'est pas validée par la communauté et ne crédite aucun auteur.
+5. **Historique privé** : les échanges du compte sont consultables par pages sur la page Griot; ils ne sont pas réinjectés dans les prompts.
+6. **Validation humaine** : après confirmation explicite, la question et la réponse proposée sont publiées dans un sujet public des Discussions. Les développeurs de niveau Expert (au moins 2 000 XP) ayant une compétence correspondante reçoivent une notification in-app.
+7. Les réponses générées ne dépassent pas 500 mots. La recherche est bornée aux 8 meilleurs candidats indexés, puis écarte les sources sans indice thématique commun et ne transmet au plus que 3 sources au moteur de génération. Une question clairement technique ne déclenche qu'un appel, quel que soit le volume global de la communauté.
 
-Le Griot est gratuit, dans la limite de 20 questions par jour.
+Le Griot est gratuit, dans la limite de 20 questions par jour. L’application et le webhook WhatsApp Business utilisent le même moteur de recherche, de synthèse Z AI et de citations.
 
 ---
 

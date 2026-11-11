@@ -98,6 +98,50 @@ ok("@mention : Koffi notifié", mention?.some((n) => n.payload.from === "moussa"
 const { data: topicId, error: eTopic } = await fatou.c.rpc("create_topic", { p_title: "Hébergement pas cher en FCFA", p_description: "VPS, Mobile Money", p_tags: ["hébergement"] });
 ok("créer un sujet", !eTopic && !!topicId, eTopic?.message);
 await page(`/discussions/${topicId}`, null, "Hébergement pas cher");
+
+// Demande d'avis du Griot : sujet public et notification in-app à un expert compétent
+const { data: griotQuery, error: griotQueryError } = await admin
+  .from("griot_queries")
+  .insert({
+    user_id: aicha.id,
+    channel: "app",
+    question: "Comment intégrer Laravel avec un webhook de paiement ?",
+    answer: "Vérifie la signature du webhook avant de traiter le paiement.",
+    status: "answered",
+  })
+  .select("id")
+  .single();
+const { data: reviewRows, error: reviewError } = griotQuery
+  ? await aicha.c.rpc("request_griot_review", { p_query_id: griotQuery.id, p_tags: ["Laravel"] })
+  : { data: null, error: griotQueryError };
+const review = reviewRows?.[0];
+ok("demande du Griot : sujet public créé", !reviewError && !!review?.conversation_id, reviewError?.message);
+if (review?.conversation_id) {
+  const { data: expertNotification } = await admin
+    .from("notifications")
+    .select("id")
+    .eq("user_id", koffi.id)
+    .eq("kind", "griot_review")
+    .eq("payload->>conversation_id", review.conversation_id);
+  ok("demande du Griot : Koffi reçoit une notification d'expert", expertNotification?.length === 1);
+  const { data: publicThread } = await moussa.c
+    .from("conversations")
+    .select("id")
+    .eq("id", review.conversation_id)
+    .single();
+  const { data: reviewMessage } = await moussa.c
+    .from("messages")
+    .select("body")
+    .eq("conversation_id", review.conversation_id)
+    .single();
+  ok("demande du Griot : sujet et échange visibles publiquement", !!publicThread && reviewMessage?.body.includes("webhook de paiement"));
+
+  const { data: retryRows, error: retryError } = await aicha.c.rpc("request_griot_review", {
+    p_query_id: griotQuery.id,
+    p_tags: ["Laravel"],
+  });
+  ok("demande du Griot : un nouvel essai réutilise le même sujet", !retryError && retryRows?.[0]?.conversation_id === review.conversation_id);
+}
 await ibrahim.c.rpc("leave_topic", { p_conversation: FLUTTER });
 const { data: left } = await admin.from("conversation_members").select("user_id").eq("conversation_id", FLUTTER).eq("user_id", ibrahim.id);
 ok("quitter un sujet", left?.length === 0);

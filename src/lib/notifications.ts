@@ -28,6 +28,13 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: "Nouvelle réponse à ta question", href: `/questions/${p.question_id}` };
     case "question_for_you":
       return { id: n.id, title: `Question ${p.skill} pour toi`, detail: String(p.title), href: `/questions/${p.question_id}` };
+    case "griot_review":
+      return {
+        id: n.id,
+        title: `Avis d’expert demandé · ${p.skill}`,
+        detail: String(p.title),
+        href: `/discussions/${p.conversation_id}`,
+      };
     case "bounty_contribution":
       return { id: n.id, title: "Ton ticket a été abondé", detail: `+${Number(p.amount).toLocaleString("fr-FR")} FCFA`, href: `/bourse/${p.bounty_id}` };
     case "squad_application":
@@ -88,4 +95,3 @@ export function toToast(n: Notification): Toast | null {
       return null;
   }
 }
-

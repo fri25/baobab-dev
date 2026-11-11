@@ -18,7 +18,7 @@ export function GriotBubble() {
         aria-label="Conversation avec le Griot"
         aria-hidden={!isOpen}
         inert={!isOpen}
-        className={`mb-4 h-[min(72dvh,560px)] w-[calc(100vw-3rem)] max-w-96 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-surface shadow-2xl transition duration-200 ${
+        className={`mb-3 h-[min(440px,calc(100dvh-6rem))] w-[min(340px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-surface shadow-2xl transition duration-200 ${
           isOpen ? "flex translate-y-0 opacity-100" : "hidden"
         }`}
       >

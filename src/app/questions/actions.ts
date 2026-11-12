@@ -9,12 +9,17 @@ import { validImageUrls } from "@/lib/images";
 
 export async function createQuestion(formData: FormData) {
   const { supabase, user } = await requireSession("/questions/new");
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  if (!title || !body) {
+    redirect(`/questions/new?error=${encodeURIComponent("Le titre et la description sont obligatoires.")}`);
+  }
   const { data, error } = await supabase
     .from("questions")
     .insert({
       author_id: user.id,
-      title: String(formData.get("title")).trim(),
-      body: String(formData.get("body")).trim(),
+      title,
+      body,
       tags: parseTags(formData.get("tags")),
       images: validImageUrls(formData.getAll("images"), user.id),
     })

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UserChip } from "@/components/Avatar";
+import { Markdown } from "@/components/Markdown";
 import { ReportButton } from "@/components/ReportButton";
 import { getSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
@@ -71,7 +72,9 @@ export default async function ProjectPage({
         </Link>
       )}
 
-      <p className="mt-6 text-lg">{project.description}</p>
+      <div className="mt-6 text-lg">
+        <Markdown text={project.description} />
+      </div>
       <div className="mt-4 flex flex-wrap gap-1.5">
         {project.stack.map((s: string) => (
           <span key={s} className="rounded bg-surface px-2 py-0.5 font-mono text-xs">

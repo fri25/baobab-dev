@@ -1,4 +1,5 @@
 import { requireSession } from "@/lib/auth";
+import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { createProject } from "../actions";
 
 export const metadata = { title: "Publier un projet · Baobab Dev" };
@@ -20,10 +21,18 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
           Nom
           <input name="name" required maxLength={80} className={input} />
         </label>
-        <label className="block text-sm font-medium">
-          Description
-          <textarea name="description" required rows={4} className={input} />
-        </label>
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium">Description</label>
+          <MarkdownEditor
+            draftKey="project-description"
+            id="description"
+            name="description"
+            label="Description du projet"
+            required
+            rows={7}
+            placeholder="Présente le problème, la solution et ce qui rend ton projet utile…"
+          />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium">
             Démo (URL)

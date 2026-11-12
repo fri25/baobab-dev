@@ -7,7 +7,11 @@ import { parseTags, slugify } from "@/lib/format";
 
 export async function createProject(formData: FormData) {
   const { supabase, user } = await requireSession("/showroom/new");
-  const name = String(formData.get("name")).trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  if (!name || !description) {
+    redirect(`/showroom/new?error=${encodeURIComponent("Le nom et la description sont obligatoires.")}`);
+  }
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
   const lookingForContributors = formData.get("contributors") === "on";
 
@@ -17,7 +21,7 @@ export async function createProject(formData: FormData) {
       owner_id: user.id,
       name,
       slug,
-      description: String(formData.get("description")).trim(),
+      description,
       demo_url: String(formData.get("demo_url") || "") || null,
       repo_url: String(formData.get("repo_url") || "") || null,
       stack: parseTags(formData.get("stack")),

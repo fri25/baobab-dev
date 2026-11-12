@@ -1,6 +1,6 @@
 import { requireSession } from "@/lib/auth";
-import { DraftTextarea } from "@/components/DraftTextarea";
 import { ImageUploader } from "@/components/ImageUploader";
+import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { createQuestion } from "../actions";
 import { TitleWithSuggestions } from "./SimilarQuestions";
 
@@ -22,14 +22,14 @@ export default async function NewQuestionPage({ searchParams }: { searchParams: 
           <label className="block text-sm font-medium" htmlFor="body">
             Description
           </label>
-          <p className="text-xs text-muted">Encadre le code avec ``` pour l&apos;afficher en bloc.</p>
-          <DraftTextarea
+          <MarkdownEditor
             draftKey="question"
             id="body"
             name="body"
+            label="Description"
             required
             rows={10}
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm"
+            placeholder="Décris le problème, ce que tu as essayé et le résultat attendu…"
           />
         </div>
         <ImageUploader userId={user.id} />

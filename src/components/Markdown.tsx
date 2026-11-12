@@ -1,7 +1,11 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { Fragment } from "react";
 
-// Rendu volontairement minimal (pas de bibliothèque : page légère) :
-// blocs ```code```, `code en ligne`, **gras**, paragraphes et listes « - ».
+const CodeBlock = dynamic(() => import("@/components/CodeBlock").then((module) => module.CodeBlock));
+
+// Rendu minimal des blocs de code, du code en ligne, du gras, des paragraphes et des listes.
 function Inline({ text }: { text: string }) {
   const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\[\d+\]|(?<![\w.])@[a-z0-9_]{2,})/g);
   return (
@@ -39,17 +43,9 @@ export function Markdown({ text }: { text: string }) {
       {blocks.map((block, i) => {
         if (i % 2 === 1) {
           const [first, ...rest] = block.split("\n");
-          const lang = first.trim();
-          return (
-            <pre
-              key={i}
-              className="overflow-x-auto rounded-lg border border-border bg-[#1f1a14] p-4 text-sm text-[#f3ece2]"
-              data-lang={lang || undefined}
-            >
-              {lang && <span className="mb-2 block font-mono text-xs text-[#e0823f]">{lang}</span>}
-              <code className="font-mono">{rest.join("\n").replace(/\n$/, "")}</code>
-            </pre>
-          );
+          const lang = first.trim().split(/\s+/, 1)[0].toLowerCase();
+          const code = rest.join("\n").replace(/\n$/, "");
+          return <CodeBlock key={i} code={code} language={lang} />;
         }
         return block
           .split(/\n{2,}/)

@@ -23,6 +23,7 @@ async function currentUser() {
 const NAV = [
   ["/fil", "Mon fil"],
   ["/questions", "Questions"],
+  ["/griot", "Griot"],
   ["/discussions", "Discussions"],
   ["/clones", "Clones IA"],
   ["/showroom", "Showroom"],

@@ -42,15 +42,25 @@ export default function Home() {
           Ailleurs, l&apos;IA a vidé les forums de développeurs.{" "}
           <span className="text-primary">Chez nous, elle fait vivre la communauté.</span>
         </h1>
-        <p className="mt-5 max-w-2xl text-lg text-muted">
+        <p className="mt-5 max-w-3xl text-xl font-semibold">La parole des sages, l’expertise en plus.</p>
+        <p className="mt-2 max-w-3xl text-base leading-relaxed">
+          Comme un véritable griot moderne, notre assistant fait résonner la voix de la communauté, cite ses auteurs et distribue des XP. En quête de vérité absolue ? Le Griot consulte ses sources ou en appelle à l’œil d’un expert.
+        </p>
+        <p className="mt-4 max-w-2xl text-sm text-muted">
           Baobab Dev est l&apos;endroit où les développeurs africains s&apos;entraident, montrent ce qu&apos;ils
           construisent, collaborent et gagnent leur vie grâce à leur expertise. Léger, mobile d&apos;abord, payé en
           Mobile Money.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/login"
+            href="/griot"
             className="rounded-full bg-primary px-6 py-3 font-medium text-primary-ink hover:opacity-90"
+          >
+            Découvrir le Griot
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-full border border-border px-6 py-3 font-medium hover:bg-surface"
           >
             Rejoindre avec GitHub
           </Link>

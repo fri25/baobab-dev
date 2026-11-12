@@ -52,11 +52,109 @@ body {
   color: var(--foreground);
 }
 
+@keyframes griot-avatar-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+.griot-avatar-glow {
+  animation: griot-avatar-glow 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .griot-avatar-glow {
+    animation: none;
+  }
+}
+
 /* Mode « données réduites » : aucune image chargée (les images lazy masquées ne sont pas téléchargées) */
 html[data-lite] .lite-hide,
 html[data-lite] img[loading="lazy"] {
   display: none;
 }
+
+.griot-timeline-range {
+  appearance: none;
+  background: transparent;
+}
+
+.griot-timeline-range::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.griot-timeline-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--background);
+  border-radius: 9999px;
+  background: var(--muted);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.griot-timeline-range:focus-visible::-webkit-slider-thumb {
+  background: var(--primary);
+}
+
+.griot-timeline-range::-moz-range-track {
+  background: transparent;
+}
+
+.griot-timeline-range::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--background);
+  border-radius: 9999px;
+  background: var(--muted);
+}
+
+.griot-chat-bubble pre {
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdown-code .hljs-comment,
+.markdown-code .hljs-quote {
+  color: #8b949e;
+}
+
+.markdown-code .hljs-keyword,
+.markdown-code .hljs-selector-tag,
+.markdown-code .hljs-literal,
+.markdown-code .hljs-type {
+  color: #ff7b72;
+}
+
+.markdown-code .hljs-string,
+.markdown-code .hljs-attr,
+.markdown-code .hljs-addition {
+  color: #a5d6ff;
+}
+
+.markdown-code .hljs-number,
+.markdown-code .hljs-variable,
+.markdown-code .hljs-operator {
+  color: #79c0ff;
+}
+
+.markdown-code .hljs-title,
+.markdown-code .hljs-function,
+.markdown-code .hljs-built_in {
+  color: #d2a8ff;
+}
+
+body:has(> main[data-page="griot"]) > footer {
+  margin-top: 1rem;
+}
+
 .lite-only {
   display: none;
 }

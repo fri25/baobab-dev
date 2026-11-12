@@ -22,7 +22,10 @@ declare
   v_id uuid;
   v_min bigint := (select value::bigint from app_settings where key = 'audit_min_fee');
 begin
-  if p_accept_nda is distinct from true then
+  if p_confidentiality not in ('private', 'public') then
+    raise exception 'Choix de confidentialité invalide';
+  end if;
+  if p_confidentiality = 'private' and p_accept_nda is distinct from true then
     raise exception 'Lis et accepte les clauses de confidentialité avant de créer l''audit';
   end if;
   if p_fee < v_min then raise exception 'Forfait minimum : % FCFA', v_min; end if;
@@ -33,7 +36,9 @@ begin
   )
   values (
     auth.uid(), trim(p_title), trim(p_repo_url), trim(p_context), p_confidentiality, p_max_auditors, p_fee,
-    now() + make_interval(days => greatest(3, least(p_days, 30))), now(), 'nda-v1'
+    now() + make_interval(days => greatest(3, least(p_days, 30))),
+    case when p_confidentiality = 'private' then now() end,
+    case when p_confidentiality = 'private' then 'nda-v1' end
   )
   returning id into v_id;
   perform wallet_move(auth.uid(), -p_fee, 'audit_payment', 'audit', v_id);

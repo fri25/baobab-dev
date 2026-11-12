@@ -116,16 +116,16 @@ ok("le porteur note ses auditeurs", !eRate, eRate?.message);
 const a0 = await balance(aicha);
 const { error: eOwnerNda } = await aicha.c.rpc("create_audit", {
   p_title: "Bibliothèque open source", p_repo_url: "https://github.com/sindresorhus/is", p_context: "Vérification avant publication",
-  p_confidentiality: "public", p_max_auditors: 3, p_fee: 10000, p_days: 7, p_accept_nda: false,
+  p_confidentiality: "private", p_max_auditors: 3, p_fee: 10000, p_days: 7, p_accept_nda: false,
 });
-ok("le porteur ne peut pas créer d'audit sans accord", !!eOwnerNda, eOwnerNda?.message);
+ok("le porteur ne peut pas créer un audit confidentiel sans accord", !!eOwnerNda, eOwnerNda?.message);
 const { data: newId, error: eNew } = await aicha.c.rpc("create_audit", {
   p_title: "Bibliothèque open source", p_repo_url: "https://github.com/sindresorhus/is", p_context: "Vérification avant publication",
-  p_confidentiality: "public", p_max_auditors: 3, p_fee: 10000, p_days: 7, p_accept_nda: true,
+  p_confidentiality: "public", p_max_auditors: 3, p_fee: 10000, p_days: 7, p_accept_nda: false,
 });
-ok("forfait de 10 000 FCFA bloqué", !eNew && (await balance(aicha)) === a0 - 10000, eNew?.message);
+ok("un audit public ne demande pas l’accord de confidentialité", !eNew && (await balance(aicha)) === a0 - 10000, eNew?.message);
 const { data: ownerNda } = await admin.from("audits").select("owner_nda_accepted_at, owner_nda_terms_version").eq("id", newId).single();
-ok("l’accord du porteur est horodaté et versionné", ownerNda?.owner_nda_accepted_at && ownerNda.owner_nda_terms_version === "nda-v1");
+ok("un audit public n’enregistre pas d’accord privé", ownerNda && !ownerNda.owner_nda_accepted_at && !ownerNda.owner_nda_terms_version);
 const { error: eCheap } = await aicha.c.rpc("create_audit", {
   p_title: "x", p_repo_url: "https://github.com/a/b", p_context: "x", p_confidentiality: "public", p_max_auditors: 3, p_fee: 500, p_days: 7, p_accept_nda: true,
 });

@@ -178,7 +178,7 @@ export async function matchAndAlert(opportunityId: string) {
   return { matches: (count as number) ?? 0, alerted: ids.length };
 }
 
-// Collecte : flux RSS ou Atom d'appels d'offres, filtrés sur le numérique
+// Collecte : flux RSS ou Atom d'appels d'offres, filtrés sur le numérique, mis en file de validation
 export async function collectSources() {
   const admin = createAdminClient();
   const { data: sources } = await admin.from("radar_sources").select("id, name, url, country").eq("active", true);
@@ -222,14 +222,11 @@ export async function collectSources() {
           city: x.city,
           source_url: link,
           extracted_by: by,
-          status: "open",
+          status: "pending", // visible du public après validation par l'administration
         })
         .select("id")
         .single();
-      if (inserted) {
-        await matchAndAlert(inserted.id);
-        added++;
-      }
+      if (inserted) added++;
     }
     await admin.from("radar_sources").update({ last_fetched_at: new Date().toISOString() }).eq("id", source.id);
   }

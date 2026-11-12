@@ -36,3 +36,16 @@ export function parseTags(raw: FormDataEntryValue | null) {
     .filter(Boolean)
     .slice(0, 5);
 }
+
+// Extrait lisible d'un texte Markdown (cartes, aperçus) : sans les symboles de mise en forme
+export function plainText(markdown: string) {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,3}\s+/gm, "")
+    .replace(/^>\s?/gm, "")
+    .replace(/^\s*(?:[-*]|\d+[.)])\s+/gm, "")
+    .replace(/(\*\*|\*|_|`)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}

@@ -84,6 +84,25 @@ export function toToast(n: Notification): Toast | null {
         : { id: n.id, title: `@${p.dev} a décliné ta proposition`, detail: String(p.title), href: "/recruteurs/selection" };
     case "infra_credits":
       return { id: n.id, title: `+${Number(p.amount).toLocaleString("fr-FR")} FCFA de crédits d'infrastructure`, detail: String(p.reason), href: "/centrale" };
+    case "topic_invite": {
+      const when = p.scheduled_at
+        ? ` · ouvre le ${new Date(String(p.scheduled_at)).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" })}`
+        : "";
+      return { id: n.id, title: `@${p.from} t'invite dans # ${p.title}`, detail: `Sujet ${p.scheduled_at ? "programmé" : "instantané"}${when}`, href: `/discussions/${p.conversation_id}` };
+    }
+    case "topic_started":
+      return { id: n.id, title: `C'est l'heure : # ${p.title} est ouvert`, detail: "Le sujet programmé commence.", href: `/discussions/${p.conversation_id}` };
+    case "audit_nda_signed":
+      return {
+        id: n.id,
+        title: "Accord de confidentialité signé",
+        detail: `${p.title} · signé par ${p.signed_by} · PDF disponible`,
+        href: `/api/forensic/${p.audit_id}/accord/${p.auditor_id}`,
+      };
+    case "opportunity_reviewed":
+      return p.approved
+        ? { id: n.id, title: "Ton opportunité est validée et publiée", detail: String(p.title), href: `/radar/${p.opportunity_id}` }
+        : { id: n.id, title: "Ton opportunité n'a pas été validée", detail: p.note ? String(p.note) : String(p.title), href: `/radar/${p.opportunity_id}` };
     default:
       return null;
   }

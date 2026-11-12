@@ -4,7 +4,8 @@ import { UserChip } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
 import { budgetLabel, ORG_TYPE, RESPONSE_STATUS, scoreClass } from "@/lib/radar-labels";
-import { closeOpportunity, publishOpportunity, respond, setResponseStatus } from "../actions";
+import { closeOpportunity, publishOpportunity, respond, reviewOpportunity, setResponseStatus } from "../actions";
+import { Deadline } from "../Deadline";
 
 type Person = { username: string; full_name: string | null; avatar_url: string | null; city: string | null };
 const input = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2";
@@ -18,14 +19,15 @@ export default async function OpportunityPage({
 }) {
   const { id } = await params;
   const { error } = await searchParams;
-  const { supabase, user } = await getSession();
+  const { supabase, user, profile } = await getSession();
+  const isModerator = ["moderator", "admin"].includes(profile?.role ?? "");
 
   const { data: o } = await supabase.from("opportunities").select("*").eq("id", id).maybeSingle();
   if (!o) notFound();
   const isPublisher = user?.id === o.publisher_id;
 
-  // Brouillon : l'organisation relit et corrige l'extraction avant publication
-  if (o.status === "draft" && isPublisher) {
+  // Brouillon (ou refus) : l'organisation relit et corrige l'extraction avant de l'envoyer en validation
+  if ((o.status === "draft" || (o.status === "rejected" && isPublisher)) && isPublisher) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-2xl font-bold">Vérifie ton besoin avant publication</h1>
@@ -33,6 +35,15 @@ export default async function OpportunityPage({
           {o.extracted_by === "ia" ? "Extrait par l'IA" : "Extrait automatiquement"} à partir de ton texte. Corrige ce qui ne va pas.
         </p>
         {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
+        {o.status === "rejected" && (
+          <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+            L&apos;administration n&apos;a pas validé cette opportunité{o.review_note ? ` : ${o.review_note}` : "."} Corrige-la et renvoie-la.
+          </p>
+        )}
+        <p className="mt-4 rounded-lg border border-border bg-surface p-3 text-sm text-muted">
+          Chaque opportunité est relue par l&apos;administration de la plateforme avant d&apos;être visible du public : cela protège
+          les devs des annonces trompeuses. Les profils correspondants sont alertés dès la validation.
+        </p>
         <form action={publishOpportunity.bind(null, id)} className="mt-6 space-y-4">
           <label className="block text-sm font-medium">
             Titre
@@ -94,7 +105,7 @@ export default async function OpportunityPage({
             <summary className="cursor-pointer text-muted">Ton texte d&apos;origine</summary>
             <p className="mt-2 whitespace-pre-line">{o.raw_text}</p>
           </details>
-          <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Publier et alerter les devs</button>
+          <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Envoyer pour validation</button>
         </form>
       </main>
     );
@@ -138,6 +149,47 @@ export default async function OpportunityPage({
           </p>
           <h1 className="mt-1 text-2xl font-bold">{o.title}</h1>
           {o.status === "closed" && <p className="mt-2 rounded-lg bg-surface px-3 py-2 text-sm text-muted">Opportunité close.</p>}
+          {o.status === "pending" && (
+            <p className="mt-2 rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-sm">
+              En attente de validation par l&apos;administration : pas encore visible du public.
+            </p>
+          )}
+          {o.status === "rejected" && (
+            <p className="mt-2 rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">
+              Non validée par l&apos;administration{o.review_note ? ` : ${o.review_note}` : "."}
+            </p>
+          )}
+          {o.status === "open" && o.deadline && (
+            <p className="mt-2">
+              <Deadline date={o.deadline} />
+            </p>
+          )}
+          {isModerator && o.status === "pending" && (
+            <div className="mt-4 rounded-xl border border-primary bg-surface p-4 text-sm">
+              <p className="font-semibold">Validation par l&apos;administration</p>
+              <p className="text-xs text-muted">
+                Vérifie l&apos;organisation, le budget et la date limite{o.source_url ? " par rapport à l'annonce d'origine" : ""}. À la
+                validation, l&apos;opportunité devient publique et les profils correspondants sont alertés.
+              </p>
+              {o.source_url && (
+                <a href={o.source_url} target="_blank" rel="noopener noreferrer nofollow" className="mt-1 block truncate font-mono text-xs text-primary">
+                  {o.source_url}
+                </a>
+              )}
+              <form className="mt-3 space-y-2">
+                <input type="hidden" name="back" value={`/radar/${id}`} />
+                <input name="note" placeholder="Motif (obligatoire pour un refus, transmis à l'organisation)" className="w-full rounded-lg border border-border bg-background px-3 py-2" />
+                <div className="flex gap-2">
+                  <button formAction={reviewOpportunity.bind(null, id, true)} className="rounded-full bg-leaf px-4 py-1.5 font-medium text-background">
+                    Valider et publier
+                  </button>
+                  <button formAction={reviewOpportunity.bind(null, id, false)} className="rounded-full border border-border px-4 py-1.5">
+                    Refuser
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
           <p className="mt-4 text-lg">{o.need}</p>
 
           <dl className="mt-5 grid gap-3 rounded-xl border border-border bg-surface p-4 text-sm sm:grid-cols-3">

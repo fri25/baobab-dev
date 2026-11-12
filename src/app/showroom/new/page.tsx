@@ -1,3 +1,4 @@
+import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { requireSession } from "@/lib/auth";
 import { createProject } from "../actions";
 
@@ -20,10 +21,21 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
           Nom
           <input name="name" required maxLength={80} className={input} />
         </label>
-        <label className="block text-sm font-medium">
-          Description
-          <textarea name="description" required rows={4} className={input} />
-        </label>
+        <div>
+          <label className="block text-sm font-medium" htmlFor="description">
+            Description
+          </label>
+          <p className="text-xs text-muted">Le problème résolu, pour qui, ce qui marche déjà. Mise en forme Markdown et aperçu.</p>
+          <MarkdownEditor
+            id="description"
+            name="description"
+            required
+            rows={8}
+            maxLength={5000}
+            draftKey="projet"
+            placeholder={"## Le problème\nLes commerçants de Dantokpa…\n\n## Ce qui marche déjà\n- Paiement FedaPay\n- Mode hors ligne"}
+          />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium">
             Démo (URL)
@@ -52,7 +64,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
         <details className="rounded-lg border border-border bg-surface p-4">
           <summary className="cursor-pointer text-sm font-medium">
             <input type="checkbox" name="contributors" className="mr-2" />
-            Je cherche des contributeurs (crée une Squad)
+            Je cherche des collaborateurs (crée une Squad)
           </summary>
           <div className="mt-3 space-y-3">
             <label className="block text-sm">
@@ -60,7 +72,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
               <input name="roles" placeholder="Back-end Node.js, Mobile Flutter" className={input} />
             </label>
             <label className="block text-sm">
-              Ce que tu attends des contributeurs
+              Ce que tu attends des collaborateurs
               <textarea name="squad_need" rows={2} className={input} />
             </label>
           </div>

@@ -54,7 +54,7 @@ export default async function ForensicPage() {
           </p>
         </div>
         <Link href="/forensic/new" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-          Faire auditer mon code
+          Lancer l&apos;audit
         </Link>
       </div>
 
@@ -73,7 +73,7 @@ export default async function ForensicPage() {
         <h2 className="font-semibold">Audits qui cherchent des auditeurs</h2>
         <p className="text-xs text-muted">
           {isExpert
-            ? "Rejoins un audit, accepte l'accord de confidentialité et partage 70 % du forfait avec les autres auditeurs."
+            ? "Rejoins un audit en signant l'accord de confidentialité (PDF remis aux deux parties) et partage 70 % du forfait avec les autres auditeurs."
             : "Auditer est réservé aux devs de niveau Expert (2 000 XP)."}
         </p>
         <ul className="mt-3 space-y-3">

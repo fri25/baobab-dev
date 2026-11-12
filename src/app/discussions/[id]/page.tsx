@@ -3,17 +3,26 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
 import { joinTopic, leaveTopic } from "../actions";
+import type { Relation } from "../RelationsPicker";
+import { InviteRelations, ShareTopic } from "./TopicTools";
 import { ChatRoom, type ChatMessage, type Person } from "./ChatRoom";
 
 const PAGE = 50;
 
-export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ConversationPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ invites?: string }>;
+}) {
   const { id } = await params;
+  const { invites } = await searchParams;
   const { supabase, user } = await getSession();
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select("id, kind, title, description, tags, created_by")
+    .select("id, kind, title, description, tags, created_by, scheduled_at")
     .eq("id", id)
     .maybeSingle();
   if (!conversation) notFound(); // conversation privée d'autres devs : invisible (RLS)
@@ -45,6 +54,9 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   }
 
   const isMember = Boolean(user && memberList.some((m) => m.user_id === user.id));
+  const { data: relations } = conversation.kind === "topic" && isMember ? await supabase.rpc("my_relations") : { data: [] };
+  const opensAt = conversation.scheduled_at && new Date(conversation.scheduled_at) > new Date() ? new Date(conversation.scheduled_at) : null;
+  const opensLabel = opensAt?.toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" });
   const other = conversation.kind === "direct" ? memberList.find((m) => m.user_id !== user?.id) : undefined;
 
   return (
@@ -81,6 +93,24 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
           )}
         </div>
 
+        {invites && <p className="mt-3 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">{invites} relation(s) invitée(s) : elles ont reçu une notification.</p>}
+        {opensAt && (
+          <p className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm">
+            <strong>Sujet programmé</strong> : les messages s&apos;ouvrent le {opensLabel} (heure de Cotonou). Les membres seront
+            prévenus. {user?.id === conversation.created_by ? "En tant que créateur·rice, tu peux déjà poster un message d'accueil." : ""}
+          </p>
+        )}
+
+        {conversation.kind === "topic" && (
+          <details className="mt-3 rounded-xl border border-border bg-surface p-3 text-sm lg:hidden">
+            <summary className="cursor-pointer font-medium">Partager{isMember ? " ou inviter des relations" : " le sujet"}</summary>
+            <div className="mt-3 space-y-4">
+              <ShareTopic title={conversation.title ?? "Sujet"} />
+              {isMember && <InviteRelations conversationId={id} relations={(relations ?? []) as Relation[]} members={memberList.map((m) => m.user_id)} />}
+            </div>
+          </details>
+        )}
+
         <ChatRoom
           conversationId={id}
           kind={conversation.kind}
@@ -93,8 +123,23 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
       </div>
 
       {conversation.kind === "topic" && (
-        <aside className="hidden w-56 shrink-0 lg:block">
-          <h2 className="mt-8 text-sm font-semibold">{memberList.length} membre(s)</h2>
+        <aside className="hidden w-64 shrink-0 space-y-6 lg:block">
+          <section className="mt-8">
+            <h2 className="text-sm font-semibold">Partager le sujet</h2>
+            <div className="mt-2">
+              <ShareTopic title={conversation.title ?? "Sujet"} />
+            </div>
+          </section>
+          {isMember && (
+            <section>
+              <h2 className="text-sm font-semibold">Inviter des relations</h2>
+              <div className="mt-2">
+                <InviteRelations conversationId={id} relations={(relations ?? []) as Relation[]} members={memberList.map((m) => m.user_id)} />
+              </div>
+            </section>
+          )}
+          <section>
+          <h2 className="text-sm font-semibold">{memberList.length} membre(s)</h2>
           <ul className="mt-3 space-y-2">
             {memberList.map((m) => (
               <li key={m.user_id}>
@@ -107,6 +152,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
             ))}
           </ul>
           {conversation.tags.length > 0 && <p className="mt-4 text-xs text-muted">{conversation.tags.join(" · ")}</p>}
+          </section>
         </aside>
       )}
     </main>

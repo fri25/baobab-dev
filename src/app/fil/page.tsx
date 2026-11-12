@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { UserChip } from "@/components/Avatar";
 import { requireSession } from "@/lib/auth";
-import { fcfa, timeAgo } from "@/lib/format";
+import { fcfa, timeAgo, plainText } from "@/lib/format";
 import { levelForXp } from "@/lib/levels";
 
 export const metadata = { title: "Mon fil · Baobab Dev" };
@@ -98,7 +98,7 @@ export default async function FeedPage() {
                   <Link href={`/showroom/${p.slug}`} className="font-medium hover:text-primary">
                     {p.name}
                   </Link>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted">{p.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted">{plainText(p.description)}</p>
                   <div className="mt-2">
                     <UserChip user={p.owner as never} />
                   </div>

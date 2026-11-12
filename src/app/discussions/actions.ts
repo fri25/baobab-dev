@@ -16,13 +16,28 @@ export async function startDirect(otherId: string) {
 
 export async function createTopic(formData: FormData) {
   const { supabase } = await requireSession("/discussions/new");
+  // « Programmé » : date choisie dans le fuseau du navigateur, convertie en ISO côté client
+  const scheduled = formData.get("mode") === "programme" ? String(formData.get("scheduled_at") || "") : "";
+  if (formData.get("mode") === "programme" && !scheduled) {
+    redirect(`/discussions/new?error=${encodeURIComponent("Choisis la date et l'heure du sujet programmé.")}`);
+  }
   const { data, error } = await supabase.rpc("create_topic", {
     p_title: String(formData.get("title")),
     p_description: String(formData.get("description") || ""),
     p_tags: parseTags(formData.get("tags")),
+    p_scheduled_at: scheduled || null,
   });
   if (error) redirect(`/discussions/new?error=${encodeURIComponent(error.message)}`);
-  redirect(path(data as string));
+  const invited = formData.getAll("invite").map(String).filter(Boolean);
+  if (invited.length) await supabase.rpc("invite_to_topic", { p_conversation: data, p_users: invited });
+  redirect(`${path(data as string)}${invited.length ? `?invites=${invited.length}` : ""}`);
+}
+
+export async function inviteToTopic(conversationId: string, userIds: string[]) {
+  const { supabase } = await requireSession(path(conversationId));
+  const { data, error } = await supabase.rpc("invite_to_topic", { p_conversation: conversationId, p_users: userIds.slice(0, 50) });
+  revalidatePath(path(conversationId));
+  return { invited: (data as number | null) ?? 0, error: error?.message ?? null };
 }
 
 export async function joinTopic(id: string) {

@@ -38,7 +38,11 @@ export async function createAudit(formData: FormData) {
 
 export async function joinAudit(auditId: string, formData: FormData) {
   const { supabase } = await requireSession(path(auditId));
-  const { error } = await supabase.rpc("join_audit", { p_audit: auditId, p_accept_nda: formData.get("nda") === "on" });
+  const { error } = await supabase.rpc("join_audit", {
+    p_audit: auditId,
+    p_accept_nda: formData.get("nda") === "on",
+    p_signed_name: String(formData.get("signed_name") || "").trim(),
+  });
   back(auditId, error);
 }
 

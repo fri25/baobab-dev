@@ -1,5 +1,5 @@
 import { requireSession } from "@/lib/auth";
-import { DraftTextarea } from "@/components/DraftTextarea";
+import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { createQuestion } from "../actions";
 import { TitleWithSuggestions } from "./SimilarQuestions";
@@ -22,14 +22,14 @@ export default async function NewQuestionPage({ searchParams }: { searchParams: 
           <label className="block text-sm font-medium" htmlFor="body">
             Description
           </label>
-          <p className="text-xs text-muted">Encadre le code avec ``` pour l&apos;afficher en bloc.</p>
-          <DraftTextarea
+          <p className="text-xs text-muted">Ce que tu essaies de faire, ce que tu as tenté, le message d&apos;erreur. Utilise la barre d&apos;outils ou le Markdown, puis vérifie l&apos;aperçu.</p>
+          <MarkdownEditor
             draftKey="question"
             id="body"
             name="body"
             required
-            rows={10}
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm"
+            rows={12}
+            placeholder={"J'essaie de…\n\n```php\n// le code concerné\n```\n\nErreur obtenue : …"}
           />
         </div>
         <ImageUploader userId={user.id} />

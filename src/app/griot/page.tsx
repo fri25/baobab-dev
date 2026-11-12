@@ -4,7 +4,8 @@ import { GriotChat } from "./GriotChat";
 
 export const metadata = { title: "Le Griot · Baobab Dev" };
 
-export default async function GriotPage() {
+export default async function GriotPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = await searchParams;
   const { user } = await getSession();
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
@@ -22,10 +23,10 @@ export default async function GriotPage() {
         Aussi disponible sur WhatsApp →
       </a>
       {user ? (
-        <GriotChat />
+        <GriotChat initialQuestion={q?.slice(0, 500)} />
       ) : (
         <p className="mt-8 rounded-xl border border-border bg-surface p-4 text-center text-sm">
-          <Link href="/login?next=/griot" className="text-primary">
+          <Link href={`/login?next=${encodeURIComponent(q ? `/griot?q=${q}` : "/griot")}`} className="text-primary">
             Connecte-toi
           </Link>{" "}
           pour interroger le Griot (20 questions gratuites par jour).

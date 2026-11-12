@@ -38,7 +38,7 @@ const AUDIT = demo.id;
 
 // Pages et confidentialité
 await page("/forensic", null, "Code Forensic");
-await page("/forensic/new", aicha.cookie, "Bloquer le forfait");
+await page("/forensic/new", aicha.cookie, "Lancer l&#x27;audit");
 await page(`/forensic/${AUDIT}`, aicha.cookie, "Webhook FedaPay accepté sans vérification");
 const outsider = await page(`/forensic/${AUDIT}`, moussa.cookie, "Audit confidentiel");
 ok("audit confidentiel : constats invisibles pour un tiers", !outsider.includes("Webhook FedaPay accepté"));
@@ -57,16 +57,16 @@ const { data: modDecision } = await modo.c.rpc("vote_finding", { p_finding: n1.i
 ok("sans autre auditeur, la modération tranche", modDecision === "dismissed", modDecision);
 
 // Recrutement : Expert + accord de confidentialité, plafond d'auditeurs
-const { error: eOwnJoin } = await aicha.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
+const { error: eOwnJoin } = await aicha.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true, p_signed_name: "Signature de test" });
 ok("le porteur ne s'audite pas", !!eOwnJoin);
-const { error: eLevel } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
+const { error: eLevel } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true, p_signed_name: "Signature de test" });
 ok("auditeur : niveau Expert requis", !!eLevel, eLevel?.message);
 await admin.from("profiles").update({ xp: 2100 }).in("id", [moussa.id, fatou.id, ibrahim.id]);
-const { error: eNda } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: false });
+const { error: eNda } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: false, p_signed_name: "Signature de test" });
 ok("accord de confidentialité obligatoire", !!eNda, eNda?.message);
-await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
-await fatou.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
-const { error: eFull } = await ibrahim.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
+await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true, p_signed_name: "Signature de test" });
+await fatou.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true, p_signed_name: "Signature de test" });
+const { error: eFull } = await ibrahim.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true, p_signed_name: "Signature de test" });
 ok("3 auditeurs maximum", !!eFull, eFull?.message);
 await page(`/forensic/${AUDIT}`, moussa.cookie, "Ajouter un constat");
 

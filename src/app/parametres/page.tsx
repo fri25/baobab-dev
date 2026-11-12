@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { parseTags } from "@/lib/format";
 import { OPEN_TO } from "@/lib/recruiter-labels";
+import { AvatarUploader } from "./AvatarUploader";
 
 export const metadata = { title: "Paramètres · Baobab Dev" };
 
@@ -66,6 +67,18 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <h1 className="text-2xl font-bold">Mon profil</h1>
       {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
       {ok && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">Profil enregistré.</p>}
+
+      <div className="mt-6">
+        <AvatarUploader
+          user={{
+            id: user.id,
+            username: p.username,
+            full_name: p.full_name,
+            avatar_url: p.avatar_url,
+            github_avatar: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+          }}
+        />
+      </div>
 
       <form action={saveProfile} className="mt-6 space-y-4">
         <label className="block text-sm font-medium">

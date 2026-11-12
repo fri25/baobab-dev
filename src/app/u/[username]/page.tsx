@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { plainText } from "@/lib/format";
 import { notFound } from "next/navigation";
 import { startDirect, toggleBlock } from "@/app/discussions/actions";
 import { BadgeChip } from "@/components/BadgeChip";
@@ -227,7 +228,7 @@ export default async function ProfilePage({ params }: Props) {
                     <Link href={`/showroom/${p.slug}`} className="font-medium hover:text-primary">
                       {p.name}
                     </Link>
-                    <p className="mt-1 text-sm text-muted">{p.description}</p>
+                    <p className="mt-1 text-sm text-muted">{plainText(p.description)}</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {p.stack.map((s) => (
                         <span key={s} className="rounded bg-background px-2 py-0.5 font-mono text-xs">

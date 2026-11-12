@@ -368,7 +368,7 @@ from public.audits a, (values
 where a.title like 'Tontine Pay%';
 
 select set_config('request.jwt.claims', '{"sub":"a1000000-0000-4000-8000-000000000002","role":"authenticated"}', false);
-select public.join_audit((select id from public.audits where title like 'Tontine Pay%'), true);
+select public.join_audit((select id from public.audits where title like 'Tontine Pay%'), true, 'Koffi Kouassi');
 select public.add_audit_finding((select id from public.audits where title like 'Tontine Pay%'), 'securite', 'critique',
   'Webhook FedaPay accepté sans vérification de signature',
   E'Dans `PaymentController@webhook`, l''événement est traité sans appeler `Webhook::constructEvent` : n''importe qui peut marquer une cotisation comme payée avec un simple POST.',
@@ -444,8 +444,28 @@ insert into public.opportunities (id, source, publisher_id, organization_name, o
    '{React,Node.js,"Mobile Money"}', 2500000, 4000000, (now() + interval '20 days')::date, 'Côte d''Ivoire', 'Abidjan',
    null, 'https://exemple.org/annonces/boutique-akwaba', 'regles', 'open', now() - interval '1 day');
 
-select public.compute_opportunity_matches(id) from public.opportunities;
-select public.notify_opportunity_matches(id) from public.opportunities;
+-- Retours du 11/11 : un appel d'offres à échéance imminente (validé) et un autre en attente de validation
+insert into public.opportunities (id, source, publisher_id, organization_name, org_type, title, raw_text, need, technologies,
+                                  budget_min, budget_max, deadline, country, city, source_url, extracted_by, status, created_at,
+                                  reviewed_by, reviewed_at) values
+  ('a2000000-0000-4000-8000-000000000004', 'collectee', null, 'Agence de Développement de Dakar', 'collectivite',
+   'Portail de suivi des permis de construire',
+   E'L''Agence recherche un prestataire pour un portail web de dépôt et de suivi des permis de construire, avec notifications SMS.
+Budget : 15 000 000 FCFA. Date limite de dépôt des offres : dans 3 jours.',
+   'Un portail web de dépôt et de suivi des permis de construire, avec notifications SMS aux demandeurs.',
+   '{Laravel,PostgreSQL,SMS}', 15000000, 15000000, (now() + interval '3 days')::date, 'Sénégal', 'Dakar',
+   'https://exemple.org/appels-offres/permis-dakar', 'regles', 'open', now() - interval '6 hours',
+   'a1000000-0000-4000-8000-000000000006', now() - interval '5 hours'),
+  ('a2000000-0000-4000-8000-000000000005', 'collectee', null, 'Coopérative cacaoyère de Soubré', 'pme',
+   'Traçabilité du cacao par application mobile',
+   E'Coopérative de 1 200 producteurs, nous cherchons une application mobile hors ligne pour enregistrer les pesées et payer les producteurs par Mobile Money.
+Budget indicatif : 7 millions FCFA. Offres avant 5 jours.',
+   'Une application mobile hors ligne pour enregistrer les pesées de cacao et payer les producteurs par Mobile Money.',
+   '{Flutter,"Mobile Money"}', 7000000, 7000000, (now() + interval '5 days')::date, 'Côte d''Ivoire', 'Soubré',
+   'https://exemple.org/appels-offres/cacao-soubre', 'regles', 'pending', now() - interval '2 hours', null, null);
+
+select public.compute_opportunity_matches(id) from public.opportunities where status = 'open';
+select public.notify_opportunity_matches(id) from public.opportunities where status = 'open';
 
 -- ============================================================
 -- V2 : Centrale d'achat d'infrastructures

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type CurrentProfile = { id: string; username: string; role: string; xp: number; avatar_url: string | null };
+export type CurrentProfile = { id: string; username: string; full_name: string | null; role: string; xp: number; avatar_url: string | null };
 
 export async function getSession() {
   const supabase = await createClient();
@@ -9,7 +9,7 @@ export async function getSession() {
   if (!data.user) return { supabase, user: null, profile: null };
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, role, xp, avatar_url")
+    .select("id, username, full_name, role, xp, avatar_url")
     .eq("id", data.user.id)
     .single<CurrentProfile>();
   return { supabase, user: data.user, profile };

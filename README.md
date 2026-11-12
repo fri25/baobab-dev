@@ -35,18 +35,19 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 
 | Fonction | Description | Route |
 |---|---|---|
-| **Profil gamifié** | Pré-rempli depuis GitHub. On y trouve les XP, 7 niveaux (de Graine à Légende Baobab), des badges bronze, argent et or, un QR code et un bouton de partage WhatsApp. | `/u/[pseudo]`, `/parametres` |
+| **Profil gamifié** | Pré-rempli depuis GitHub, avec photo de profil professionnelle (recadrée et compressée sur le téléphone). On y trouve les XP, 7 niveaux (de Graine à Légende Baobab), des badges bronze, argent et or, un QR code et un bouton de partage WhatsApp. | `/u/[pseudo]`, `/parametres` |
+| **Navigation** | Menus par catégorie (Échanger, Construire, Gagner, Administration), page en cours mise en évidence, bulle flottante du Griot avec accès aux discussions privées. | partout |
 | **Fil personnalisé** | Questions dans tes technologies, projets de ton pays, Squads qui cherchent ton profil, tickets payés, défi de la semaine. | `/fil` |
 | **Questions-réponses** | Blocs de code, tags et jusqu'à 4 images. Tu votes, valides la meilleure réponse et commentes. Les questions proches sont suggérées avant publication, et les experts du tag sont notifiés. | `/questions` |
 | **Le Griot** | IA communautaire qui répond uniquement à partir des réponses validées. Elle cite leurs auteurs, qui gagnent +5 XP. Disponible dans l'app et sur WhatsApp. | `/griot`, `/griot/whatsapp` |
-| **Discussions** | Messages privés entre devs et sujets publics, en temps réel. Avec @mentions, réponses à un message, blocage et signalement. | `/discussions` |
+| **Discussions** | Messages privés entre devs et sujets publics, en temps réel. Sujet *instantané* ou *programmé* (ouvert aux messages à l'heure dite, membres prévenus), invitation de ses relations (contacts privés, membres de Squad), lien de partage (copie, WhatsApp). Avec @mentions, réponses à un message, blocage et signalement. | `/discussions` |
 | **Classements** | Par ville, par pays ou sur tout le continent. | `/classements` |
 
 ### Construire ensemble
 
 | Fonction | Description | Route |
 |---|---|---|
-| **Showroom** | Vitrine des projets africains : likes, projet de la semaine, appel à contributeurs. | `/showroom` |
+| **Showroom** | Vitrine des projets africains : description en Markdown avec aperçu, likes, projet de la semaine, appel à collaborateurs. | `/showroom` |
 | **Squads** | Équipes formées par matching de compétences, avec candidatures, invitations, tableau de tâches et discussion en temps réel. | `/squads` |
 | **Pair-Debugging fantôme** | Débogage à plusieurs façon Google Docs, en texte pur, à moins de 5 Ko/s. Curseurs visibles, terminal partagé, « Prendre la main », secrets masqués et relecture de la session. | `/debug` |
 | **Défis** | Défi hebdomadaire noté par un jury. Le podium gagne +100, +60 ou +30 XP. Les défis peuvent être sponsorisés. | `/defis` |
@@ -60,7 +61,7 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 |---|---|---|
 | **Micro-Bourse de code** | Bugs et fonctionnalités financés par la communauté. Voir le détail ci-dessous. | `/bourse` |
 | **Clone IA du senior** | Dès le niveau Expert, un senior crée un assistant à partir de ses réponses validées et de ses notes. Le clone répond dans son style, cite ses contenus et refuse ce qui sort de sa spécialité. Première question gratuite, puis 100 FCFA, ou Pass Clones à 2 000 FCFA par mois. Le senior touche 70 %. Une mauvaise réponse peut être signalée et remboursée ; sous 2,5/5 de moyenne, le clone est suspendu. | `/clones`, `/clones/mon-clone` |
-| **Radar d'opportunités** | Les besoins numériques des PME, ONG et collectivités, publiés sur la plateforme ou collectés dans des flux RSS d'appels d'offres. Le besoin, les technologies, le budget, le délai et le lieu sont extraits automatiquement (Claude, ou règles sans clé). Chaque opportunité reçoit un score de correspondance avec chaque profil et chaque Squad. Au-dessus de 50/100, alerte dans l'app et sur WhatsApp (opt-in). Réponse seul ou au nom de sa Squad ; l'organisation présélectionne et retient. | `/radar`, `/radar/publier` |
+| **Radar d'opportunités** | Les besoins numériques des PME, ONG et collectivités, publiés sur la plateforme ou collectés dans des flux RSS d'appels d'offres. Le besoin, les technologies, le budget, le délai et le lieu sont extraits automatiquement (Claude, ou règles sans clé). Chaque opportunité est **validée par l'administration** avant d'être publique (file dans `/moderation`, refus motivé). Les échéances de moins de 7 jours remontent en tête avec un compte à rebours, et la liste se met à jour en direct (Supabase Realtime) ; les opportunités échues se ferment seules. Chaque opportunité reçoit un score de correspondance avec chaque profil et chaque Squad. Au-dessus de 50/100, alerte dans l'app et sur WhatsApp (opt-in). Réponse seul ou au nom de sa Squad ; l'organisation présélectionne et retient. | `/radar`, `/radar/publier` |
 | **Code Forensic** | Audit de dette technique avant un lancement ou une levée de fonds. Voir le détail ci-dessous. | `/forensic` |
 | **Centrale d'achat** | Coopérative d'infrastructures au prix de gros. Voir le détail ci-dessous. | `/centrale` |
 | **Espace recruteurs** | Recherche avancée de profils vérifiés pour les entreprises, ONG et collectivités. Voir le détail ci-dessous. | `/recruteurs`, `/propositions` |
@@ -79,7 +80,7 @@ Fonctionnement de la Micro-Bourse :
 Fonctionnement de Code Forensic :
 - **Forfait** : 10 000 FCFA minimum, bloqué à la création. Il est remboursé si aucun auditeur n'intervient avant l'échéance.
 - **Analyse automatique** d'un dépôt GitHub public : secrets commis, dépendances npm et Composer en retard d'une version majeure, fichiers dupliqués, part de tests, dossiers de dépendances versionnés.
-- **Auditeurs** : 3 à 5, de niveau Expert, qui signent un accord de confidentialité électronique. Chaque constat est classé critique, moyen ou mineur, avec une piste de correction.
+- **Auditeurs** : 3 à 5, de niveau Expert. Pour rejoindre, chacun signe un accord de confidentialité généré automatiquement (parties, projet, 8 articles) en saisissant son nom ; la signature est horodatée avec une empreinte SHA-256 et le porteur comme l'auditeur reçoivent le PDF signé (`/api/forensic/[id]/accord/[auditeur]`). Chaque constat est classé critique, moyen ou mineur, avec une piste de correction.
 - **Confrontation** : le porteur conteste un constat, les autres auditeurs tranchent à la majorité (la modération tranche s'il n'y en a pas d'autre).
 - **Rapport final** : score sur 100 (critique −15, moyen −6, mineur −2), effort estimé, certificat public vérifiable avec QR code. Les constats peuvent devenir des tickets de la Micro-Bourse.
 - **Paiement** : 70 % du forfait partagés entre les auditeurs dont au moins un constat est maintenu. Le porteur note ensuite ses auditeurs.
@@ -373,6 +374,7 @@ npm run test:e2e     # réinitialise la base avant chaque suite, puis à la fin
 | [tests/e2e/radar.mjs](tests/e2e/radar.mjs) | Radar : scores, alertes, confidentialité, réponses, collecte d'un flux RSS local avec extraction et déduplication |
 | [tests/e2e/centrale.mjs](tests/e2e/centrale.mjs) | Centrale d'achat : marges, clés d'API, SMS et anti-spam, facturation horaire, crédits, plafond et pause, solde, quota, ristourne, proxy d'IA |
 | [tests/e2e/recruteurs.mjs](tests/e2e/recruteurs.mjs) | Espace recruteurs : accès réservé, filtres et score, profils masqués et blocage, vues agrégées, prolongations, propositions (acceptation, refus, relance, quota, expiration), revenus |
+| [tests/e2e/retours.mjs](tests/e2e/retours.mjs) | Retours du 11/11 : navigation par catégories, éditeur Markdown, sujets programmés et invitations, validation du Radar et échéances, accord de confidentialité en PDF, photo de profil |
 | [tests/e2e/clones.mjs](tests/e2e/clones.mjs) | Clone IA : réponses sourcées, facturation, répétitions, Pass, remboursement, suspension, création et publication |
 
 Une suite seule : `npm run db:reset && node tests/e2e/clones.mjs`.

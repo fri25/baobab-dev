@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
-import { extractOpportunity, matchAndAlert } from "@/lib/radar";
+import { collectSources, extractOpportunity, matchAndAlert } from "@/lib/radar";
 
 const path = (id: string) => `/radar/${id}`;
 
@@ -39,9 +39,11 @@ export async function draftOpportunity(formData: FormData) {
   redirect(`${path(data.id)}?brouillon=1`);
 }
 
-// Étape 2 : l'organisation corrige l'extraction et publie ; les profils correspondants sont alertés
+// Étape 2 : l'organisation corrige l'extraction et l'envoie à l'administration ;
+// les profils correspondants sont alertés une fois l'opportunité validée.
 export async function publishOpportunity(id: string, formData: FormData) {
-  const { supabase } = await requireSession(path(id));
+  const { supabase, profile } = await requireSession(path(id));
+  const moderator = ["moderator", "admin"].includes(profile.role);
   const num = (key: string) => (formData.get(key) ? Number(formData.get(key)) : null);
   const { error } = await supabase
     .from("opportunities")
@@ -61,12 +63,38 @@ export async function publishOpportunity(id: string, formData: FormData) {
       country: String(formData.get("country") || "") || null,
       city: String(formData.get("city") || "") || null,
       contact: String(formData.get("contact") || "") || null,
-      status: "open",
+      status: "pending",
     })
     .eq("id", id);
   if (error) redirect(`${path(id)}?brouillon=1&error=${encodeURIComponent(error.message)}`);
-  await matchAndAlert(id);
+  if (moderator) await reviewAndAlert(id, true, null);
   redirect(path(id));
+}
+
+// Validation par l'administration : publication (et alertes) ou refus motivé
+async function reviewAndAlert(id: string, approve: boolean, note: string | null) {
+  const { supabase } = await requireSession(path(id));
+  const { error } = await supabase.rpc("review_opportunity", { p_opportunity: id, p_approve: approve, p_note: note ?? "" });
+  if (error) return error.message;
+  if (approve) await matchAndAlert(id);
+  revalidatePath("/radar");
+  revalidatePath("/moderation");
+  return null;
+}
+
+export async function reviewOpportunity(id: string, approve: boolean, formData: FormData) {
+  const note = String(formData.get("note") || "").trim() || null;
+  const back = String(formData.get("back") || path(id)).startsWith("/") ? String(formData.get("back") || path(id)) : path(id);
+  const error = !approve && !note ? "Indique le motif du refus : il est transmis à l'organisation." : await reviewAndAlert(id, approve, note);
+  if (error) redirect(`${back}${back.includes("?") ? "&" : "?"}error=${encodeURIComponent(error)}`);
+  redirect(back);
+}
+
+export async function collectNow() {
+  const { profile } = await requireSession("/moderation");
+  if (!["moderator", "admin"].includes(profile.role)) return;
+  await collectSources();
+  revalidatePath("/moderation");
 }
 
 export async function closeOpportunity(id: string) {

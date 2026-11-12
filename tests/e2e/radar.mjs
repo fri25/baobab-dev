@@ -122,8 +122,22 @@ ok("extraction : technologies", collected?.technologies.includes("Mobile Money")
 ok("extraction : budget 5 000 000 FCFA", collected?.budget_min === 5000000 && collected.budget_max === 5000000, `${collected?.budget_min}`);
 ok("extraction : date limite", collected?.deadline === "2026-12-20", collected?.deadline);
 ok("extraction : ville et pays", collected?.city === "Dakar" && collected.country === "Sénégal", `${collected?.city}, ${collected?.country}`);
+ok("collecte : l'annonce attend la validation de l'administration", collected?.status === "pending", collected?.status);
+const { data: hidden } = await moussa.c.from("opportunities").select("id").eq("id", collected.id);
+ok("une annonce non validée reste invisible du public", hidden?.length === 0);
+const { data: early } = await admin.from("notifications").select("payload").eq("user_id", moussa.id).eq("kind", "opportunity_match");
+ok("aucune alerte avant validation", !early?.some((n) => n.payload.opportunity_id === collected?.id));
+const { error: eSelfOpen } = await mairie.c.from("opportunities").update({ status: "open" }).eq("id", draft.id);
+ok("une organisation ne peut pas publier sans validation", !!eSelfOpen);
+const { error: eNotModo } = await aicha.c.rpc("review_opportunity", { p_opportunity: collected.id, p_approve: true, p_note: "" });
+ok("seule l'administration valide", !!eNotModo);
+const { error: eReview } = await modo.c.rpc("review_opportunity", { p_opportunity: collected.id, p_approve: true, p_note: "" });
+ok("l'administration valide l'annonce", !eReview, eReview?.message);
+// Le serveur calcule alors les correspondances et envoie les alertes (matchAndAlert)
+await admin.rpc("compute_opportunity_matches", { p_opportunity: collected.id });
+await admin.rpc("notify_opportunity_matches", { p_opportunity: collected.id });
 const { data: mAlert } = await admin.from("notifications").select("payload").eq("user_id", moussa.id).eq("kind", "opportunity_match");
-ok("Moussa (Mobile Money, USSD, Dakar) est alerté", mAlert?.some((n) => n.payload.opportunity_id === collected?.id));
+ok("Moussa (Mobile Money, USSD, Dakar) est alerté après validation", mAlert?.some((n) => n.payload.opportunity_id === collected?.id));
 const again = await (await fetch(`${APP}/api/cron`, { headers: { authorization: `Bearer ${env.CRON_SECRET}` } })).json();
 ok("pas de doublon à la collecte suivante", again.radar?.added === 0);
 server.close();

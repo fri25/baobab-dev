@@ -2,7 +2,7 @@ import { requireSession } from "@/lib/auth";
 import { fcfa } from "@/lib/format";
 import { createAudit } from "../actions";
 
-export const metadata = { title: "Faire auditer mon code · Code Forensic" };
+export const metadata = { title: "Lancer l'audit · Code Forensic" };
 
 const input = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2";
 
@@ -13,7 +13,7 @@ export default async function NewAuditPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-bold">Faire auditer mon code</h1>
+      <h1 className="text-2xl font-bold">Lancer l&apos;audit</h1>
       <p className="mt-1 text-muted">
         Le forfait est bloqué dès maintenant. 70 % vont aux auditeurs dont les constats sont maintenus ; sans auditeur avant
         l&apos;échéance, il t&apos;est remboursé. Solde : <strong>{fcfa(wallet?.balance ?? 0)}</strong>
@@ -59,8 +59,9 @@ export default async function NewAuditPage({ searchParams }: { searchParams: Pro
           <label className="mt-1 flex items-start gap-2">
             <input type="radio" name="confidentiality" value="private" defaultChecked className="mt-1" />
             <span>
-              <strong>Confidentiel</strong> : seuls toi, les auditeurs et la modération voient le dépôt et les constats. Le certificat
-              (score et synthèse) reste partageable.
+              <strong>Confidentiel</strong> : seuls toi, les auditeurs et la modération voient le dépôt et les constats. Chaque
+              auditeur signe un accord de confidentialité généré automatiquement (8 clauses) avant d&apos;accéder au code ; vous
+              recevez tous les deux le PDF signé. Le certificat (score et synthèse) reste partageable.
             </span>
           </label>
           <label className="mt-1 flex items-start gap-2">
@@ -70,7 +71,8 @@ export default async function NewAuditPage({ searchParams }: { searchParams: Pro
             </span>
           </label>
         </fieldset>
-        <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Bloquer le forfait et lancer l&apos;audit</button>
+        <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Lancer l&apos;audit</button>
+        <p className="text-xs text-muted">Le forfait est bloqué au lancement et remboursé si aucun auditeur n&apos;intervient avant l&apos;échéance.</p>
       </form>
     </main>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { UserChip } from "@/components/Avatar";
-import { timeAgo } from "@/lib/format";
+import { timeAgo, plainText } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Projets à relancer · Baobab Dev" };
@@ -24,7 +24,7 @@ export default async function RevivePage() {
       <Link href={`/showroom/${p.slug}`} className="text-lg font-semibold hover:text-primary">
         {p.name}
       </Link>
-      <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted">{p.description}</p>
+      <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted">{plainText(p.description)}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {p.stack.map((s: string) => (
           <span key={s} className="rounded bg-background px-2 py-0.5 font-mono text-xs">
@@ -64,7 +64,7 @@ export default async function RevivePage() {
         {!ceded.length && <li className="text-sm text-muted">Aucun projet cédé pour l&apos;instant.</li>}
       </ul>
 
-      <h2 className="mt-10 font-semibold">En relance, cherchent des contributeurs</h2>
+      <h2 className="mt-10 font-semibold">En relance, cherchent des collaborateurs</h2>
       <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {revival.map((p) => (
           <Card key={p.id} p={p} cta="Rejoindre la Squad" />

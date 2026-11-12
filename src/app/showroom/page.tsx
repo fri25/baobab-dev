@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { plainText } from "@/lib/format";
 import { UserChip } from "@/components/Avatar";
 import { PROJECT_STATUS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/server";
@@ -43,7 +44,7 @@ export default async function ShowroomPage() {
             <Link href={`/showroom/${p.slug}`} className="text-lg font-semibold hover:text-primary">
               {p.name}
             </Link>
-            <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted">{p.description}</p>
+            <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted">{plainText(p.description)}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {p.stack.map((s: string) => (
                 <span key={s} className="rounded bg-background px-2 py-0.5 font-mono text-xs">
@@ -58,7 +59,7 @@ export default async function ShowroomPage() {
             <div className="mt-2 flex gap-2 text-xs">
               <span className="rounded-full border border-border px-2 py-0.5">{PROJECT_STATUS[p.status]}</span>
               {p.looking_for_contributors && (
-                <span className="rounded-full bg-leaf/10 px-2 py-0.5 text-leaf">Cherche des contributeurs</span>
+                <span className="rounded-full bg-leaf/10 px-2 py-0.5 text-leaf">Cherche des collaborateurs</span>
               )}
             </div>
           </li>

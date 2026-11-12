@@ -6,6 +6,7 @@ import { ReportButton } from "@/components/ReportButton";
 import { getSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
 import { AUDIT_STATUS, FINDING_CATEGORY, SEVERITY, scoreColor } from "@/lib/forensic-labels";
+import { ndaClauses, ndaParties } from "@/lib/nda";
 import type { AutoReport } from "@/lib/forensic";
 import { addFinding, closeAudit, contestFinding, joinAudit, rateAuditor, voteFinding } from "../actions";
 import { ReanalyzeButton } from "./ReanalyzeButton";
@@ -51,7 +52,7 @@ export default async function AuditPage({
     supabase.from("profiles").select("username, full_name, avatar_url, city").eq("id", audit.owner_id).single<Person>(),
     supabase
       .from("audit_auditors")
-      .select("auditor_id, nda_accepted_at, paid, rating, auditor:profiles!audit_auditors_auditor_id_fkey(username, full_name, avatar_url, city)")
+      .select("auditor_id, nda_accepted_at, nda_signed_name, paid, rating, auditor:profiles!audit_auditors_auditor_id_fkey(username, full_name, avatar_url, city)")
       .eq("audit_id", id)
       .order("joined_at"),
     supabase.rpc("audit_private_details", { p_audit: id }).maybeSingle<{ repo_url: string; auto_report: AutoReport | null }>(),
@@ -284,8 +285,19 @@ export default async function AuditPage({
                   <UserChip user={a.auditor as unknown as Person} />
                   <p className="text-xs text-muted">
                     Accord de confidentialité signé {timeAgo(a.nda_accepted_at)}
+                    {a.nda_signed_name && ` par ${a.nda_signed_name}`}
                     {a.paid > 0 && ` · payé ${fcfa(a.paid)}`}
                   </p>
+                  {(isOwner || user?.id === a.auditor_id || isModerator) && (
+                    <a
+                      href={`/api/forensic/${id}/accord/${a.auditor_id}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      📄 Accord signé (PDF)
+                    </a>
+                  )}
                   {isOwner && closed && (
                     <div className="mt-1 flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((n) => (
@@ -303,18 +315,61 @@ export default async function AuditPage({
           </section>
 
           {user && !isOwner && !isAuditor && active && (auditors?.length ?? 0) < audit.max_auditors && (
-            <form action={joinAudit.bind(null, id)} className="space-y-2 rounded-xl border border-dashed border-border p-4 text-sm">
+            <form action={joinAudit.bind(null, id)} className="space-y-3 rounded-xl border border-dashed border-border p-4 text-sm">
               <h2 className="font-semibold">Devenir auditeur</h2>
-              {(profile?.xp ?? 0) >= 2000 ? (
+              {(profile?.xp ?? 0) >= 2000 && profile ? (
                 <>
+                  <p className="text-xs text-muted">
+                    Accord de confidentialité généré pour cet audit. Une fois signé, toi et le porteur recevez le PDF signé.
+                  </p>
+                  <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-border bg-background p-3 text-xs leading-relaxed" tabIndex={0}>
+                    <p className="font-semibold">Accord de confidentialité – Code Forensic</p>
+                    {ndaParties({
+                      auditId: id,
+                      projectTitle: audit.title,
+                      repoUrl: details?.repo_url ?? "communiqué après signature",
+                      ownerName: owner?.full_name ?? owner?.username ?? "Porteur",
+                      ownerUsername: owner?.username ?? "?",
+                      auditorName: profile.full_name ?? profile.username,
+                      auditorUsername: profile.username,
+                      deadline: audit.deadline,
+                    }).map((t) => (
+                      <p key={t}>• {t}</p>
+                    ))}
+                    {ndaClauses({
+                      auditId: id,
+                      projectTitle: audit.title,
+                      repoUrl: "",
+                      ownerName: "",
+                      ownerUsername: "",
+                      auditorName: "",
+                      auditorUsername: "",
+                      deadline: audit.deadline,
+                    }).map((c) => (
+                      <div key={c.title}>
+                        <p className="font-semibold">{c.title}</p>
+                        <p className="text-muted">{c.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <label className="block text-xs font-medium">
+                    Signature : ton nom complet
+                    <input
+                      name="signed_name"
+                      required
+                      minLength={3}
+                      maxLength={120}
+                      defaultValue={profile.full_name ?? ""}
+                      placeholder="Prénom Nom"
+                      autoComplete="name"
+                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 font-serif text-base italic"
+                    />
+                  </label>
                   <label className="flex items-start gap-2 text-xs">
                     <input type="checkbox" name="nda" required className="mt-0.5" />
-                    <span>
-                      J&apos;accepte l&apos;accord de confidentialité : je ne divulgue ni le code, ni les constats, ni les informations
-                      du projet en dehors de cet audit, et je garde un ton respectueux.
-                    </span>
+                    <span>J&apos;ai lu les 8 articles et je signe électroniquement cet accord de confidentialité.</span>
                   </label>
-                  <button className="w-full rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">Rejoindre l&apos;audit</button>
+                  <button className="w-full rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">Signer l&apos;accord et rejoindre l&apos;audit</button>
                 </>
               ) : (
                 <p className="text-xs text-muted">Réservé aux devs de niveau Expert (2 000 XP).</p>

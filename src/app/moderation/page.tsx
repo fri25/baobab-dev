@@ -4,6 +4,9 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { collectNow, reviewOpportunity } from "@/app/radar/actions";
+import { Deadline } from "@/app/radar/Deadline";
+import { budgetLabel, ORG_TYPE } from "@/lib/radar-labels";
 
 export const metadata = { title: "Modération · Baobab Dev" };
 
@@ -55,6 +58,13 @@ export default async function ModerationPage() {
   if (!["moderator", "admin"].includes(profile.role)) notFound();
 
   const { data: sources } = await supabase.from("radar_sources").select("id, name, url, country, active, last_fetched_at").order("name");
+  // File de validation du Radar : les échéances les plus proches d'abord
+  const { data: pending } = await supabase
+    .from("opportunities")
+    .select("id, source, organization_name, org_type, title, need, technologies, budget_min, budget_max, deadline, country, source_url, created_at")
+    .eq("status", "pending")
+    .order("deadline", { ascending: true, nullsFirst: false })
+    .order("created_at");
   const [{ data: reports }, { data: disputes }, stats] = await Promise.all([
     supabase
       .from("reports")
@@ -81,6 +91,57 @@ export default async function ModerationPage() {
             <p className="text-xs text-muted">{labels[i]}</p>
           </div>
         ))}
+      </section>
+
+      <section className="mt-8">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold">Radar : opportunités à valider ({pending?.length ?? 0})</h2>
+          <form action={collectNow}>
+            <button className="rounded-full border border-border px-3 py-1 text-xs hover:border-primary">Collecter les flux maintenant</button>
+          </form>
+        </div>
+        <p className="text-xs text-muted">
+          Appels d&apos;offres collectés et besoins publiés par les organisations. Rien n&apos;est visible du public avant validation ;
+          traite d&apos;abord les dates limites proches.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {pending?.map((o) => (
+            <li key={o.id} className="rounded-xl border border-border bg-surface p-4 text-sm">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs text-muted">
+                    {o.organization_name} · {ORG_TYPE[o.org_type]} {o.country && `· ${o.country}`} ·{" "}
+                    {o.source === "collectee" ? "collecté" : "publié"} {timeAgo(o.created_at)}
+                  </p>
+                  <Link href={`/radar/${o.id}`} className="font-medium hover:text-primary">
+                    {o.title}
+                  </Link>
+                  <p className="mt-1 line-clamp-2 text-muted">{o.need}</p>
+                  <p className="mt-1 text-xs text-muted">
+                    {o.technologies.join(", ") || "Technologies non détectées"} · {budgetLabel(o.budget_min, o.budget_max)}
+                  </p>
+                  {o.source_url && (
+                    <a href={o.source_url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate font-mono text-xs text-primary">
+                      {o.source_url}
+                    </a>
+                  )}
+                </div>
+                {o.deadline ? <Deadline date={o.deadline} compact /> : <span className="text-xs text-muted">Sans date limite</span>}
+              </div>
+              <form className="mt-3 flex flex-wrap gap-2">
+                <input type="hidden" name="back" value="/moderation" />
+                <input name="note" placeholder="Motif (si refus)" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs" />
+                <button formAction={reviewOpportunity.bind(null, o.id, true)} className="rounded-full bg-leaf px-3 py-1 text-xs font-medium text-background">
+                  Valider et publier
+                </button>
+                <button formAction={reviewOpportunity.bind(null, o.id, false)} className="rounded-full border border-border px-3 py-1 text-xs">
+                  Refuser
+                </button>
+              </form>
+            </li>
+          ))}
+          {!pending?.length && <li className="text-sm text-muted">Aucune opportunité en attente.</li>}
+        </ul>
       </section>
 
       <section className="mt-8">
@@ -133,7 +194,7 @@ export default async function ModerationPage() {
 
       <section className="mt-8">
         <h2 className="font-semibold">Sources du Radar (flux RSS ou Atom d&apos;appels d&apos;offres)</h2>
-        <p className="text-xs text-muted">Collectées chaque jour : seules les annonces liées au numérique sont retenues.</p>
+        <p className="text-xs text-muted">Collectées automatiquement : seules les annonces liées au numérique sont retenues, puis placées dans la file de validation ci-dessus.</p>
         <ul className="mt-3 space-y-2">
           {sources?.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface p-3 text-sm">

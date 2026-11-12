@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Markdown } from "@/components/Markdown";
 import type { GriotResult } from "@/lib/griot";
 
@@ -13,7 +13,7 @@ const EXAMPLES = [
   "Comment gérer les sessions d'un menu USSD en Node.js ?",
 ];
 
-export function GriotChat() {
+export function GriotChat({ initialQuestion }: { initialQuestion?: string }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,16 @@ export function GriotChat() {
     setTurns((t) => t.map((turn, i) => (i === t.length - 1 ? (res.ok ? { ...turn, result: json } : { ...turn, error: json.error }) : turn)));
     setLoading(false);
   }
+
+  // Question posée depuis la bulle flottante : envoyée une seule fois
+  const asked = useRef(false);
+  useEffect(() => {
+    if (initialQuestion && !asked.current) {
+      asked.current = true;
+      ask(initialQuestion);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion]);
 
   return (
     <div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata = { title: "Discussions · Baobab Dev" };
 
@@ -28,12 +29,14 @@ export default async function DiscussionsPage({
   const { onglet, error } = await searchParams;
   const { supabase, user } = await getSession();
   const tab = onglet === "sujets" || !user ? "sujets" : "prives";
+  // Sujets programmés arrivés à leur heure : les membres sont prévenus (en plus de la tâche planifiée)
+  await createAdminClient().rpc("start_scheduled_topics").then(() => null, () => null);
 
   const [{ data: mine }, { data: topics }] = await Promise.all([
     user ? supabase.rpc("my_conversations") : Promise.resolve({ data: [] }),
     supabase
       .from("conversations")
-      .select("id, title, description, tags, last_message_at, messages_count, conversation_members(count)")
+      .select("id, title, description, tags, scheduled_at, last_message_at, messages_count, conversation_members(count)")
       .eq("kind", "topic")
       .order("last_message_at", { ascending: false })
       .limit(50),
@@ -108,7 +111,15 @@ export default async function DiscussionsPage({
               <li key={t.id}>
                 <Link href={`/discussions/${t.id}`} className="block rounded-xl border border-border bg-surface p-4 hover:border-primary">
                   <div className="flex items-start justify-between gap-2">
-                    <span className={unread ? "font-semibold" : "font-medium"}># {t.title}</span>
+                    <span className={unread ? "font-semibold" : "font-medium"}>
+                      # {t.title}
+                      {t.scheduled_at && new Date(t.scheduled_at) > new Date() && (
+                        <span className="ml-2 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-normal text-gold">
+                          programmé ·{" "}
+                          {new Date(t.scheduled_at).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" })}
+                        </span>
+                      )}
+                    </span>
                     <span className="flex shrink-0 items-center gap-2">
                       {joined && <span className="text-xs text-leaf">membre</span>}
                       {badge(unread)}

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
+import { GriotBubble } from "@/components/GriotBubble";
 import { LiveNotifications } from "@/components/LiveNotifications";
 import { Logo } from "@/components/Logo";
+import { type NavGroup, NavMenu } from "@/components/NavMenu";
 import { levelForXp } from "@/lib/levels";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/configured";
@@ -19,19 +21,58 @@ async function currentUser() {
   return profile ? { ...profile, unread: count ?? 0, unreadChats: (unreadChats as number | null) ?? 0 } : null;
 }
 
-const NAV = [
-  ["/fil", "Mon fil"],
-  ["/questions", "Questions"],
-  ["/discussions", "Discussions"],
-  ["/griot", "Griot"],
-  ["/clones", "Clones IA"],
-  ["/showroom", "Showroom"],
-  ["/squads", "Squads"],
-  ["/bourse", "Micro-Bourse"],
-  ["/radar", "Radar"],
-  ["/forensic", "Forensic"],
-  ["/centrale", "Centrale"],
-];
+type Profile = NonNullable<Awaited<ReturnType<typeof currentUser>>>;
+
+// Navigation par catégories : échanger, construire, gagner sa vie
+function navGroups(profile: Profile | null): NavGroup[] {
+  const groups: NavGroup[] = [
+    {
+      label: "Échanger",
+      items: [
+        ...(profile ? [{ href: "/fil", label: "Mon fil", hint: "Ce qui te concerne aujourd'hui" }] : []),
+        { href: "/questions", label: "Questions", hint: "Questions-réponses de la communauté" },
+        { href: "/discussions", label: "Discussions", hint: "Messages privés et sujets", badge: profile?.unreadChats },
+        { href: "/griot", label: "Le Griot", hint: "L'IA qui cite la communauté" },
+        { href: "/classements", label: "Classements", hint: "Par ville, pays, continent" },
+      ],
+    },
+    {
+      label: "Construire",
+      items: [
+        { href: "/showroom", label: "Showroom", hint: "Projets africains et appels à collaborateurs" },
+        { href: "/squads", label: "Squads", hint: "Équipes formées par compétences" },
+        { href: "/defis", label: "Défis", hint: "Le défi de la semaine" },
+        { href: "/debug", label: "Pair-Debugging", hint: "Déboguer à plusieurs, en direct" },
+        { href: "/stack", label: "Stack Afrique", hint: "Outils et API africains" },
+        { href: "/activite", label: "GitHub vivant", hint: "Activité et issues" },
+      ],
+    },
+    {
+      label: "Gagner",
+      items: [
+        { href: "/bourse", label: "Micro-Bourse", hint: "Bugs et fonctionnalités payés" },
+        { href: "/radar", label: "Radar d'opportunités", hint: "Appels d'offres validés" },
+        { href: "/forensic", label: "Code Forensic", hint: "Audits de code rémunérés" },
+        { href: "/centrale", label: "Centrale d'achat", hint: "Infrastructures au prix de gros" },
+        { href: "/clones", label: "Clones IA", hint: "Assistants des seniors" },
+        { href: "/recruteurs", label: "Espace recruteurs", hint: "Profils vérifiés" },
+        ...(profile
+          ? [
+              { href: "/propositions", label: "Mes propositions", hint: "Offres reçues des recruteurs" },
+              { href: "/portefeuille", label: "Portefeuille", hint: "Solde et transactions" },
+            ]
+          : []),
+      ],
+    },
+  ];
+  if (profile && ["moderator", "admin"].includes(profile.role)) {
+    groups.push({
+      label: "Administration",
+      items: [{ href: "/moderation", label: "Modération", hint: "Signalements, validations du Radar" }],
+    });
+  }
+  return groups;
+}
 
 export async function Header() {
   const profile = await currentUser();
@@ -41,25 +82,11 @@ export async function Header() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         <Link href={profile ? "/fil" : "/"} className="flex shrink-0 items-center gap-2 font-semibold">
           <Logo className="h-7 w-7" />
-          <span>Baobab Dev</span>
+          <span className="hidden sm:inline">Baobab Dev</span>
         </Link>
-        <nav className="hidden gap-3 text-sm text-muted xl:flex">
-          {NAV.filter(([href]) => profile || href !== "/fil").map(([href, label]) => (
-            <Link key={href} href={href} className="flex items-center gap-1 hover:text-foreground">
-              {label}
-              {href === "/discussions" && profile && profile.unreadChats > 0 && (
-                <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-ink">{profile.unreadChats}</span>
-              )}
-            </Link>
-          ))}
-          {profile && ["moderator", "admin"].includes(profile.role) && (
-            <Link href="/moderation" className="hover:text-foreground">
-              Modération
-            </Link>
-          )}
-        </nav>
+        <NavMenu groups={navGroups(profile)} />
         {profile ? (
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <LiveNotifications userId={profile.id} unread={profile.unread} />
             <Link href={`/u/${profile.username}`} className="flex items-center gap-2 text-sm">
               <Avatar user={profile} size={30} />
@@ -74,23 +101,13 @@ export async function Header() {
         ) : (
           <Link
             href="/login"
-            className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-ink hover:opacity-90"
+            className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-ink hover:opacity-90"
           >
             Se connecter
           </Link>
         )}
       </div>
-      {/* Navigation mobile, défilante (utilisable dès 360 px) */}
-      <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm text-muted xl:hidden">
-        {NAV.filter(([href]) => profile || href !== "/fil").map(([href, label]) => (
-          <Link key={href} href={href} className="flex shrink-0 items-center gap-1 hover:text-foreground">
-            {label}
-            {href === "/discussions" && profile && profile.unreadChats > 0 && (
-              <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-ink">{profile.unreadChats}</span>
-            )}
-          </Link>
-        ))}
-      </nav>
+      <GriotBubble unreadChats={profile?.unreadChats ?? 0} signedIn={Boolean(profile)} />
     </header>
   );
 }

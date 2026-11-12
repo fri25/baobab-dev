@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Markdown } from "@/components/Markdown";
 import { notFound } from "next/navigation";
 import { UserChip } from "@/components/Avatar";
 import { ReportButton } from "@/components/ReportButton";
@@ -71,7 +72,9 @@ export default async function ProjectPage({
         </Link>
       )}
 
-      <p className="mt-6 text-lg">{project.description}</p>
+      <div className="mt-6">
+        <Markdown text={project.description} />
+      </div>
       <div className="mt-4 flex flex-wrap gap-1.5">
         {project.stack.map((s: string) => (
           <span key={s} className="rounded bg-surface px-2 py-0.5 font-mono text-xs">
@@ -112,7 +115,7 @@ export default async function ProjectPage({
           className="mt-6 block rounded-xl border border-leaf bg-leaf/5 p-4 hover:bg-leaf/10"
         >
           <span className="font-medium text-leaf">
-            {project.squad.status === "recruiting" ? "Ce projet cherche des contributeurs" : "L'équipe du projet"}
+            {project.squad.status === "recruiting" ? "Ce projet cherche des collaborateurs" : "L'équipe du projet"}
           </span>
           <span className="block text-sm text-muted">{project.squad.name} →</span>
         </Link>

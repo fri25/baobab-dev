@@ -13,7 +13,7 @@ export default async function QuestionsPage({ searchParams }: Props) {
 
   let query = supabase
     .from("questions")
-    .select("id, title, tags, images, answers_count, accepted_answer_id, bounty_id, created_at, author:profiles!questions_author_id_fkey(username, full_name, avatar_url, city)")
+    .select("id, title, tags, images, answers_count, accepted_answer_id, bounty_id, created_at, author:profiles!questions_author_id_fkey(username, full_name, avatar_url, city, xp)")
     .order("created_at", { ascending: false })
     .limit(30);
   if (q) query = query.textSearch("search", q, { type: "websearch", config: "french" });
@@ -62,46 +62,55 @@ export default async function QuestionsPage({ searchParams }: Props) {
         {tag && <span className="rounded-full bg-foreground px-3 py-1 text-background">#{tag}</span>}
       </nav>
 
-      <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-surface">
+        <ul className="mt-6 space-y-3">
         {questions?.length ? (
           questions.map((question) => (
-            <li key={question.id} className="flex gap-4 p-4">
-              <div
-                className={`flex w-16 shrink-0 flex-col items-center justify-center rounded-lg text-center text-xs ${
-                  question.accepted_answer_id ? "bg-leaf text-background" : "border border-border text-muted"
-                }`}
-              >
-                <span className="text-lg font-semibold">{question.answers_count}</span>
-                réponse{question.answers_count > 1 ? "s" : ""}
-              </div>
-              <div className="min-w-0 flex-1">
-                <Link href={`/questions/${question.id}`} className="font-medium hover:text-primary">
-                  {question.title}
-                </Link>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                  {question.images?.length > 0 && (
-                    <span className="rounded border border-border px-2 py-0.5 text-muted" title="Question avec images">
-                      🖼 {question.images.length}
-                    </span>
-                  )}
-                  {question.bounty_id && (
-                    <span className="rounded bg-gold/20 px-2 py-0.5 font-medium text-gold">Prime</span>
-                  )}
-                  {question.tags.map((t: string) => (
-                    <Link key={t} href={`/questions?tag=${encodeURIComponent(t)}`} className="rounded bg-background px-2 py-0.5 font-mono hover:text-primary">
-                      {t}
-                    </Link>
-                  ))}
+            <li
+              key={question.id}
+              className="group rounded-2xl border border-border/80 bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg sm:p-5"
+            >
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div
+                  className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl text-center text-[10px] sm:h-16 sm:w-16 ${
+                    question.accepted_answer_id ? "bg-leaf/10 text-leaf ring-1 ring-leaf/25" : "bg-background text-muted ring-1 ring-border"
+                  }`}
+                >
+                  <span className="text-lg font-bold leading-none">{question.answers_count}</span>
+                  <span className="mt-1">réponse{question.answers_count > 1 ? "s" : ""}</span>
+                  {question.accepted_answer_id && <span className="mt-0.5 font-semibold">Résolue</span>}
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-                  {question.author && <UserChip user={question.author as never} />}
-                  <span>· {timeAgo(question.created_at)}</span>
+                <div className="min-w-0 flex-1">
+                  <Link href={`/questions/${question.id}`} className="text-base font-semibold leading-snug group-hover:text-primary sm:text-lg">
+                    {question.title}
+                  </Link>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    {question.images?.length > 0 && (
+                      <span className="rounded-full border border-border px-2.5 py-1 text-muted" title="Question avec images">
+                        🖼 {question.images.length}
+                      </span>
+                    )}
+                    {question.bounty_id && <span className="rounded-full bg-gold/10 px-2.5 py-1 font-semibold text-gold">Prime</span>}
+                    {question.tags.map((t: string) => (
+                      <Link
+                        key={t}
+                        href={`/questions?tag=${encodeURIComponent(t)}`}
+                        className="rounded-full bg-tech/10 px-2.5 py-1 font-mono text-tech hover:bg-tech/15"
+                      >
+                        {t}
+                      </Link>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted">
+                    {question.author && <UserChip user={question.author as never} />}
+                    <span aria-hidden="true">·</span>
+                    <span>{timeAgo(question.created_at)}</span>
+                  </div>
                 </div>
               </div>
             </li>
           ))
         ) : (
-          <li className="p-6 text-center text-muted">Aucune question trouvée.</li>
+          <li className="rounded-2xl border border-dashed border-border bg-surface p-8 text-center text-muted">Aucune question trouvée.</li>
         )}
       </ul>
     </main>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { UserChip } from "@/components/Avatar";
 import { requireSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
-import { levelForXp } from "@/lib/levels";
+import { XpProgress } from "@/components/XpProgress";
 
 export const metadata = { title: "Mon fil · Baobab Dev" };
 
@@ -23,7 +23,7 @@ export default async function FeedPage() {
     }>,
     supabase
       .from("projects")
-      .select("name, slug, description, owner:profiles!projects_owner_id_fkey!inner(username, full_name, avatar_url, city, country)")
+      .select("name, slug, description, owner:profiles!projects_owner_id_fkey!inner(username, full_name, avatar_url, city, country, xp)")
       .eq("owner.country", me?.country ?? "")
       .order("created_at", { ascending: false })
       .limit(4),
@@ -52,14 +52,23 @@ export default async function FeedPage() {
     .limit(1)
     .maybeSingle();
   const matchingSquads = (squads ?? []).filter((s) => s.skills_needed.some((k: string) => skills.includes(k.toLowerCase())));
-  const lvl = levelForXp(me?.xp ?? 0);
-
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold">Bonjour {me?.full_name?.split(" ")[0] ?? me?.username} 👋</h1>
-      <p className="text-muted">
-        {lvl.name} · {me?.xp} XP{lvl.next && ` · encore ${lvl.next.floor - (me?.xp ?? 0)} XP pour ${lvl.next.name}`}
-      </p>
+      <section className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-surface to-violet/10 p-5 shadow-sm sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-gold/10 blur-3xl" aria-hidden="true" />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-gold">Ton espace Baobab</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+              Bonjour {me?.full_name?.split(" ")[0] ?? me?.username} <span aria-hidden="true">👋</span>
+            </h1>
+            <p className="mt-1 text-sm text-muted">Les prochaines idées et collaborations commencent ici.</p>
+          </div>
+          <div className="w-full rounded-2xl border border-border/70 bg-surface/80 p-3 backdrop-blur sm:max-w-sm">
+            <XpProgress xp={me?.xp ?? 0} />
+          </div>
+        </div>
+      </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">

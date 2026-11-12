@@ -26,7 +26,7 @@ export function GriotBubble() {
           isOpen ? "flex translate-y-0 opacity-100" : "hidden"
         }`}
       >
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#073b8a] via-[#174b83] to-[#b9561a] p-3 text-white">
+        <div className="flex items-center justify-between bg-gradient-to-r from-primary via-violet to-gold p-3 text-primary-ink">
           <div className="flex items-center gap-2.5">
             <Image
               src="/griot-avatar.jpg"
@@ -47,7 +47,7 @@ export function GriotBubble() {
                 if (draft) window.sessionStorage.setItem("griot-draft", draft);
                 router.push("/griot");
               }}
-              className="rounded-full px-2 text-lg text-white/80 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              className="rounded-full px-2 text-lg text-primary-ink/75 hover:text-primary-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-ink"
               aria-label="Agrandir le chat sur la page du Griot"
               title="Agrandir"
             >
@@ -56,7 +56,7 @@ export function GriotBubble() {
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="rounded-full px-2 text-xl text-white/80 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              className="rounded-full px-2 text-xl text-primary-ink/75 hover:text-primary-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-ink"
               aria-label="Fermer le chat du Griot"
             >
               &times;
@@ -86,7 +86,7 @@ export function GriotBubble() {
       >
         <span
           aria-hidden="true"
-          className="griot-avatar-glow absolute -inset-1 rounded-full bg-gradient-to-br from-[#00acf5] via-[#1677ff] to-[#f59c00] opacity-75 blur-md transition duration-500 group-hover:scale-110 group-hover:opacity-100"
+          className="griot-avatar-glow absolute -inset-1 rounded-full bg-gradient-to-br from-tech via-violet to-gold opacity-75 blur-md transition duration-500 group-hover:scale-110 group-hover:opacity-100"
         />
         <span className="relative block h-14 w-14 overflow-hidden rounded-full border border-white/50 bg-[#07142c] shadow-xl ring-1 ring-[#00acf5]/40 transition-transform duration-300 group-hover:scale-105 sm:h-[4.25rem] sm:w-[4.25rem]">
           <Image

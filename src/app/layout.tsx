@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#b9561a",
+  themeColor: "#0b0f19",
 };
 
 async function toggleLite() {

@@ -48,7 +48,7 @@ export async function Header({ themePreference }: { themePreference: ThemePrefer
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
+        <div className="mx-auto flex h-14 max-w-none items-center justify-between gap-4 px-4">
           <Link href={profile ? "/fil" : "/"} className="flex shrink-0 items-center gap-2 font-semibold">
             <Logo className="h-7 w-7" />
             <span>Baobab Dev</span>

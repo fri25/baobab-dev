@@ -1,51 +1,57 @@
 @import "tailwindcss";
 
-/* Palette Baobab : sable, terre cuite, feuillage */
+/* Palette Baobab : clarté solaire et profondeur technologique */
 :root {
   color-scheme: light;
-  --background: #fbf7f0;
+  --background: #f8fafc;
   --surface: #ffffff;
-  --foreground: #1f1a14;
-  --muted: #6b5e4e;
-  --border: #e8dfd1;
-  --primary: #b9561a;
+  --foreground: #0f172a;
+  --muted: #475569;
+  --border: #cbd5e1;
+  --primary: #b45309;
   --primary-ink: #ffffff;
-  --leaf: #2f6b3a;
-  --gold: #b8860b;
-  --bronze: #a8703f;
-  --silver: #8a939c;
+  --leaf: #047857;
+  --gold: #b45309;
+  --bronze: #92400e;
+  --silver: #64748b;
+  --violet: #6d28d9;
+  --tech: #0e7490;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --background: #15120e;
-    --surface: #1e1a15;
-    --foreground: #f3ece2;
-    --muted: #a89a87;
-    --border: #342d25;
-    --primary: #e0823f;
-    --primary-ink: #1a120b;
-    --leaf: #7dbb7d;
-    --gold: #e7be4b;
-    --bronze: #d19a66;
-    --silver: #b9c1c9;
+    --background: #0b0f19;
+    --surface: #0f172a;
+    --foreground: #f1f5f9;
+    --muted: #a8b4c5;
+    --border: #334155;
+    --primary: #f59e0b;
+    --primary-ink: #0b0f19;
+    --leaf: #34d399;
+    --gold: #fbbf24;
+    --bronze: #f0a467;
+    --silver: #cbd5e1;
+    --violet: #a78bfa;
+    --tech: #22d3ee;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #15120e;
-  --surface: #1e1a15;
-  --foreground: #f3ece2;
-  --muted: #a89a87;
-  --border: #342d25;
-  --primary: #e0823f;
-  --primary-ink: #1a120b;
-  --leaf: #7dbb7d;
-  --gold: #e7be4b;
-  --bronze: #d19a66;
-  --silver: #b9c1c9;
+  --background: #0b0f19;
+  --surface: #0f172a;
+  --foreground: #f1f5f9;
+  --muted: #a8b4c5;
+  --border: #334155;
+  --primary: #f59e0b;
+  --primary-ink: #0b0f19;
+  --leaf: #34d399;
+  --gold: #fbbf24;
+  --bronze: #f0a467;
+  --silver: #cbd5e1;
+  --violet: #a78bfa;
+  --tech: #22d3ee;
 }
 
 @theme inline {
@@ -60,13 +66,35 @@
   --color-gold: var(--gold);
   --color-bronze: var(--bronze);
   --color-silver: var(--silver);
+  --color-violet: var(--violet);
+  --color-tech: var(--tech);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--violet) 4%, transparent), transparent 34rem),
+    var(--background);
   color: var(--foreground);
+}
+
+::selection {
+  color: var(--primary-ink);
+  background: var(--primary);
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(a, button) {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 160ms;
+    transition-timing-function: ease-out;
+  }
 }
 
 @keyframes griot-avatar-glow {
@@ -85,8 +113,39 @@ body {
   animation: griot-avatar-glow 4s ease-in-out infinite;
 }
 
+@keyframes griot-thinking {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--violet) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 1.25rem 0 color-mix(in srgb, var(--violet) 12%, transparent);
+  }
+}
+
+.griot-thinking {
+  animation: griot-thinking 2.4s ease-in-out infinite;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 180ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .griot-avatar-glow {
+  .griot-avatar-glow,
+  .griot-thinking,
+  .animate-toast-in {
     animation: none;
   }
 }

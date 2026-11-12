@@ -10,7 +10,7 @@ export default async function ShowroomPage() {
   const supabase = await createClient();
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, name, slug, description, stack, status, likes_count, looking_for_contributors, project_of_week_at, owner:profiles!projects_owner_id_fkey(username, full_name, avatar_url, city)")
+    .select("id, name, slug, description, stack, status, likes_count, looking_for_contributors, project_of_week_at, owner:profiles!projects_owner_id_fkey(username, full_name, avatar_url, city, xp)")
     .or("abandon_status.is.null,abandon_status.in.(revival,adopted)")
     .order("project_of_week_at", { ascending: false, nullsFirst: false })
     .order("likes_count", { ascending: false })
@@ -38,28 +38,36 @@ export default async function ShowroomPage() {
         {projects?.map((p) => (
           <li
             key={p.id}
-            className={`flex flex-col rounded-xl border bg-surface p-5 ${p.project_of_week_at ? "border-gold" : "border-border"}`}
+            className={`group flex flex-col rounded-2xl border bg-surface p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
+              p.project_of_week_at ? "border-gold/60 shadow-gold/5" : "border-border hover:border-primary/40"
+            }`}
           >
-            {p.project_of_week_at && <span className="mb-2 text-xs font-semibold uppercase text-gold">Projet de la semaine</span>}
-            <Link href={`/showroom/${p.slug}`} className="text-lg font-semibold hover:text-primary">
+            {p.project_of_week_at && (
+              <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold">
+                ✦ Projet de la semaine
+              </span>
+            )}
+            <Link href={`/showroom/${p.slug}`} className="text-lg font-semibold leading-snug group-hover:text-primary">
               {p.name}
             </Link>
-            <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted">{markdownSummary(p.description)}</p>
+            <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-muted">{markdownSummary(p.description)}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {p.stack.map((s: string) => (
-                <span key={s} className="rounded bg-background px-2 py-0.5 font-mono text-xs">
+                <span key={s} className="rounded-full bg-tech/10 px-2.5 py-1 font-mono text-xs text-tech">
                   {s}
                 </span>
               ))}
             </div>
             <div className="mt-4 flex items-center justify-between text-sm">
               {p.owner && <UserChip user={p.owner as never} />}
-              <span className="text-muted">♥ {p.likes_count}</span>
+              <span className="rounded-full bg-background px-2.5 py-1 text-xs font-medium text-muted" aria-label={`${p.likes_count} mentions j'aime`}>
+                ♥ {p.likes_count}
+              </span>
             </div>
-            <div className="mt-2 flex gap-2 text-xs">
-              <span className="rounded-full border border-border px-2 py-0.5">{PROJECT_STATUS[p.status]}</span>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full border border-border px-2.5 py-1 text-muted">{PROJECT_STATUS[p.status]}</span>
               {p.looking_for_contributors && (
-                <span className="rounded-full bg-leaf/10 px-2 py-0.5 text-leaf">Cherche des collaborateurs</span>
+                <span className="rounded-full bg-leaf/10 px-2.5 py-1 font-medium text-leaf">Cherche des collaborateurs</span>
               )}
             </div>
           </li>

@@ -54,7 +54,7 @@ export function DesktopNavigation(props: Props) {
   const navigationItems = getNavigationItems(props);
 
   return (
-    <nav aria-label="Navigation principale" className="hidden gap-1 text-sm text-muted xl:flex">
+    <nav aria-label="Navigation principale" className="hidden gap-1 text-sm text-muted 2xl:flex">
       <NavigationLinks items={navigationItems} unreadChats={props.unreadChats} />
     </nav>
   );
@@ -64,7 +64,7 @@ export function MobileNavigation(props: Props) {
   const navigationItems = getNavigationItems(props);
 
   return (
-    <nav aria-label="Navigation mobile" className="flex gap-2 overflow-x-auto border-t border-border px-3 py-2 text-sm text-muted xl:hidden">
+    <nav aria-label="Navigation des sections" className="flex gap-2 overflow-x-auto border-t border-border px-3 py-2 text-sm text-muted 2xl:hidden">
       <NavigationLinks items={navigationItems} unreadChats={props.unreadChats} />
     </nav>
   );

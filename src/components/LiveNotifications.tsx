@@ -47,16 +47,25 @@ export function LiveNotifications({ userId, unread: initialUnread }: { userId: s
           </span>
         )}
       </Link>
-      <div className="fixed bottom-4 right-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2" aria-live="polite">
+      <div
+        className="fixed bottom-20 right-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2 sm:bottom-6 sm:right-28"
+        aria-live="polite"
+      >
         {toasts.map((t) => {
           const body = (
             <div
-              className={`rounded-xl border p-4 shadow-lg ${t.badge ? "animate-bounce border-gold bg-surface" : "border-border bg-surface"}`}
-              style={t.badge ? { animationIterationCount: 2 } : undefined}
+              role="status"
+              className={`animate-toast-in rounded-2xl border border-l-4 bg-surface p-4 shadow-xl ring-1 ring-foreground/5 ${
+                t.badge ? "border-l-gold" : "border-l-primary"
+              }`}
             >
-              {t.badge && <p className="text-2xl">🏅</p>}
-              <p className="font-semibold">{t.title}</p>
-              {t.detail && <p className="text-sm text-muted">{t.detail}</p>}
+              <div className="flex items-start gap-3">
+                {t.badge && <span className="text-xl" aria-hidden="true">🏅</span>}
+                <div className="min-w-0">
+                  <p className="font-semibold leading-snug">{t.title}</p>
+                  {t.detail && <p className="mt-1 text-sm text-muted">{t.detail}</p>}
+                </div>
+              </div>
             </div>
           );
           return t.href ? (
@@ -71,4 +80,3 @@ export function LiveNotifications({ userId, unread: initialUnread }: { userId: s
     </>
   );
 }
-

@@ -286,7 +286,12 @@ export function GriotChat({
                   <li key={i} className="min-w-0 space-y-3 break-words">
                     <p className="ml-auto max-w-[90%] break-words rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-ink">{turn.question}</p>
                     {turn.error && <p className="break-words rounded-2xl bg-primary/10 px-3 py-3 text-sm text-primary">{turn.error}</p>}
-                    {!turn.result && !turn.error && <p className="text-sm text-muted">Le Griot prépare sa réponse…</p>}
+                    {!turn.result && !turn.error && (
+                      <p className="griot-thinking flex items-center gap-2 rounded-xl border border-violet/20 bg-violet/5 px-3 py-2 text-sm text-muted" role="status">
+                        <span className="h-2 w-2 rounded-full bg-gold" aria-hidden="true" />
+                        Le Griot prépare sa réponse…
+                      </p>
+                    )}
                     {turn.result && <div className="min-w-0 max-w-full overflow-hidden rounded-2xl rounded-bl-sm border border-border bg-surface p-3 text-sm"><Markdown text={turn.result.answer} /></div>}
                   </li>
                 ))}
@@ -367,7 +372,12 @@ export function GriotChat({
                   <li className="min-w-0 space-y-3 break-words">
             <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-primary-ink">{turn.question}</p>
             {turn.error && <p className="rounded-2xl bg-primary/10 px-4 py-3 text-sm text-primary">{turn.error}</p>}
-            {!turn.result && !turn.error && <p className="animate-pulse text-sm text-muted">Le Griot vérifie les sources pertinentes et prépare sa réponse…</p>}
+            {!turn.result && !turn.error && (
+              <p className="griot-thinking flex items-center gap-2 rounded-2xl border border-violet/20 bg-violet/5 px-4 py-3 text-sm text-muted" role="status">
+                <span className="h-2.5 w-2.5 rounded-full bg-gold" aria-hidden="true" />
+                Le Griot vérifie les sources pertinentes et prépare sa réponse…
+              </p>
+            )}
             {turn.result && (
               <div className="max-w-[95%] rounded-2xl rounded-bl-sm border border-border bg-surface p-4">
                 {turn.result.answerOrigin === "zai" && (

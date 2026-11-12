@@ -32,7 +32,7 @@ export async function createProject(formData: FormData) {
     .single();
   if (error) redirect(`/showroom/new?error=${encodeURIComponent(error.message)}`);
 
-  // « Je cherche des contributeurs » crée une Squad (§5.4)
+  // « Je cherche des collaborateurs » crée une Squad (§5.4)
   if (lookingForContributors) {
     const { data: squad } = await supabase
       .from("squads")

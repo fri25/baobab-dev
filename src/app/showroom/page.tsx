@@ -59,7 +59,7 @@ export default async function ShowroomPage() {
             <div className="mt-2 flex gap-2 text-xs">
               <span className="rounded-full border border-border px-2 py-0.5">{PROJECT_STATUS[p.status]}</span>
               {p.looking_for_contributors && (
-                <span className="rounded-full bg-leaf/10 px-2 py-0.5 text-leaf">Cherche des contributeurs</span>
+                <span className="rounded-full bg-leaf/10 px-2 py-0.5 text-leaf">Cherche des collaborateurs</span>
               )}
             </div>
           </li>

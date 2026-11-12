@@ -46,7 +46,7 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 
 | Fonction | Description | Route |
 |---|---|---|
-| **Showroom** | Vitrine des projets africains : likes, projet de la semaine, appel à contributeurs. | `/showroom` |
+| **Showroom** | Vitrine des projets africains : likes, projet de la semaine, appel à collaborateurs. | `/showroom` |
 | **Squads** | Équipes formées par matching de compétences, avec candidatures, invitations, tableau de tâches et discussion en temps réel. | `/squads` |
 | **Pair-Debugging fantôme** | Débogage à plusieurs façon Google Docs, en texte pur, à moins de 5 Ko/s. Curseurs visibles, terminal partagé, « Prendre la main », secrets masqués et relecture de la session. | `/debug` |
 | **Défis** | Défi hebdomadaire noté par un jury. Le podium gagne +100, +60 ou +30 XP. Les défis peuvent être sponsorisés. | `/defis` |

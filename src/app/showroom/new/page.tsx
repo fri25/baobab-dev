@@ -61,7 +61,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
         <details className="rounded-lg border border-border bg-surface p-4">
           <summary className="cursor-pointer text-sm font-medium">
             <input type="checkbox" name="contributors" className="mr-2" />
-            Je cherche des contributeurs (crée une Squad)
+            Je cherche des collaborateurs (crée une Squad)
           </summary>
           <div className="mt-3 space-y-3">
             <label className="block text-sm">
@@ -69,7 +69,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
               <input name="roles" placeholder="Back-end Node.js, Mobile Flutter" className={input} />
             </label>
             <label className="block text-sm">
-              Ce que tu attends des contributeurs
+              Ce que tu attends des collaborateurs
               <textarea name="squad_need" rows={2} className={input} />
             </label>
           </div>

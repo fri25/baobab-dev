@@ -38,7 +38,8 @@ const AUDIT = demo.id;
 
 // Pages et confidentialité
 await page("/forensic", null, "Code Forensic");
-await page("/forensic/new", aicha.cookie, "Bloquer le forfait");
+const newAuditPage = await page("/forensic/new", aicha.cookie, "Bloquer le forfait");
+ok("le porteur doit reconnaître avoir compris les clauses", newAuditPage.includes('name="nda"') && newAuditPage.includes("J’ai lu"));
 await page(`/forensic/${AUDIT}`, aicha.cookie, "Webhook FedaPay accepté sans vérification");
 const outsider = await page(`/forensic/${AUDIT}`, moussa.cookie, "Audit confidentiel");
 ok("audit confidentiel : constats invisibles pour un tiers", !outsider.includes("Webhook FedaPay accepté"));
@@ -62,9 +63,13 @@ ok("le porteur ne s'audite pas", !!eOwnJoin);
 const { error: eLevel } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
 ok("auditeur : niveau Expert requis", !!eLevel, eLevel?.message);
 await admin.from("profiles").update({ xp: 2100 }).in("id", [moussa.id, fatou.id, ibrahim.id]);
+const auditorJoinPage = await page(`/forensic/${AUDIT}`, moussa.cookie, "Devenir auditeur");
+ok("l’auditeur peut lire les clauses avant d’accepter", auditorJoinPage.includes('name="nda"') && auditorJoinPage.includes("Lire les clauses"));
 const { error: eNda } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: false });
 ok("accord de confidentialité obligatoire", !!eNda, eNda?.message);
-await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
+const { error: eJoinMoussa } = await moussa.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
+const { data: moussaNda } = await admin.from("audit_auditors").select("nda_accepted_at, nda_terms_version").eq("audit_id", AUDIT).eq("auditor_id", moussa.id).single();
+ok("l’accord accepté par l’auditeur est horodaté et versionné", !eJoinMoussa && moussaNda?.nda_accepted_at && moussaNda.nda_terms_version === "nda-v1");
 await fatou.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
 const { error: eFull } = await ibrahim.c.rpc("join_audit", { p_audit: AUDIT, p_accept_nda: true });
 ok("3 auditeurs maximum", !!eFull, eFull?.message);
@@ -109,13 +114,20 @@ ok("le porteur note ses auditeurs", !eRate, eRate?.message);
 
 // Nouvel audit : forfait bloqué et analyse automatique d'un vrai dépôt public
 const a0 = await balance(aicha);
+const { error: eOwnerNda } = await aicha.c.rpc("create_audit", {
+  p_title: "Bibliothèque open source", p_repo_url: "https://github.com/sindresorhus/is", p_context: "Vérification avant publication",
+  p_confidentiality: "public", p_max_auditors: 3, p_fee: 10000, p_days: 7, p_accept_nda: false,
+});
+ok("le porteur ne peut pas créer d'audit sans accord", !!eOwnerNda, eOwnerNda?.message);
 const { data: newId, error: eNew } = await aicha.c.rpc("create_audit", {
   p_title: "Bibliothèque open source", p_repo_url: "https://github.com/sindresorhus/is", p_context: "Vérification avant publication",
-  p_confidentiality: "public", p_max_auditors: 3, p_fee: 10000, p_days: 7,
+  p_confidentiality: "public", p_max_auditors: 3, p_fee: 10000, p_days: 7, p_accept_nda: true,
 });
 ok("forfait de 10 000 FCFA bloqué", !eNew && (await balance(aicha)) === a0 - 10000, eNew?.message);
+const { data: ownerNda } = await admin.from("audits").select("owner_nda_accepted_at, owner_nda_terms_version").eq("id", newId).single();
+ok("l’accord du porteur est horodaté et versionné", ownerNda?.owner_nda_accepted_at && ownerNda.owner_nda_terms_version === "nda-v1");
 const { error: eCheap } = await aicha.c.rpc("create_audit", {
-  p_title: "x", p_repo_url: "https://github.com/a/b", p_context: "x", p_confidentiality: "public", p_max_auditors: 3, p_fee: 500, p_days: 7,
+  p_title: "x", p_repo_url: "https://github.com/a/b", p_context: "x", p_confidentiality: "public", p_max_auditors: 3, p_fee: 500, p_days: 7, p_accept_nda: true,
 });
 ok("forfait minimum de 10 000 FCFA", !!eCheap);
 

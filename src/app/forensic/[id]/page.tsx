@@ -6,6 +6,7 @@ import { ReportButton } from "@/components/ReportButton";
 import { getSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
 import { AUDIT_STATUS, FINDING_CATEGORY, SEVERITY, scoreColor } from "@/lib/forensic-labels";
+import { AUDIT_NDA_CLAUSES, AUDIT_NDA_NOTICE, AUDIT_NDA_VERSION } from "@/lib/forensic-nda";
 import type { AutoReport } from "@/lib/forensic";
 import { addFinding, closeAudit, contestFinding, joinAudit, rateAuditor, voteFinding } from "../actions";
 import { ReanalyzeButton } from "./ReanalyzeButton";
@@ -42,7 +43,7 @@ export default async function AuditPage({
 
   const { data: audit } = await supabase
     .from("audits")
-    .select("id, owner_id, title, context, confidentiality, max_auditors, fee, status, deadline, score, effort_hours, certificate_code, created_at, closed_at")
+    .select("id, owner_id, title, context, confidentiality, max_auditors, fee, status, deadline, score, effort_hours, certificate_code, created_at, closed_at, owner_nda_accepted_at, owner_nda_terms_version")
     .eq("id", id)
     .maybeSingle();
   if (!audit) notFound();
@@ -51,7 +52,7 @@ export default async function AuditPage({
     supabase.from("profiles").select("username, full_name, avatar_url, city").eq("id", audit.owner_id).single<Person>(),
     supabase
       .from("audit_auditors")
-      .select("auditor_id, nda_accepted_at, paid, rating, auditor:profiles!audit_auditors_auditor_id_fkey(username, full_name, avatar_url, city)")
+      .select("auditor_id, nda_accepted_at, nda_terms_version, paid, rating, auditor:profiles!audit_auditors_auditor_id_fkey(username, full_name, avatar_url, city)")
       .eq("audit_id", id)
       .order("joined_at"),
     supabase.rpc("audit_private_details", { p_audit: id }).maybeSingle<{ repo_url: string; auto_report: AutoReport | null }>(),
@@ -278,12 +279,17 @@ export default async function AuditPage({
             <h2 className="font-semibold">
               Auditeurs ({auditors?.length ?? 0}/{audit.max_auditors})
             </h2>
+            {audit.owner_nda_accepted_at && (
+              <p className="mt-1 text-xs text-muted">
+                Clauses acceptées par le porteur {timeAgo(audit.owner_nda_accepted_at)} · {audit.owner_nda_terms_version}
+              </p>
+            )}
             <ul className="mt-2 space-y-2">
               {auditors?.map((a) => (
                 <li key={a.auditor_id} className="text-sm">
                   <UserChip user={a.auditor as unknown as Person} />
                   <p className="text-xs text-muted">
-                    Accord de confidentialité signé {timeAgo(a.nda_accepted_at)}
+                    Clauses acceptées {timeAgo(a.nda_accepted_at)} · {a.nda_terms_version ?? "accord antérieur"}
                     {a.paid > 0 && ` · payé ${fcfa(a.paid)}`}
                   </p>
                   {isOwner && closed && (
@@ -307,11 +313,21 @@ export default async function AuditPage({
               <h2 className="font-semibold">Devenir auditeur</h2>
               {(profile?.xp ?? 0) >= 2000 ? (
                 <>
+                  <details className="rounded-lg border border-border p-3 text-xs">
+                    <summary className="cursor-pointer font-medium">Lire les clauses · {AUDIT_NDA_VERSION}</summary>
+                    <p className="mt-2 text-muted">{AUDIT_NDA_NOTICE}</p>
+                    <ul className="mt-2 space-y-2">
+                      {AUDIT_NDA_CLAUSES.map((clause) => (
+                        <li key={clause.title}>
+                          <strong>{clause.title}.</strong> {clause.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                   <label className="flex items-start gap-2 text-xs">
                     <input type="checkbox" name="nda" required className="mt-0.5" />
                     <span>
-                      J&apos;accepte l&apos;accord de confidentialité : je ne divulgue ni le code, ni les constats, ni les informations
-                      du projet en dehors de cet audit, et je garde un ton respectueux.
+                      J&apos;ai lu et compris ces clauses provisoires et m&apos;engage à les respecter.
                     </span>
                   </label>
                   <button className="w-full rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">Rejoindre l&apos;audit</button>

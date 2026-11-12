@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/auth";
 import { fcfa } from "@/lib/format";
+import { AUDIT_NDA_CLAUSES, AUDIT_NDA_NOTICE, AUDIT_NDA_VERSION } from "@/lib/forensic-nda";
 import { createAudit } from "../actions";
 
 export const metadata = { title: "Faire auditer mon code · Code Forensic" };
@@ -29,7 +30,7 @@ export default async function NewAuditPage({ searchParams }: { searchParams: Pro
           Dépôt GitHub
           <input name="repo_url" type="url" required pattern="https://github\.com/.+/.+" placeholder="https://github.com/moi/mon-projet" className={input} />
           <span className="mt-1 block text-xs font-normal text-muted">
-            Dépôt public : analyse automatique immédiate. Dépôt privé : invite les auditeurs sur GitHub une fois l&apos;accord signé.
+            Dépôt public : analyse automatique immédiate. Dépôt privé : invite les auditeurs sur GitHub après leur acceptation de l&apos;accord.
           </span>
         </label>
         <label className="block text-sm font-medium">
@@ -70,6 +71,21 @@ export default async function NewAuditPage({ searchParams }: { searchParams: Pro
             </span>
           </label>
         </fieldset>
+        <section className="rounded-xl border border-border bg-background p-4 text-sm">
+          <h2 className="font-semibold">Accord de confidentialité · {AUDIT_NDA_VERSION}</h2>
+          <p className="mt-1 text-xs text-muted">{AUDIT_NDA_NOTICE}</p>
+          <ul className="mt-3 space-y-2">
+            {AUDIT_NDA_CLAUSES.map((clause) => (
+              <li key={clause.title}>
+                <strong>{clause.title}.</strong> {clause.text}
+              </li>
+            ))}
+          </ul>
+          <label className="mt-4 flex items-start gap-2 border-t border-border pt-3">
+            <input type="checkbox" name="nda" required className="mt-1" />
+            <span>J’ai lu et compris ces clauses provisoires et m’engage à les respecter.</span>
+          </label>
+        </section>
         <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Bloquer le forfait et lancer l&apos;audit</button>
       </form>
     </main>

@@ -355,7 +355,7 @@ update public.clone_queries set rating = 4 where user_id = 'a1000000-0000-4000-8
 -- ============================================================
 select set_config('request.jwt.claims', '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated"}', false);
 select public.create_audit('Tontine Pay avant la levée de fonds', 'https://github.com/aicha-dev/tontine-pay',
-  'Levée de fonds d''amorçage en janvier : les investisseurs demandent un audit du code de paiement.', 'private', 3, 15000, 14);
+  'Levée de fonds d''amorçage en janvier : les investisseurs demandent un audit du code de paiement.', 'private', 3, 15000, 14, true);
 update public.audits set auto_report = '{"analyzed_at":"2026-11-04T10:00:00Z","accessible":true,"language":"PHP","files":214,"source_files":121,"test_files":4,"dependencies_checked":18,"dependencies_outdated":3}'
 where title like 'Tontine Pay%';
 insert into public.audit_findings (audit_id, source, category, severity, title, description, fix, file_path, effort_hours)

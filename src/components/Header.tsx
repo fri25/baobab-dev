@@ -3,6 +3,9 @@ import { Avatar } from "@/components/Avatar";
 import { GriotBubble } from "@/components/GriotBubble";
 import { LiveNotifications } from "@/components/LiveNotifications";
 import { Logo } from "@/components/Logo";
+import { DesktopNavigation, MobileNavigation } from "@/components/PrimaryNavigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import type { ThemePreference } from "@/lib/theme";
 import { levelForXp } from "@/lib/levels";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/configured";
@@ -20,7 +23,7 @@ async function currentUser() {
   return profile ? { ...profile, unread: count ?? 0, unreadChats: (unreadChats as number | null) ?? 0 } : null;
 }
 
-const NAV = [
+const NAV: ReadonlyArray<readonly [href: string, label: string]> = [
   ["/fil", "Mon fil"],
   ["/questions", "Questions"],
   ["/griot", "Griot"],
@@ -34,8 +37,13 @@ const NAV = [
   ["/centrale", "Centrale"],
 ];
 
-export async function Header() {
+export async function Header({ themePreference }: { themePreference: ThemePreference }) {
   const profile = await currentUser();
+  const navigationProps = {
+    items: NAV.filter(([href]) => profile || href !== "/fil"),
+    unreadChats: profile?.unreadChats ?? 0,
+    canModerate: Boolean(profile && ["moderator", "admin"].includes(profile.role)),
+  };
 
   return (
     <>
@@ -45,23 +53,10 @@ export async function Header() {
             <Logo className="h-7 w-7" />
             <span>Baobab Dev</span>
           </Link>
-          <nav className="hidden gap-3 text-sm text-muted xl:flex">
-            {NAV.filter(([href]) => profile || href !== "/fil").map(([href, label]) => (
-              <Link key={href} href={href} className="flex items-center gap-1 hover:text-foreground">
-                {label}
-                {href === "/discussions" && profile && profile.unreadChats > 0 && (
-                  <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-ink">{profile.unreadChats}</span>
-                )}
-              </Link>
-            ))}
-            {profile && ["moderator", "admin"].includes(profile.role) && (
-              <Link href="/moderation" className="hover:text-foreground">
-                Modération
-              </Link>
-            )}
-          </nav>
+          <DesktopNavigation {...navigationProps} />
           {profile ? (
             <div className="flex items-center gap-2">
+              <ThemeToggle initialPreference={themePreference} />
               <LiveNotifications userId={profile.id} unread={profile.unread} />
               <Link href={`/u/${profile.username}`} className="flex items-center gap-2 text-sm">
                 <Avatar user={profile} size={30} />
@@ -74,25 +69,18 @@ export async function Header() {
               </Link>
             </div>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-ink hover:opacity-90"
-            >
-              Se connecter
-            </Link>
+            <div className="flex items-center gap-2">
+              <ThemeToggle initialPreference={themePreference} />
+              <Link
+                href="/login"
+                className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-ink hover:opacity-90"
+              >
+                Se connecter
+              </Link>
+            </div>
           )}
         </div>
-        {/* Navigation mobile, défilante (utilisable dès 360 px) */}
-        <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm text-muted xl:hidden">
-          {NAV.filter(([href]) => profile || href !== "/fil").map(([href, label]) => (
-            <Link key={href} href={href} className="flex shrink-0 items-center gap-1 hover:text-foreground">
-              {label}
-              {href === "/discussions" && profile && profile.unreadChats > 0 && (
-                <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-ink">{profile.unreadChats}</span>
-              )}
-            </Link>
-          ))}
-        </nav>
+        <MobileNavigation {...navigationProps} />
       </header>
       {profile && <GriotBubble />}
     </>

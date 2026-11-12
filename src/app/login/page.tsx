@@ -4,7 +4,8 @@ import { Logo } from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/configured";
 
-const safeNext = (next: unknown) => (typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/fil");
+const safeNext = (next: unknown, fallback = "/discussions") =>
+  typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : fallback;
 
 async function signInWithGithub(formData: FormData) {
   "use server";
@@ -28,7 +29,7 @@ async function signInWithPassword(formData: FormData) {
     password: String(formData.get("password")),
   });
   if (error) redirect(`/login?error=${encodeURIComponent("Email ou mot de passe incorrect")}`);
-  redirect(safeNext(formData.get("next")));
+  redirect(safeNext(formData.get("next"), "/fil"));
 }
 
 const DEMO = [

@@ -2,6 +2,7 @@
 
 /* Palette Baobab : sable, terre cuite, feuillage */
 :root {
+  color-scheme: light;
   --background: #fbf7f0;
   --surface: #ffffff;
   --foreground: #1f1a14;
@@ -16,7 +17,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #15120e;
     --surface: #1e1a15;
     --foreground: #f3ece2;
@@ -29,6 +31,21 @@
     --bronze: #d19a66;
     --silver: #b9c1c9;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #15120e;
+  --surface: #1e1a15;
+  --foreground: #f3ece2;
+  --muted: #a89a87;
+  --border: #342d25;
+  --primary: #e0823f;
+  --primary-ink: #1a120b;
+  --leaf: #7dbb7d;
+  --gold: #e7be4b;
+  --bronze: #d19a66;
+  --silver: #b9c1c9;
 }
 
 @theme inline {

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { ServiceWorker } from "@/components/ServiceWorker";
+import { isThemePreference } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,13 +40,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const lite = Boolean((await cookies()).get("lite"));
+  const cookieStore = await cookies();
+  const lite = Boolean(cookieStore.get("lite"));
+  const themeCookie = cookieStore.get("theme")?.value;
+  const theme = isThemePreference(themeCookie) ? themeCookie : "system";
 
   return (
-    <html lang="fr" data-lite={lite ? "" : undefined}>
+    <html
+      lang="fr"
+      data-lite={lite ? "" : undefined}
+      data-theme={theme === "system" ? undefined : theme}
+    >
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ServiceWorker />
-        <Header />
+        <Header themePreference={theme} />
         {children}
         <footer className="mt-16 border-t border-border py-6 text-sm text-muted">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">

@@ -10,8 +10,16 @@ export async function GET(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
   const admin = createAdminClient();
-  const { data: daily, error } = await admin.rpc("cron_daily");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const [{ data: daily, error: dailyError }, { data: deadlines, error: deadlineError }] = await Promise.all([
+    admin.rpc("cron_daily"),
+    admin.rpc("process_opportunity_deadlines"),
+  ]);
+  if (dailyError || deadlineError) {
+    return NextResponse.json(
+      { error: dailyError?.message, deadlineError: deadlineError?.message },
+      { status: 500 },
+    );
+  }
 
   const { data: items } = await admin.from("stack_items").select("id, health_url").not("health_url", "is", null);
   const health = await Promise.all(
@@ -31,5 +39,5 @@ export async function GET(request: Request) {
   // Les étapes qui dépendent de services externes sont isolées : l'échec de l'une n'annule pas les autres
   const safely = <T,>(step: Promise<T>) => step.catch((e: unknown) => ({ error: e instanceof Error ? e.message : String(e) }));
   const [projects, radar] = await Promise.all([safely(checkStaleProjects()), safely(collectSources())]);
-  return NextResponse.json({ ...daily, health, projects, radar });
+  return NextResponse.json({ ...daily, deadlines, health, projects, radar });
 }

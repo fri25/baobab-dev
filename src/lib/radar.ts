@@ -161,8 +161,10 @@ export async function extractOpportunity(raw: string): Promise<{ data: Extracted
 // Correspondances + alertes (application, et WhatsApp pour ceux qui l'ont activé)
 export async function matchAndAlert(opportunityId: string) {
   const admin = createAdminClient();
-  const { data: count } = await admin.rpc("compute_opportunity_matches", { p_opportunity: opportunityId });
-  const { data: alerted } = await admin.rpc("notify_opportunity_matches", { p_opportunity: opportunityId });
+  const { data: count, error: matchError } = await admin.rpc("compute_opportunity_matches", { p_opportunity: opportunityId });
+  if (matchError) throw new Error(`Calcul des correspondances Radar impossible : ${matchError.message}`);
+  const { data: alerted, error: alertError } = await admin.rpc("notify_opportunity_matches", { p_opportunity: opportunityId });
+  if (alertError) throw new Error(`Envoi des alertes Radar impossible : ${alertError.message}`);
   const ids = ((alerted ?? []) as { user_id: string; score: number }[]).map((a) => a.user_id);
 
   if (ids.length) {
@@ -222,12 +224,11 @@ export async function collectSources() {
           city: x.city,
           source_url: link,
           extracted_by: by,
-          status: "open",
+          status: "pending_review",
         })
         .select("id")
         .single();
       if (inserted) {
-        await matchAndAlert(inserted.id);
         added++;
       }
     }

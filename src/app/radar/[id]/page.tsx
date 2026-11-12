@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { UserChip } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
-import { budgetLabel, ORG_TYPE, RESPONSE_STATUS, scoreClass } from "@/lib/radar-labels";
+import { budgetLabel, daysUntilDeadline, ORG_TYPE, RESPONSE_STATUS, scoreClass } from "@/lib/radar-labels";
 import { closeOpportunity, publishOpportunity, respond, setResponseStatus } from "../actions";
 
 type Person = { username: string; full_name: string | null; avatar_url: string | null; city: string | null };
@@ -14,7 +14,7 @@ export default async function OpportunityPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; brouillon?: string }>;
+  searchParams: Promise<{ error?: string; brouillon?: string; soumis?: string }>;
 }) {
   const { id } = await params;
   const { error } = await searchParams;
@@ -23,15 +23,36 @@ export default async function OpportunityPage({
   const { data: o } = await supabase.from("opportunities").select("*").eq("id", id).maybeSingle();
   if (!o) notFound();
   const isPublisher = user?.id === o.publisher_id;
+  const deadlinePassed = Boolean(o.deadline && daysUntilDeadline(o.deadline) < 0);
 
   // Brouillon : l'organisation relit et corrige l'extraction avant publication
-  if (o.status === "draft" && isPublisher) {
+  if (o.status === "pending_review" && isPublisher) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-2xl font-bold">Vérifie ton besoin avant publication</h1>
+        <Link href="/radar" className="text-sm text-muted hover:text-primary">
+          ← Radar
+        </Link>
+        <h1 className="mt-3 text-2xl font-bold">{o.title}</h1>
+        <p className="mt-3 rounded-xl border border-gold/40 bg-gold/10 p-4 text-sm">
+          Ton annonce a été transmise à l&apos;administration. Elle apparaîtra dans le Radar et déclenchera les alertes après validation.
+        </p>
+        <p className="mt-3 text-sm text-muted">Date limite : {o.deadline ? new Date(o.deadline).toLocaleDateString("fr-FR") : "Non précisée"}</p>
+      </main>
+    );
+  }
+
+  if ((o.status === "draft" || o.status === "rejected") && isPublisher) {
+    return (
+      <main className="mx-auto max-w-2xl px-4 py-8">
+        <h1 className="text-2xl font-bold">Vérifie ton besoin avant soumission</h1>
         <p className="mt-1 text-muted">
           {o.extracted_by === "ia" ? "Extrait par l'IA" : "Extrait automatiquement"} à partir de ton texte. Corrige ce qui ne va pas.
         </p>
+        {o.moderation_note && (
+          <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+            À corriger avant une nouvelle soumission : {o.moderation_note}
+          </p>
+        )}
         {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
         <form action={publishOpportunity.bind(null, id)} className="mt-6 space-y-4">
           <label className="block text-sm font-medium">
@@ -94,7 +115,7 @@ export default async function OpportunityPage({
             <summary className="cursor-pointer text-muted">Ton texte d&apos;origine</summary>
             <p className="mt-2 whitespace-pre-line">{o.raw_text}</p>
           </details>
-          <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Publier et alerter les devs</button>
+          <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Soumettre à la validation</button>
         </form>
       </main>
     );
@@ -138,6 +159,18 @@ export default async function OpportunityPage({
           </p>
           <h1 className="mt-1 text-2xl font-bold">{o.title}</h1>
           {o.status === "closed" && <p className="mt-2 rounded-lg bg-surface px-3 py-2 text-sm text-muted">Opportunité close.</p>}
+          {o.status === "open" && deadlinePassed && (
+            <p className="mt-2 rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">La date limite est dépassée; les réponses sont closes.</p>
+          )}
+          {o.deadline && o.status === "open" && daysUntilDeadline(o.deadline) <= 7 && (
+            <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${daysUntilDeadline(o.deadline) <= 3 ? "bg-primary/10 text-primary" : "bg-gold/10 text-gold"}`}>
+              {daysUntilDeadline(o.deadline) < 0
+                ? "Date limite dépassée"
+                : daysUntilDeadline(o.deadline) === 0
+                  ? "Date limite aujourd’hui"
+                  : `Date limite dans ${daysUntilDeadline(o.deadline)} jour${daysUntilDeadline(o.deadline) > 1 ? "s" : ""}`}
+            </p>
+          )}
           <p className="mt-4 text-lg">{o.need}</p>
 
           <dl className="mt-5 grid gap-3 rounded-xl border border-border bg-surface p-4 text-sm sm:grid-cols-3">
@@ -217,7 +250,7 @@ export default async function OpportunityPage({
             </p>
           ) : (
             user &&
-            o.status === "open" && (
+            o.status === "open" && !deadlinePassed && (
               <form action={respond.bind(null, id)} className="mt-8 space-y-3 rounded-xl border border-dashed border-border p-4">
                 <h2 className="font-semibold">Répondre à {o.organization_name}</h2>
                 {(mySquads?.length ?? 0) > 0 && (

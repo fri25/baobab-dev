@@ -69,6 +69,26 @@ const { data: draft, error: eDraft } = await mairie.c
 ok("une organisation enregistre un brouillon", !eDraft, eDraft?.message);
 const { data: seen } = await aicha.c.from("opportunities").select("id").eq("id", draft.id);
 ok("les brouillons restent privés", seen?.length === 0);
+const { error: eForgeOpen } = await mairie.c.from("opportunities").update({ status: "open" }).eq("id", draft.id);
+ok("une organisation ne peut pas publier sans validation", !!eForgeOpen);
+const { error: eSubmitReview } = await mairie.c.rpc("submit_opportunity_for_review", { p_opportunity: draft.id });
+const { data: pendingDraft } = await admin.from("opportunities").select("status").eq("id", draft.id).single();
+ok("soumettre un besoin le place en attente", !eSubmitReview && pendingDraft?.status === "pending_review", eSubmitReview?.message);
+const { data: pendingEdit } = await mairie.c.from("opportunities").update({ title: "Modification hors validation" }).eq("id", draft.id).select("id");
+const { data: pendingTitle } = await admin.from("opportunities").select("title").eq("id", draft.id).single();
+ok("une annonce en attente ne peut pas être modifiée sans contrôle", pendingEdit?.length === 0 && pendingTitle?.title === "Brouillon interne");
+await page("/moderation", modo.cookie, "Annonces à valider");
+const { error: eRejectDraft } = await modo.c.rpc("moderate_opportunity", {
+  p_opportunity: draft.id,
+  p_action: "reject",
+  p_note: "Précise le budget demandé.",
+});
+const { data: rejectedDraft } = await mairie.c.from("opportunities").select("status, moderation_note").eq("id", draft.id).single();
+ok("le motif de refus revient à l'organisation", !eRejectDraft && rejectedDraft?.status === "rejected" && rejectedDraft.moderation_note === "Précise le budget demandé.");
+const { error: eResubmit } = await mairie.c.rpc("submit_opportunity_for_review", { p_opportunity: draft.id });
+const { error: eApproveDraft } = await modo.c.rpc("moderate_opportunity", { p_opportunity: draft.id, p_action: "approve" });
+const { data: approvedDraft } = await admin.from("opportunities").select("status").eq("id", draft.id).single();
+ok("corriger puis valider publie l'annonce", !eResubmit && !eApproveDraft && approvedDraft?.status === "open");
 
 // Réponses
 const { error: eShort } = await aicha.c.rpc("respond_opportunity", { p_opportunity: COTONOU, p_message: "Je suis dispo", p_budget: null, p_squad: null });
@@ -118,12 +138,38 @@ ok("la modération ajoute une source RSS", !eSrc, eSrc?.message);
 const cron = await (await fetch(`${APP}/api/cron`, { headers: { authorization: `Bearer ${env.CRON_SECRET}` } })).json();
 ok("collecte : une annonce numérique retenue, l'autre ignorée", cron.radar?.added === 1, JSON.stringify(cron.radar));
 const { data: collected } = await admin.from("opportunities").select("*").eq("source_url", "http://localhost:4599/ao/1").single();
+ok("les annonces collectées attendent une validation", collected?.status === "pending_review");
+const { data: privateCollected } = await moussa.c.from("opportunities").select("id").eq("id", collected?.id);
+ok("une annonce collectée en attente reste invisible au public", privateCollected?.length === 0);
 ok("extraction : technologies", collected?.technologies.includes("Mobile Money") && collected.technologies.includes("USSD"), collected?.technologies.join(", "));
 ok("extraction : budget 5 000 000 FCFA", collected?.budget_min === 5000000 && collected.budget_max === 5000000, `${collected?.budget_min}`);
 ok("extraction : date limite", collected?.deadline === "2026-12-20", collected?.deadline);
 ok("extraction : ville et pays", collected?.city === "Dakar" && collected.country === "Sénégal", `${collected?.city}, ${collected?.country}`);
+const { error: eApproveCollected } = await modo.c.rpc("moderate_opportunity", {
+  p_opportunity: collected.id,
+  p_action: "approve",
+});
+const { error: eComputeCollected } = await admin.rpc("compute_opportunity_matches", { p_opportunity: collected.id });
+const { error: eNotifyCollected } = await admin.rpc("notify_opportunity_matches", { p_opportunity: collected.id });
 const { data: mAlert } = await admin.from("notifications").select("payload").eq("user_id", moussa.id).eq("kind", "opportunity_match");
-ok("Moussa (Mobile Money, USSD, Dakar) est alerté", mAlert?.some((n) => n.payload.opportunity_id === collected?.id));
+ok(
+  "après validation, Moussa (Mobile Money, USSD, Dakar) est alerté",
+  !eApproveCollected && !eComputeCollected && !eNotifyCollected && mAlert?.some((n) => n.payload.opportunity_id === collected?.id),
+  eApproveCollected?.message ?? eComputeCollected?.message ?? eNotifyCollected?.message,
+);
+const beninToday = new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 10);
+const threeDays = new Date(Date.parse(`${beninToday}T00:00:00Z`) + 3 * 86_400_000).toISOString().slice(0, 10);
+const { error: eDeadlineUpdate } = await admin.from("opportunities").update({ deadline: threeDays }).eq("id", SANTE);
+const { data: deadlineRun, error: eDeadlineRun } = await admin.rpc("process_opportunity_deadlines");
+const { data: deadlineNotice } = await admin
+  .from("notifications")
+  .select("payload")
+  .eq("user_id", fatou.id)
+  .eq("kind", "opportunity_deadline")
+  .contains("payload", { opportunity_id: SANTE });
+ok("une échéance à trois jours génère un rappel", !eDeadlineUpdate && !eDeadlineRun && deadlineRun?.reminders > 0 && deadlineNotice?.length === 1, eDeadlineUpdate?.message ?? eDeadlineRun?.message);
+const { data: deadlineRunAgain, error: eDeadlineAgain } = await admin.rpc("process_opportunity_deadlines");
+ok("un rappel déjà envoyé n'est pas dupliqué", !eDeadlineAgain && deadlineRunAgain?.reminders === 0, eDeadlineAgain?.message);
 const again = await (await fetch(`${APP}/api/cron`, { headers: { authorization: `Bearer ${env.CRON_SECRET}` } })).json();
 ok("pas de doublon à la collecte suivante", again.radar?.added === 0);
 server.close();

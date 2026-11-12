@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { moderateOpportunity } from "@/app/radar/actions";
 
 export const metadata = { title: "Modération · Baobab Dev" };
 
@@ -50,12 +51,22 @@ async function moderate(reportId: number, action: "remove" | "dismiss") {
   revalidatePath("/moderation");
 }
 
-export default async function ModerationPage() {
+export default async function ModerationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ radar?: string; radarError?: string }>;
+}) {
   const { supabase, profile } = await requireSession("/moderation");
   if (!["moderator", "admin"].includes(profile.role)) notFound();
+  const { radar, radarError } = await searchParams;
 
-  const { data: sources } = await supabase.from("radar_sources").select("id, name, url, country, active, last_fetched_at").order("name");
-  const [{ data: reports }, { data: disputes }, stats] = await Promise.all([
+  const [{ data: sources }, { data: pendingOpportunities }, { data: reports }, { data: disputes }, stats] = await Promise.all([
+    supabase.from("radar_sources").select("id, name, url, country, active, last_fetched_at").order("name"),
+    supabase
+      .from("opportunities")
+      .select("id, source, source_url, organization_name, title, raw_text, deadline, created_at")
+      .eq("status", "pending_review")
+      .order("created_at"),
     supabase
       .from("reports")
       .select("id, target_type, target_id, reason, created_at, reporter:profiles!reports_reporter_id_fkey(username)")
@@ -73,6 +84,9 @@ export default async function ModerationPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-bold">Modération et administration</h1>
+      {radar === "approved" && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">Opportunité validée et publiée.</p>}
+      {radar === "rejected" && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">Opportunité refusée; son auteur peut la corriger et la soumettre à nouveau.</p>}
+      {radarError && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{radarError}</p>}
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
         {stats.map((s, i) => (
@@ -81,6 +95,50 @@ export default async function ModerationPage() {
             <p className="text-xs text-muted">{labels[i]}</p>
           </div>
         ))}
+      </section>
+
+      <section id="radar-review" className="mt-8 scroll-mt-20">
+        <h2 className="font-semibold">Radar : annonces à valider ({pendingOpportunities?.length ?? 0})</h2>
+        <p className="mt-1 text-xs text-muted">
+          Une annonce n’est visible dans le Radar et ne déclenche des alertes qu’après validation.
+        </p>
+        <ul className="mt-3 space-y-3">
+          {pendingOpportunities?.map((opportunity) => (
+            <li key={opportunity.id} className="rounded-xl border border-border bg-surface p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs text-muted">
+                    {opportunity.organization_name} · {opportunity.source === "collectee" ? "appel d’offres collecté" : "soumis par une organisation"}
+                    {opportunity.deadline && ` · échéance ${new Date(opportunity.deadline).toLocaleDateString("fr-FR")}`}
+                  </p>
+                  <Link href={`/radar/${opportunity.id}`} className="mt-1 inline-block font-semibold hover:text-primary">
+                    {opportunity.title}
+                  </Link>
+                  <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-muted">{opportunity.raw_text}</p>
+                  {opportunity.source_url && (
+                    <a href={opportunity.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs text-primary hover:underline">
+                      Consulter l’annonce d’origine
+                    </a>
+                  )}
+                  <p className="mt-2 text-xs text-muted">Reçue {timeAgo(opportunity.created_at)}</p>
+                </div>
+                <form action={moderateOpportunity.bind(null, opportunity.id)}>
+                  <input type="hidden" name="action" value="approve" />
+                  <button className="rounded-full bg-leaf px-4 py-2 text-sm font-medium text-background">Valider et publier</button>
+                </form>
+              </div>
+              <form action={moderateOpportunity.bind(null, opportunity.id)} className="mt-3 flex flex-wrap items-end gap-2 border-t border-border pt-3">
+                <input type="hidden" name="action" value="reject" />
+                <label className="min-w-56 flex-1 text-sm">
+                  Motif de refus (visible par l&apos;organisation)
+                  <input name="note" required minLength={5} maxLength={500} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" />
+                </label>
+                <button className="rounded-full border border-border px-4 py-2 text-sm text-muted hover:text-primary">Refuser et demander une correction</button>
+              </form>
+            </li>
+          ))}
+          {!pendingOpportunities?.length && <li className="text-sm text-muted">Aucune annonce à valider.</li>}
+        </ul>
       </section>
 
       <section className="mt-8">

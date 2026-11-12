@@ -79,6 +79,15 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: `🎯 ${p.organization_name ?? p.organization} cherche ton profil`, detail: `${p.title} · correspondance ${p.score}/100`, href: `/radar/${p.opportunity_id}` };
     case "opportunity_response":
       return { id: n.id, title: `Nouvelle réponse de ${p.from}`, detail: String(p.title), href: `/radar/${p.opportunity_id}` };
+    case "opportunity_deadline": {
+      const days = Number(p.days_before);
+      return {
+        id: n.id,
+        title: `Échéance dans ${days} jour${days > 1 ? "s" : ""}`,
+        detail: `Candidatures pour ${p.title}`,
+        href: `/radar/${p.opportunity_id}`,
+      };
+    }
     case "opportunity_response_status": {
       const label: Record<string, string> = { shortlisted: "Présélectionné·e", accepted: "Retenu·e !", declined: "Non retenu·e" };
       return { id: n.id, title: `${label[String(p.status)] ?? p.status} : ${p.title}`, href: `/radar/${p.opportunity_id}` };

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
-import { budgetLabel, ORG_TYPE, scoreClass } from "@/lib/radar-labels";
+import { budgetLabel, daysUntilDeadline, ORG_TYPE, scoreClass } from "@/lib/radar-labels";
+import { RadarLiveRefresh } from "./RadarLiveRefresh";
 
 export const metadata = { title: "Radar d'opportunités · Baobab Dev" };
 
@@ -24,17 +25,20 @@ export default async function RadarPage({ searchParams }: { searchParams: Promis
     user ? supabase.rpc("my_opportunities") : Promise.resolve({ data: [] }),
   ]);
   const matchOf = new Map(((mine ?? []) as Match[]).map((m) => [m.opportunity_id, m]));
-  const list = (opportunities ?? []).sort((a, b) => (matchOf.get(b.id)?.score ?? -1) - (matchOf.get(a.id)?.score ?? -1));
-  const countries = [...new Set((opportunities ?? []).map((o) => o.country).filter(Boolean))] as string[];
+  const active = (opportunities ?? []).filter((o) => !o.deadline || daysUntilDeadline(o.deadline) >= 0);
+  const list = active.sort((a, b) => (matchOf.get(b.id)?.score ?? -1) - (matchOf.get(a.id)?.score ?? -1));
+  const countries = [...new Set(active.map((o) => o.country).filter(Boolean))] as string[];
+  const urgent = active.some((o) => o.deadline && daysUntilDeadline(o.deadline) <= 7);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
+      <RadarLiveRefresh urgent={urgent} />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Radar d&apos;opportunités</h1>
           <p className="max-w-2xl text-muted">
-            Les besoins numériques des PME, ONG et collectivités, et les appels d&apos;offres collectés. Chaque opportunité est
-            comparée à ton profil et à tes Squads : les plus proches remontent en premier.
+            Les besoins validés des PME, ONG et collectivités. Chaque opportunité est comparée à ton profil et à tes Squads :
+            les plus proches remontent en premier et les échéances proches sont signalées.
           </p>
         </div>
         <Link href="/radar/publier" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
@@ -80,6 +84,13 @@ export default async function RadarPage({ searchParams }: { searchParams: Promis
                       {o.deadline && ` · avant le ${new Date(o.deadline).toLocaleDateString("fr-FR")}`} · {timeAgo(o.created_at)}
                     </span>
                   </div>
+                  {o.deadline && daysUntilDeadline(o.deadline) <= 7 && (
+                    <p className={`mt-2 text-xs font-semibold ${daysUntilDeadline(o.deadline) <= 3 ? "text-primary" : "text-gold"}`}>
+                      {daysUntilDeadline(o.deadline) === 0
+                        ? "Échéance aujourd’hui"
+                        : `Échéance dans ${daysUntilDeadline(o.deadline)} jour${daysUntilDeadline(o.deadline) > 1 ? "s" : ""}`}
+                    </p>
+                  )}
                   {m && <p className="mt-2 text-xs text-leaf">{m.via_squad ? `Pour ta Squad « ${m.via_squad} » · ` : ""}{m.reasons.join(" · ")}</p>}
                 </div>
                 {m && (

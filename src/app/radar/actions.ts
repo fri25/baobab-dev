@@ -61,18 +61,35 @@ export async function publishOpportunity(id: string, formData: FormData) {
       country: String(formData.get("country") || "") || null,
       city: String(formData.get("city") || "") || null,
       contact: String(formData.get("contact") || "") || null,
-      status: "open",
     })
     .eq("id", id);
   if (error) redirect(`${path(id)}?brouillon=1&error=${encodeURIComponent(error.message)}`);
-  await matchAndAlert(id);
-  redirect(path(id));
+  const { error: submitError } = await supabase.rpc("submit_opportunity_for_review", { p_opportunity: id });
+  if (submitError) redirect(`${path(id)}?brouillon=1&error=${encodeURIComponent(submitError.message)}`);
+  redirect(`${path(id)}?soumis=1`);
 }
 
 export async function closeOpportunity(id: string) {
   const { supabase } = await requireSession(path(id));
-  await supabase.from("opportunities").update({ status: "closed" }).eq("id", id);
+  const { error } = await supabase.rpc("close_opportunity", { p_opportunity: id });
+  if (error) redirect(`${path(id)}?error=${encodeURIComponent(error.message)}`);
   revalidatePath(path(id));
+}
+
+export async function moderateOpportunity(id: string, formData: FormData) {
+  const { supabase } = await requireSession("/moderation");
+  const action = formData.get("action") === "approve" ? "approve" : "reject";
+  const { error } = await supabase.rpc("moderate_opportunity", {
+    p_opportunity: id,
+    p_action: action,
+    p_note: String(formData.get("note") ?? ""),
+  });
+  if (error) redirect(`/moderation?radarError=${encodeURIComponent(error.message)}#radar-review`);
+  if (action === "approve") await matchAndAlert(id);
+  revalidatePath("/radar");
+  revalidatePath(path(id));
+  revalidatePath("/moderation");
+  redirect(`/moderation?radar=${action === "approve" ? "approved" : "rejected"}#radar-review`);
 }
 
 export async function respond(id: string, formData: FormData) {

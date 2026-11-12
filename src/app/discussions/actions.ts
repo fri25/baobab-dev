@@ -25,6 +25,50 @@ export async function createTopic(formData: FormData) {
   redirect(path(data as string));
 }
 
+function portoNovoSchedule(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") return null;
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+
+  const [, year, month, day, hour, minute] = match;
+  const parts = [year, month, day, hour, minute].map(Number);
+  const [y, m, d, h, min] = parts;
+  if (y < 1970 || m < 1 || m > 12 || d < 1 || d > 31 || h > 23 || min > 59) return null;
+  const localTime = Date.UTC(y, m - 1, d, h, min);
+  const check = new Date(localTime);
+  if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) return null;
+
+  return new Date(localTime - 60 * 60 * 1000);
+}
+
+export async function inviteToTopic(conversationId: string, formData: FormData) {
+  const { supabase } = await requireSession(path(conversationId));
+  const username = String(formData.get("username") ?? "").trim().replace(/^@/, "");
+  const scheduled = formData.get("when") === "scheduled";
+  const scheduledAt = scheduled ? portoNovoSchedule(formData.get("scheduled_at")) : null;
+  if (scheduled && (!scheduledAt || scheduledAt <= new Date())) {
+    redirect(`${path(conversationId)}?error=${encodeURIComponent("Choisis une date et une heure futures en Africa/Porto-Novo.")}#inviter`);
+  }
+
+  const { error } = await supabase.rpc("invite_to_topic", {
+    p_conversation: conversationId,
+    p_username: username,
+    p_scheduled_at: scheduledAt?.toISOString() ?? null,
+  });
+  if (error) redirect(`${path(conversationId)}?error=${encodeURIComponent(error.message)}#inviter`);
+  revalidatePath(path(conversationId));
+  revalidatePath("/notifications");
+  redirect(`${path(conversationId)}?invite=${scheduled ? "scheduled" : "sent"}#inviter`);
+}
+
+export async function cancelTopicInvite(invitationId: string, conversationId: string) {
+  const { supabase } = await requireSession(path(conversationId));
+  const { error } = await supabase.rpc("cancel_topic_invitation", { p_invitation: invitationId });
+  if (error) redirect(`${path(conversationId)}?error=${encodeURIComponent(error.message)}#inviter`);
+  revalidatePath(path(conversationId));
+  redirect(`${path(conversationId)}?invite=cancelled#inviter`);
+}
+
 export async function joinTopic(id: string) {
   const { supabase } = await requireSession(path(id));
   await supabase.rpc("join_topic", { p_conversation: id });

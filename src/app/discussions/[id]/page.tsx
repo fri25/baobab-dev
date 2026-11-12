@@ -2,13 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
-import { joinTopic, leaveTopic } from "../actions";
+import { cancelTopicInvite, joinTopic, leaveTopic } from "../actions";
 import { ChatRoom, type ChatMessage, type Person } from "./ChatRoom";
+import { ShareTopicButton } from "./ShareTopicButton";
+import { TopicInviteForm } from "./TopicInviteForm";
 
 const PAGE = 50;
 
-export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ConversationPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; invite?: string }>;
+}) {
   const { id } = await params;
+  const { error: inviteError, invite: inviteStatus } = await searchParams;
   const { supabase, user } = await getSession();
 
   const { data: conversation } = await supabase
@@ -18,7 +27,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
     .maybeSingle();
   if (!conversation) notFound(); // conversation privée d'autres devs : invisible (RLS)
 
-  const [{ data: rows }, { data: members }] = await Promise.all([
+  const [{ data: rows }, { data: members }, { data: scheduledRows }] = await Promise.all([
     supabase
       .from("messages")
       .select("id, author_id, body, reply_to, created_at, edited_at, deleted_at")
@@ -29,6 +38,15 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
       .from("conversation_members")
       .select("user_id, role, profile:profiles!conversation_members_user_id_fkey(username, full_name, avatar_url, city)")
       .eq("conversation_id", id),
+    conversation.kind === "topic" && user
+      ? supabase
+          .from("topic_invitations")
+          .select("id, scheduled_at, invitee:profiles!topic_invitations_invitee_id_fkey(username, full_name)")
+          .eq("conversation_id", id)
+          .eq("invited_by", user.id)
+          .is("delivered_at", null)
+          .order("scheduled_at")
+      : Promise.resolve({ data: [] }),
   ]);
 
   const hasMore = (rows?.length ?? 0) > PAGE;
@@ -72,14 +90,61 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
               {conversation.description && <p className="text-sm text-muted">{conversation.description}</p>}
             </div>
           )}
-          {conversation.kind === "topic" && user && (
-            <form action={(isMember ? leaveTopic : joinTopic).bind(null, id)}>
-              <button className={`rounded-full px-4 py-1.5 text-sm ${isMember ? "border border-border text-muted" : "bg-primary font-medium text-primary-ink"}`}>
-                {isMember ? "Quitter le sujet" : "Rejoindre"}
-              </button>
-            </form>
+          {conversation.kind === "topic" && (
+            <div className="flex flex-wrap gap-2">
+              <ShareTopicButton />
+              {user && (
+                <form action={(isMember ? leaveTopic : joinTopic).bind(null, id)}>
+                  <button className={`rounded-full px-4 py-1.5 text-sm ${isMember ? "border border-border text-muted" : "bg-primary font-medium text-primary-ink"}`}>
+                    {isMember ? "Quitter le sujet" : "Rejoindre"}
+                  </button>
+                </form>
+              )}
+            </div>
           )}
         </div>
+
+        {conversation.kind === "topic" && user && isMember && (
+          <section id="inviter" className="mt-4 rounded-2xl border border-border bg-surface p-4">
+            <details open={Boolean(inviteError || inviteStatus)}>
+              <summary className="cursor-pointer text-sm font-semibold">Inviter un membre ou programmer une invitation</summary>
+              {inviteError && <p className="mt-3 rounded-lg bg-primary/10 p-3 text-sm text-primary">{inviteError}</p>}
+              {inviteStatus === "sent" && <p className="mt-3 text-sm text-leaf">Invitation envoyée; le membre a été ajouté au sujet.</p>}
+              {inviteStatus === "scheduled" && <p className="mt-3 text-sm text-leaf">Invitation programmée.</p>}
+              {inviteStatus === "cancelled" && <p className="mt-3 text-sm text-leaf">Invitation programmée annulée.</p>}
+              <TopicInviteForm
+                conversationId={id}
+                minDateTime={new Date(Date.now() + 62 * 60 * 1000).toISOString().slice(0, 16)}
+              />
+              {scheduledRows?.length ? (
+                <div className="mt-4 border-t border-border pt-3">
+                  <h2 className="text-sm font-semibold">Invitations programmées</h2>
+                  <ul className="mt-2 space-y-2">
+                    {(scheduledRows as unknown as {
+                      id: string;
+                      scheduled_at: string;
+                      invitee: { username: string; full_name: string | null };
+                    }[]).map((invitation) => (
+                      <li key={invitation.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                        <span>
+                          @{invitation.invitee.username} ·{" "}
+                          {new Date(invitation.scheduled_at).toLocaleString("fr-FR", {
+                            timeZone: "Africa/Porto-Novo",
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })}
+                        </span>
+                        <form action={cancelTopicInvite.bind(null, invitation.id, id)}>
+                          <button className="text-xs text-primary hover:underline">Annuler</button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </details>
+          </section>
+        )}
 
         <ChatRoom
           conversationId={id}

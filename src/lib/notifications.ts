@@ -51,6 +51,12 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: "Tu es tiré·e au sort pour arbitrer un litige", href: `/bourse/${p.bounty_id}` };
     case "direct_message":
       return { id: n.id, title: `Message de @${p.from}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
+    case "topic_invitation":
+      return {
+        id: n.id,
+        title: `@${p.from} t’invite dans # ${p.title}`,
+        href: `/discussions/${p.conversation_id}`,
+      };
     case "mention":
       return { id: n.id, title: `@${p.from} t'a mentionné·e dans # ${p.title}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
     case "clone_flagged":

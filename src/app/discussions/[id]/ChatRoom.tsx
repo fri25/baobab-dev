@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Markdown } from "@/components/Markdown";
+import { ProfileSuggestions, type SuggestedProfile } from "@/components/ProfileSuggestions";
 import { createClient } from "@/lib/supabase/client";
 import { deleteMessage, markRead, reportMessage, sendMessage } from "../actions";
 
@@ -41,6 +42,8 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
   const [online, setOnline] = useState(0);
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
+  const draftRef = useRef<HTMLTextAreaElement>(null);
+  const [mention, setMention] = useState<{ start: number; end: number; query: string } | null>(null);
   const stickToBottom = useRef(true);
   const readTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const peopleRef = useRef(people);
@@ -151,6 +154,34 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
       setDraft("");
       setReplyTo(null);
     }
+  }
+
+  function updateMention(value: string, cursor: number) {
+    if (kind !== "topic" || !meId) {
+      setMention(null);
+      return;
+    }
+    const beforeCursor = value.slice(0, cursor);
+    const match = beforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_]*)$/);
+    if (!match) {
+      setMention(null);
+      return;
+    }
+    const query = match[1];
+    setMention({ start: cursor - query.length - 1, end: cursor, query });
+  }
+
+  function insertMention(profile: SuggestedProfile) {
+    if (!mention) return;
+    const insertion = `@${profile.username} `;
+    const next = `${draft.slice(0, mention.start)}${insertion}${draft.slice(mention.end)}`;
+    const cursor = mention.start + insertion.length;
+    setDraft(next);
+    setMention(null);
+    requestAnimationFrame(() => {
+      draftRef.current?.focus();
+      draftRef.current?.setSelectionRange(cursor, cursor);
+    });
   }
 
   const byId = new Map(messages.map((m) => [m.id, m]));
@@ -283,22 +314,37 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
           )}
           {error && <p className="mb-2 text-xs text-primary">{error}</p>}
           <div className="flex items-end gap-2">
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
+            <div className="relative min-w-0 flex-1">
+              <textarea
+                ref={draftRef}
+                value={draft}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  updateMention(e.target.value, e.target.selectionStart);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+                rows={Math.min(6, Math.max(1, draft.split("\n").length))}
+                maxLength={4000}
+                onClick={(e) => updateMention(e.currentTarget.value, e.currentTarget.selectionStart)}
+                onKeyUp={(e) => updateMention(e.currentTarget.value, e.currentTarget.selectionStart)}
+                placeholder={
+                  kind === "topic"
+                    ? isMember
+                      ? "Ton message… (@pseudo pour mentionner, ` pour le code)"
+                      : "Écris pour rejoindre le sujet… (@pseudo pour mentionner)"
+                    : "Ton message… (` pour le code)"
                 }
-              }}
-              rows={Math.min(6, Math.max(1, draft.split("\n").length))}
-              maxLength={4000}
-              placeholder={
-                kind === "topic" && !isMember ? "Écris pour rejoindre le sujet… (@pseudo pour mentionner)" : "Ton message… (@pseudo pour mentionner, ` pour le code)"
-              }
-              className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            />
+                className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+              {mention && (
+                <ProfileSuggestions query={mention.query} onSelect={insertMention} placement="above" />
+              )}
+            </div>
             <button disabled={sending || !draft.trim()} className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-ink disabled:opacity-50">
               Envoyer
             </button>

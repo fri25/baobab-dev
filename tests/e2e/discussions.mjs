@@ -43,6 +43,10 @@ await page(`/discussions/${TOPIC}`, null, "client_reference");
 await page(`/discussions/${dm.id}`, aicha.cookie, "Pair-Debugging");
 await page(`/discussions/${dm.id}`, moussa.cookie, null, 404);
 await page("/discussions/new", aicha.cookie, "Lancer un sujet");
+await page("/discussions/new", aicha.cookie, "Mise en forme de Description du sujet");
+const suggestionsResponse = await fetch(`${APP}/api/profiles/suggest?q=Kof`, { headers: { cookie: aicha.cookie } });
+const suggestions = await suggestionsResponse.json();
+ok("suggestions de pseudo depuis les profils", suggestionsResponse.status === 200 && suggestions.users.some((u) => u.username === "koffi"));
 await page("/u/koffi", aicha.cookie, "Envoyer un message");
 
 // Non-lus
@@ -92,10 +96,15 @@ ok("une seule notification pour plusieurs messages non lus", dmNotifs?.length ==
 const { error: eJoin } = await ibrahim.c.from("messages").insert({ conversation_id: FLUTTER, author_id: ibrahim.id, body: "Et pour iOS, une astuce équivalente ?" });
 const { data: joined } = await admin.from("conversation_members").select("user_id").eq("conversation_id", FLUTTER).eq("user_id", ibrahim.id);
 ok("écrire dans un sujet le rejoint automatiquement", !eJoin && joined?.length === 1, eJoin?.message);
-await moussa.c.from("messages").insert({ conversation_id: TOPIC, author_id: moussa.id, body: "@koffi tu as un exemple de lien de paiement CinetPay ?" });
+await moussa.c.from("messages").insert({ conversation_id: TOPIC, author_id: moussa.id, body: "@Koffi tu as un exemple de lien de paiement CinetPay ?" });
 const { data: mention } = await admin.from("notifications").select("payload").eq("user_id", koffi.id).eq("kind", "mention");
-ok("@mention : Koffi notifié", mention?.some((n) => n.payload.from === "moussa"));
-const { data: topicId, error: eTopic } = await fatou.c.rpc("create_topic", { p_title: "Hébergement pas cher en FCFA", p_description: "VPS, Mobile Money", p_tags: ["hébergement"] });
+ok("@mention insensible à la casse : Koffi notifié", mention?.some((n) => n.payload.from === "moussa"));
+const { data: topicId, error: eTopic } = await fatou.c.rpc("create_topic", {
+  p_title: "Hébergement pas cher en FCFA",
+  p_description: "VPS, Mobile Money",
+  p_tags: ["hébergement"],
+  p_images: [],
+});
 ok("créer un sujet", !eTopic && !!topicId, eTopic?.message);
 await page(`/discussions/${topicId}`, null, "Hébergement pas cher");
 await page(`/discussions/${topicId}`, null, "Partager le sujet");

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { parseTags } from "@/lib/format";
+import { validImageUrls } from "@/lib/images";
 
 const path = (id: string) => `/discussions/${id}`;
 
@@ -15,11 +16,17 @@ export async function startDirect(otherId: string) {
 }
 
 export async function createTopic(formData: FormData) {
-  const { supabase } = await requireSession("/discussions/new");
+  const { supabase, user } = await requireSession("/discussions/new");
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  if (title.length < 10 || title.length > 200 || !description) {
+    redirect(`/discussions/new?error=${encodeURIComponent("Un titre de 10 à 200 caractères et une description sont obligatoires.")}`);
+  }
   const { data, error } = await supabase.rpc("create_topic", {
-    p_title: String(formData.get("title")),
-    p_description: String(formData.get("description") || ""),
+    p_title: title,
+    p_description: description,
     p_tags: parseTags(formData.get("tags")),
+    p_images: validImageUrls(formData.getAll("images"), user.id),
   });
   if (error) redirect(`/discussions/new?error=${encodeURIComponent(error.message)}`);
   redirect(path(data as string));

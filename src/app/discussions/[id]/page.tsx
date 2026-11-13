@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { Markdown } from "@/components/Markdown";
+import { QuestionImages } from "@/components/QuestionImages";
 import { getSession } from "@/lib/auth";
 import { cancelTopicInvite, joinTopic, leaveTopic } from "../actions";
 import { ChatRoom, type ChatMessage, type Person } from "./ChatRoom";
@@ -8,6 +10,20 @@ import { ShareTopicButton } from "./ShareTopicButton";
 import { TopicInviteForm } from "./TopicInviteForm";
 
 const PAGE = 50;
+
+function minimumScheduleDateTime() {
+  const parts = new Intl.DateTimeFormat("fr-CA", {
+    timeZone: "Africa/Porto-Novo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(Date.now() + 60_000));
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+}
 
 export default async function ConversationPage({
   params,
@@ -22,7 +38,7 @@ export default async function ConversationPage({
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select("id, kind, title, description, tags, created_by")
+    .select("id, kind, title, description, tags, images, created_by")
     .eq("id", id)
     .maybeSingle();
   if (!conversation) notFound(); // conversation privée d'autres devs : invisible (RLS)
@@ -87,7 +103,6 @@ export default async function ConversationPage({
           ) : (
             <div>
               <h1 className="text-xl font-bold"># {conversation.title}</h1>
-              {conversation.description && <p className="text-sm text-muted">{conversation.description}</p>}
             </div>
           )}
           {conversation.kind === "topic" && (
@@ -104,6 +119,15 @@ export default async function ConversationPage({
           )}
         </div>
 
+        {conversation.kind === "topic" && conversation.description && (
+          <div className="mt-4 rounded-xl border border-border bg-surface p-4 text-sm">
+            <Markdown text={conversation.description} />
+          </div>
+        )}
+        {conversation.kind === "topic" && (
+          <QuestionImages images={conversation.images ?? []} label="le sujet" />
+        )}
+
         {conversation.kind === "topic" && user && isMember && (
           <section id="inviter" className="mt-4 rounded-2xl border border-border bg-surface p-4">
             <details open={Boolean(inviteError || inviteStatus)}>
@@ -114,7 +138,7 @@ export default async function ConversationPage({
               {inviteStatus === "cancelled" && <p className="mt-3 text-sm text-leaf">Invitation programmée annulée.</p>}
               <TopicInviteForm
                 conversationId={id}
-                minDateTime={new Date(Date.now() + 62 * 60 * 1000).toISOString().slice(0, 16)}
+                minDateTime={minimumScheduleDateTime()}
               />
               {scheduledRows?.length ? (
                 <div className="mt-4 border-t border-border pt-3">

@@ -58,7 +58,12 @@ export function toToast(n: Notification): Toast | null {
         href: `/discussions/${p.conversation_id}`,
       };
     case "mention":
-      return { id: n.id, title: `@${p.from} t'a mentionné·e dans # ${p.title}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
+      return {
+        id: n.id,
+        title: `@${p.from} t'a mentionné·e dans la discussion « ${p.title} »`,
+        detail: String(p.excerpt),
+        href: `/discussions/${p.conversation_id}`,
+      };
     case "clone_flagged":
       return { id: n.id, title: "Une réponse de ton clone a été signalée", detail: String(p.question), href: "/clones/mon-clone" };
     case "clone_suspended":

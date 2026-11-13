@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { EcosystemCarousel } from "@/app/EcosystemCarousel";
+import { TechMarquee } from "@/app/TechMarquee";
 import { LEVELS } from "@/lib/levels";
 
 const LOOP = [
@@ -95,6 +96,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <TechMarquee />
 
       <section className="border-y border-border/70 bg-surface/35">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

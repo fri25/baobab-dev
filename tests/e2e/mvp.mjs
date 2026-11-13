@@ -41,7 +41,7 @@ const moussa = await login("moussa");
 const modo = await login("modo");
 
 // Pages publiques et connectées
-await page("/", null, "Chez nous");
+await page("/", null, "Tailwind CSS");
 await page("/questions", null, "webhook FedaPay");
 await page("/showroom", null, "Tontine Pay");
 await page("/squads", null, "Squad Zem Partage");

@@ -180,6 +180,26 @@ body:has(main[data-page="griot"]) > footer {
   animation: toast-in 180ms ease-out both;
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover,
+.animate-marquee:focus-within {
+  animation-play-state: paused;
+}
+
 @keyframes landing-orb-drift {
   0%,
   100% {
@@ -218,6 +238,7 @@ body:has(main[data-page="griot"]) > footer {
   .griot-avatar-glow,
   .griot-thinking,
   .animate-toast-in,
+  .animate-marquee,
   .landing-orb,
   .landing-border {
     animation: none;

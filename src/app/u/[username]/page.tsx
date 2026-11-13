@@ -10,6 +10,7 @@ import { XP_REASONS } from "@/lib/labels";
 import { levelForXp } from "@/lib/levels";
 import { getProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
+import { XP_METHODS } from "@/lib/xp-rewards";
 
 const AVAILABILITY = {
   available: { label: "Disponible", color: "var(--leaf)" },
@@ -54,6 +55,29 @@ export default async function ProfilePage({ params }: Props) {
   const shownPinned = pinned.length > 0 ? pinned : profile.badges.slice(0, 3);
   const maxWeight = Math.max(1, ...profile.skills.map((s) => s.weight));
   const availability = profile.availability ? AVAILABILITY[profile.availability] : null;
+  const xpByReason = new Map(profile.xpBreakdown.map((entry) => [entry.reason, entry.amount]));
+  const knownXpReasons = new Set<string>(XP_METHODS.map((method) => method.reason));
+  const xpEntries = [
+    ...XP_METHODS.map((method) => ({
+      reason: method.reason,
+      label: method.label,
+      description: method.description,
+      requiredXp: "requiredXp" in method ? method.requiredXp : 0,
+      href: method.href,
+      amount: xpByReason.get(method.reason) ?? 0,
+    })),
+    ...profile.xpBreakdown
+      .filter((entry) => !knownXpReasons.has(entry.reason))
+      .map((entry) => ({
+        reason: entry.reason,
+        label: XP_REASONS[entry.reason] ?? entry.reason,
+        description: "Autre source de points enregistrée sur ce profil.",
+        requiredXp: 0,
+        href: "/questions",
+        amount: entry.amount,
+      })),
+  ].sort((a, b) => b.amount - a.amount || a.label.localeCompare(b.label, "fr"));
+  const xpCategoryTotal = xpEntries.reduce((total, entry) => total + entry.amount, 0);
   const profileUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/u/${profile.username}`;
   const shareText = `Mon profil Baobab Dev : ${lvl.name}, ${profile.xp} XP. ${profileUrl}`;
   const qr = await QRCode.toString(profileUrl, { type: "svg", margin: 1, color: { dark: "#1f1a14", light: "#ffffff" } });
@@ -97,6 +121,13 @@ export default async function ProfilePage({ params }: Props) {
             {profile.languages.length > 0 && (
               <span className="text-muted">Langues : {profile.languages.join(", ")}</span>
             )}
+            {profile.programming_languages.length > 0 ? (
+              <span className="text-muted">Langages de programmation : {profile.programming_languages.join(", ")}</span>
+            ) : isOwner ? (
+              <Link href="/parametres" className="text-primary hover:underline">
+                Ajouter tes langages de programmation
+              </Link>
+            ) : null}
             {profile.github_username && (
               <a href={`https://github.com/${profile.github_username}`} className="text-primary hover:underline">
                 github.com/{profile.github_username}
@@ -136,7 +167,7 @@ export default async function ProfilePage({ params }: Props) {
           )}
           {isOwner && (
             <form action="/auth/signout" method="post">
-              <button className="w-full rounded-full px-4 py-2 text-sm text-muted hover:text-foreground">
+              <button className="w-full rounded-full border border-border px-4 py-2 text-center text-sm hover:bg-surface">
                 Se déconnecter
               </button>
             </form>
@@ -272,29 +303,79 @@ export default async function ProfilePage({ params }: Props) {
             )}
           </section>
 
-          {/* Activité */}
           <section>
-            <h2 className="mb-3 font-semibold">Derniers XP</h2>
-            <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
-              {profile.activity.length > 0 ? (
-                profile.activity.map((a, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
-                    <span>
-                      {XP_REASONS[a.reason] ?? a.reason}
-                      <span className="block text-xs text-muted">
-                        {new Date(a.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-semibold">XP par catégorie</h2>
+              <span className="font-mono text-sm font-semibold text-primary">
+                {xpCategoryTotal.toLocaleString("fr-FR")} XP au total
+              </span>
+            </div>
+            {xpCategoryTotal !== profile.xp && (
+              <p role="alert" className="mt-2 rounded-lg bg-primary/10 p-3 text-xs text-primary">
+                Le détail des catégories ne correspond pas au solde du profil. Actualise la page ou contacte l’équipe.
+              </p>
+            )}
+            <ul className="mt-3 space-y-2">
+              {xpEntries.map((entry) => {
+                const locked = entry.requiredXp > profile.xp;
+                const content = (
+                  <div className="flex items-start gap-3 p-3">
+                    <span className={`min-w-16 font-mono text-sm font-bold ${entry.amount > 0 ? "text-leaf" : entry.amount < 0 ? "text-primary" : "text-muted"}`}>
+                      {entry.amount > 0 ? "+" : ""}
+                      {entry.amount.toLocaleString("fr-FR")} XP
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                        {entry.label}
+                        {locked && (
+                          <span className="rounded-full bg-border/60 px-2 py-0.5 text-[10px] text-muted">
+                            Verrouillé · niveau Expert
+                          </span>
+                        )}
                       </span>
+                      <span className="mt-1 block text-xs text-muted">{entry.description}</span>
+                      {locked && (
+                        <span className="mt-1 block text-xs text-muted">
+                          Débloqué à {entry.requiredXp.toLocaleString("fr-FR")} XP.
+                        </span>
+                      )}
                     </span>
-                    <span className={`font-mono font-semibold ${a.amount >= 0 ? "text-leaf" : "text-primary"}`}>
-                      {a.amount >= 0 ? "+" : ""}
-                      {a.amount}
-                    </span>
+                  </div>
+                );
+
+                return (
+                  <li
+                    key={entry.reason}
+                    className={`rounded-xl border border-border bg-surface ${locked ? "opacity-50 grayscale" : "transition hover:border-primary/40 hover:bg-background"}`}
+                  >
+                    {locked ? <div aria-disabled="true">{content}</div> : <Link href={entry.href}>{content}</Link>}
                   </li>
-                ))
-              ) : (
-                <li className="px-4 py-3 text-sm text-muted">Aucune activité pour l&apos;instant.</li>
-              )}
+                );
+              })}
             </ul>
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm text-primary">Activité XP récente</summary>
+              <ul className="mt-2 divide-y divide-border rounded-xl border border-border bg-surface">
+                {profile.activity.length > 0 ? (
+                  profile.activity.map((a, i) => (
+                    <li key={`${a.created_at}-${i}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                      <span>
+                        {XP_REASONS[a.reason] ?? a.reason}
+                        <span className="block text-xs text-muted">
+                          {new Date(a.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                        </span>
+                      </span>
+                      <span className={`font-mono font-semibold ${a.amount >= 0 ? "text-leaf" : "text-primary"}`}>
+                        {a.amount >= 0 ? "+" : ""}
+                        {a.amount}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-3 text-sm text-muted">Aucune activité pour l&apos;instant.</li>
+                )}
+              </ul>
+            </details>
           </section>
         </aside>
       </div>

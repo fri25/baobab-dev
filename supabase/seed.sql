@@ -68,6 +68,7 @@ from (values
 update public.profiles set languages = '{fr,en,fon}', goals = '{apprendre,collaborer,missions}' where username = 'aicha';
 update public.profiles set languages = '{fr,en}', goals = '{aider,missions}' where username = 'koffi';
 update public.profiles set languages = '{fr,wo,en}', goals = '{collaborer,missions}' where username = 'moussa';
+update public.profiles set programming_languages = '{JavaScript,TypeScript,PHP}' where username = 'aicha';
 update public.profiles set availability = 'limited' where username = 'fatou';
 
 select public.add_points(d.id::uuid, d.xp_history, 'seed_history') from (values

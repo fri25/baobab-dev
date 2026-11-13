@@ -47,11 +47,13 @@ await page("/showroom", null, "Tontine Pay");
 await page("/squads", null, "Squad Zem Partage");
 await page("/bourse", null, "SDK Wave");
 await page("/classements", null, "Koffi");
-await page("/u/koffi", null, "Expert");
+const koffiProfilePage = await page("/u/koffi", null, "XP par catégorie");
+ok("les catégories XP à zéro restent visibles", koffiProfilePage.includes("0 XP"));
+await page("/u/aicha", null, "Langages de programmation : JavaScript, TypeScript, PHP");
 await page("/fil", aicha.cookie, "Bonjour");
 await page("/griot", aicha.cookie, "Le Griot");
 await page("/portefeuille", aicha.cookie, "FCFA");
-await page("/parametres", aicha.cookie, "Mon profil");
+await page("/parametres", aicha.cookie, "Langages de programmation qui t’intéressent");
 await page("/notifications", koffi.cookie, "Notifications");
 await page("/moderation", modo.cookie, "Signalements");
 const fatou = await login("fatou");
@@ -61,6 +63,12 @@ await page("/questions/b1000000-0000-4000-8000-000000000001", aicha.cookie, "X-F
 // 1. Profil d'Aïcha
 const { data: aichaP } = await aicha.c.from("profiles").select("username, xp").eq("id", aicha.id).single();
 ok("profil Aïcha", aichaP?.username === "aicha", `${aichaP?.xp} XP`);
+const [{ data: koffiP }, { data: xpCategories, error: xpCategoriesError }] = await Promise.all([
+  koffi.c.from("profiles").select("xp").eq("id", koffi.id).single(),
+  koffi.c.rpc("profile_xp_breakdown", { p_user: koffi.id }),
+]);
+const categorizedXp = (xpCategories ?? []).reduce((total, category) => total + Number(category.total), 0);
+ok("le total des catégories XP correspond au solde du profil", !xpCategoriesError && categorizedXp === koffiP?.xp, `${categorizedXp} / ${koffiP?.xp}`);
 
 // 2. Le Griot cite Koffi, qui gagne 5 XP
 const before = (await koffi.c.from("profiles").select("xp").eq("id", koffi.id).single()).data.xp;

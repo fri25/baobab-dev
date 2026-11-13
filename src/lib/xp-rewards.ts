@@ -1,0 +1,81 @@
+export const XP_METHODS = [
+  {
+    reason: "answer_upvoted",
+    label: "Réponse appréciée",
+    description: "Recevoir des votes positifs sur tes réponses.",
+    href: "/questions",
+  },
+  {
+    reason: "answer_accepted",
+    label: "Réponse acceptée",
+    description: "Faire valider ta réponse par l’auteur de la question.",
+    href: "/questions",
+  },
+  {
+    reason: "griot_citation",
+    label: "Réponse citée par le Griot",
+    description: "Partager une réponse reprise par le Griot.",
+    href: "/griot",
+  },
+  {
+    reason: "project_published",
+    label: "Projet publié",
+    description: "Présenter un projet dans le Showroom.",
+    href: "/showroom/new",
+  },
+  {
+    reason: "project_of_week",
+    label: "Projet de la semaine",
+    description: "Faire distinguer ton projet par la communauté.",
+    href: "/showroom",
+  },
+  {
+    reason: "squad_completed",
+    label: "Squad terminée",
+    description: "Mener une collaboration à son terme.",
+    href: "/squads",
+  },
+  {
+    reason: "bounty_resolved",
+    label: "Ticket de la Micro-Bourse résolu",
+    description: "Résoudre un ticket et faire valider le résultat.",
+    href: "/bourse",
+  },
+  {
+    reason: "challenge_won",
+    label: "Podium d’un défi",
+    description: "Terminer sur le podium d’un défi.",
+    href: "/defis",
+  },
+  {
+    reason: "audit_completed",
+    label: "Audit Code Forensic",
+    description: "Participer à un audit entre pairs.",
+    href: "/forensic",
+    requiredXp: 2000,
+  },
+  {
+    reason: "project_adopted",
+    label: "Projet repris",
+    description: "Reprendre un projet abandonné et continuer à le construire.",
+    href: "/showroom",
+  },
+  {
+    reason: "squad_abandoned",
+    label: "Squad abandonnée",
+    description: "Ajustement XP lorsqu’une Squad est abandonnée.",
+    href: "/squads",
+  },
+  {
+    reason: "content_removed",
+    label: "Modération",
+    description: "Ajustement XP après le retrait d’un contenu.",
+    href: "/questions",
+  },
+  {
+    reason: "seed_history",
+    label: "Contributions passées",
+    description: "Historique de contributions importé au profil.",
+    href: "/questions",
+  },
+] as const;

@@ -54,6 +54,7 @@ async function saveProfile(formData: FormData) {
       country: String(formData.get("country") || "") || null,
       city: String(formData.get("city") || "") || null,
       languages: parseTags(formData.get("languages")),
+      programming_languages: parseTags(formData.get("programming_languages")),
       timezone: String(formData.get("timezone") || "Africa/Porto-Novo"),
       availability: String(formData.get("availability")),
       goals: GOALS.filter((g) => formData.get(`goal_${g}`) === "on"),
@@ -153,6 +154,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <input name="timezone" defaultValue={p.timezone ?? ""} className={input} />
           </label>
         </div>
+        <label className="block text-sm font-medium">
+          Langages de programmation qui t’intéressent (séparés par des virgules)
+          <input
+            name="programming_languages"
+            defaultValue={p.programming_languages?.join(", ") ?? ""}
+            placeholder="JavaScript, Python, PHP, Go"
+            className={input}
+          />
+        </label>
         <label className="block text-sm font-medium">
           Disponibilité
           <select name="availability" defaultValue={p.availability ?? "available"} className={input}>

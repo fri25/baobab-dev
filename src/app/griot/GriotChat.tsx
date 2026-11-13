@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Markdown } from "@/components/Markdown";
 import type { GriotResult } from "@/lib/griot";
 
@@ -66,8 +66,24 @@ export function GriotChat({
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const isPage = presentation === "page";
+  const questionTextareaRef = useRef<HTMLTextAreaElement>(null);
   const endOfConversationRef = useRef<HTMLLIElement>(null);
   const didInitialScroll = useRef(false);
+
+  useLayoutEffect(() => {
+    const textarea = questionTextareaRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = "44px";
+    const styles = window.getComputedStyle(textarea);
+    const lineHeight = Number.parseFloat(styles.lineHeight) || 20;
+    const verticalPadding =
+      Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
+    const maxHeight = lineHeight * 7 + verticalPadding;
+    const contentHeight = textarea.scrollHeight;
+    textarea.style.height = `${Math.max(44, Math.min(contentHeight, maxHeight))}px`;
+    textarea.style.overflowY = contentHeight > maxHeight ? "auto" : "hidden";
+  }, [question]);
 
   useEffect(() => {
     if (!isPage) return;
@@ -477,16 +493,17 @@ export function GriotChat({
         }`}
       >
         <textarea
-          rows={2}
+          ref={questionTextareaRef}
+          rows={1}
           value={question}
           onChange={(e) => updateQuestion(e.target.value)}
           placeholder="Décris ton problème ou colle un extrait de code…"
           aria-label="Ta question au Griot"
-          className="min-h-11 min-w-0 flex-1 resize-none break-words rounded-xl bg-surface/70 px-3 py-2.5 text-sm leading-relaxed outline-none transition placeholder:text-muted/80 focus-visible:ring-2 focus-visible:ring-primary/30"
+          className="h-11 min-h-11 min-w-0 flex-1 resize-none break-words rounded-xl bg-surface/70 px-3 py-2 text-sm leading-5 outline-none transition placeholder:text-muted/80 focus-visible:ring-2 focus-visible:ring-primary/30"
         />
         <button
           disabled={loading || !question.trim()}
-          className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-ink shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
+          className="flex h-11 shrink-0 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-ink shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
         >
           Demander
         </button>

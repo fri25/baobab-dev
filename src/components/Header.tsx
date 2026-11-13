@@ -1,8 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Avatar } from "@/components/Avatar";
 import { GriotBubble } from "@/components/GriotBubble";
 import { LiveNotifications } from "@/components/LiveNotifications";
-import { Logo } from "@/components/Logo";
 import { DesktopNavigation, MobileNavigation } from "@/components/PrimaryNavigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { ThemePreference } from "@/lib/theme";
@@ -50,9 +50,8 @@ export async function Header({ themePreference }: { themePreference: ThemePrefer
     <>
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-none items-center justify-between gap-4 px-4">
-          <Link href={profile ? "/fil" : "/"} className="flex shrink-0 items-center gap-2 font-semibold">
-            <Logo className="h-7 w-7" />
-            <span>Baobab Dev</span>
+          <Link href="/" aria-label="Baobab Dev — accueil" className="flex shrink-0 items-center">
+            <Image src="/baobab-dev-logo.png" alt="Baobab Dev" width={279} height={237} priority className="h-12 w-auto" />
           </Link>
           <DesktopNavigation {...navigationProps} />
           {profile ? (

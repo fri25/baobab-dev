@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main className="relative isolate flex flex-1 items-center justify-center overflow-hidden px-4 py-10 sm:px-6 sm:py-14">
+    <main className="relative isolate flex flex-1 items-center justify-center overflow-hidden bg-background px-4 py-10 text-foreground sm:px-6 sm:py-14">
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[100px] sm:h-[30rem] sm:w-[30rem]" />
 
       <section className="mx-auto grid w-full max-w-6xl items-center gap-8 sm:gap-10 md:grid-cols-[1.05fr_0.95fr] md:gap-8 lg:gap-16">
@@ -18,7 +18,7 @@ export default function NotFound() {
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg md:mx-0">
             Oups ! Cette page a disparu plus vite qu&apos;un bug en Pair-Debugging. Notre Griot est parti à la recherche de la bonne URL.
             <br />
-            Retournez explorer nos terres.
+            Retournez à l&apos;accueil de Baobab Dev.
           </p>
           <Link
             href="/"

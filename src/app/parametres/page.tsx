@@ -54,7 +54,6 @@ async function saveProfile(formData: FormData) {
       country: String(formData.get("country") || "") || null,
       city: String(formData.get("city") || "") || null,
       languages: parseTags(formData.get("languages")),
-      programming_languages: parseTags(formData.get("programming_languages")),
       timezone: String(formData.get("timezone") || "Africa/Porto-Novo"),
       availability: String(formData.get("availability")),
       goals: GOALS.filter((g) => formData.get(`goal_${g}`) === "on"),
@@ -74,6 +73,11 @@ async function saveProfile(formData: FormData) {
     redirect(`/parametres?error=${encodeURIComponent(message)}`);
   }
 
+  const { error: programmingLanguagesError } = await supabase
+    .from("profiles")
+    .update({ programming_languages: parseTags(formData.get("programming_languages")) })
+    .eq("id", user.id);
+
   let photoCleanupWarning = false;
   const oldAvatarPath = ownProfileAvatarPath(current.avatar_url, user.id);
   if (oldAvatarPath && oldAvatarPath !== uploadedAvatarPath && oldAvatarPath !== ownProfileAvatarPath(avatarUrl, user.id)) {
@@ -92,6 +96,17 @@ async function saveProfile(formData: FormData) {
       .upsert((skills ?? []).map((s) => ({ user_id: user.id, skill_id: s.id, source: "manual", weight: 1 })), { ignoreDuplicates: true });
   }
   revalidatePath("/", "layout");
+  if (programmingLanguagesError) {
+    const migrationMissing =
+      programmingLanguagesError.code === "42703" || programmingLanguagesError.code === "PGRST204";
+    redirect(
+      `/parametres?warning=languages&error=${encodeURIComponent(
+        migrationMissing
+          ? "Le profil et la photo ont été enregistrés, mais les langages n’ont pas pu l’être. Applique la migration Supabase du profil puis réessaie."
+          : `Le profil et la photo ont été enregistrés, mais les langages n’ont pas pu l’être : ${programmingLanguagesError.message}`,
+      )}`,
+    );
+  }
   redirect(photoCleanupWarning ? "/parametres?ok=1&warning=photo-cleanup" : "/parametres?ok=1");
 }
 
@@ -120,7 +135,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       )}
 
       <form action={saveProfile} className="mt-6 space-y-4">
-        <ProfilePhotoInput username={p.username} fullName={p.full_name} avatarUrl={p.avatar_url} />
+        <div id="photo"><ProfilePhotoInput username={p.username} fullName={p.full_name} avatarUrl={p.avatar_url} /></div>
         <label className="block text-sm font-medium">
           Nom affiché
           <input name="full_name" defaultValue={p.full_name ?? ""} className={input} />

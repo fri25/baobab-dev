@@ -42,18 +42,25 @@ const modo = await login("modo");
 
 // Pages publiques et connectées
 await page("/", null, "Chez nous");
+const signedInHome = await page("/", aicha.cookie, "Chez nous");
+ok("le logo renvoie à l’accueil public même connecté", signedInHome.includes('aria-label="Baobab Dev — accueil"') && signedInHome.includes('href="/"'));
 await page("/questions", null, "webhook FedaPay");
 await page("/showroom", null, "Tontine Pay");
 await page("/squads", null, "Squad Zem Partage");
 await page("/bourse", null, "SDK Wave");
 await page("/classements", null, "Koffi");
+await page("/discussions/e1000000-0000-4000-8000-000000000003", null, "Flutter et mobile en 2G");
 const koffiProfilePage = await page("/u/koffi", null, "XP par catégorie");
 ok("les catégories XP à zéro restent visibles", koffiProfilePage.includes("0 XP"));
+ok("aucune catégorie de modération n’est affichée aux utilisateurs", !koffiProfilePage.includes("Modération"));
 await page("/u/aicha", null, "Langages de programmation : JavaScript, TypeScript, PHP");
 await page("/fil", aicha.cookie, "Bonjour");
 await page("/griot", aicha.cookie, "Le Griot");
 await page("/portefeuille", aicha.cookie, "FCFA");
-await page("/parametres", aicha.cookie, "Langages de programmation qui t’intéressent");
+const settingsPage = await page("/parametres", aicha.cookie, "Langages de programmation qui t’intéressent");
+ok("la modification de photo de profil est disponible", settingsPage.includes("Photo de profil"));
+const anonymousQuestion = await page("/questions/b1000000-0000-4000-8000-000000000001", null, "X-FEDAPAY-SIGNATURE");
+ok("les visiteurs non connectés ne voient pas l’action de signalement", !anonymousQuestion.includes("Signaler"));
 await page("/notifications", koffi.cookie, "Notifications");
 await page("/moderation", modo.cookie, "Signalements");
 const fatou = await login("fatou");

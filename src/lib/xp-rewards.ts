@@ -68,8 +68,8 @@ export const XP_METHODS = [
   },
   {
     reason: "content_removed",
-    label: "Modération",
-    description: "Ajustement XP après le retrait d’un contenu.",
+    label: "Ajustement du solde XP",
+    description: "Ajustement appliqué au solde de tes XP.",
     href: "/questions",
   },
   {

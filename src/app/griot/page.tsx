@@ -33,16 +33,18 @@ export default async function GriotPage() {
   if (historyError) console.error("Griot : impossible de charger l’historique privé", historyError);
 
   return (
-    <main data-page="griot" className="mx-auto max-w-5xl px-4 pb-2 pt-8">
-      <section className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-surface to-gold/10 p-5 shadow-sm sm:p-7">
-        <h1 className="text-3xl font-bold tracking-tight">Le Griot</h1>
-        <h2 className="mt-2 text-xl font-semibold text-foreground">La parole des sages, l’expertise en plus.</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-foreground sm:text-base">
+    <main data-page="griot" className="mx-auto max-w-5xl px-4 pb-2 pt-4">
+      <section className="sticky top-28 z-10 rounded-2xl border border-primary/25 bg-background/95 p-3 shadow-sm backdrop-blur sm:p-4">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Le Griot</h1>
+          <h2 className="text-base font-semibold text-foreground sm:text-lg">La parole des sages, l’expertise en plus.</h2>
+        </div>
+        <p className="mt-1 line-clamp-2 max-w-4xl text-sm leading-relaxed text-muted">
           Comme un véritable griot moderne, notre assistant fait résonner la voix de la communauté, cite ses auteurs et distribue des XP. En quête de vérité absolue ? Le Griot consulte ses sources ou en appelle à l’œil d’un expert.
         </p>
         <a
           href={whatsapp ? `https://wa.me/${whatsapp}?text=${encodeURIComponent("Griot, ")}` : "/griot/whatsapp"}
-          className="mt-4 inline-block text-sm font-medium text-leaf hover:underline"
+          className="mt-1 inline-block text-sm font-medium text-leaf hover:underline"
         >
           Aussi disponible sur WhatsApp →
         </a>

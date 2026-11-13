@@ -45,7 +45,7 @@ export function QuestionMagazine({
   }
 
   return (
-    <section className="mt-6 grid gap-4 lg:h-[calc(100dvh-20rem)] lg:min-h-[28rem] lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.8fr)]">
+    <section className="mt-6 grid gap-4 lg:h-[calc(100dvh-24rem)] lg:min-h-[20rem] lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.8fr)] 2xl:h-[calc(100dvh-21rem)]">
       <article
         aria-live="polite"
         className="min-h-72 overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-7 lg:min-h-0 lg:p-8"

@@ -180,10 +180,46 @@ body:has(main[data-page="griot"]) > footer {
   animation: toast-in 180ms ease-out both;
 }
 
+@keyframes landing-orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0.75rem, -0.5rem, 0) scale(1.06);
+  }
+}
+
+.landing-orb {
+  animation: landing-orb-drift 9s ease-in-out infinite;
+}
+
+.landing-orb-delay {
+  animation-delay: -4.5s;
+}
+
+.landing-border {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 75%, transparent), color-mix(in srgb, var(--violet) 70%, transparent), color-mix(in srgb, var(--tech) 65%, transparent));
+  background-size: 180% 180%;
+  animation: landing-border-shift 8s ease-in-out infinite;
+}
+
+@keyframes landing-border-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .griot-avatar-glow,
   .griot-thinking,
-  .animate-toast-in {
+  .animate-toast-in,
+  .landing-orb,
+  .landing-border {
     animation: none;
   }
 }

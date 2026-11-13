@@ -55,8 +55,8 @@ export default async function RootLayout({
         <ServiceWorker />
         <Header themePreference={theme} />
         {children}
-        <footer className="mt-16 border-t border-border py-6 text-sm text-muted">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
+        <footer className="mt-auto border-t border-border py-6 text-sm text-muted">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4">
             <span>Baobab Dev · Coupe d&apos;Afrique des développeurs 2026</span>
             <nav className="flex flex-wrap gap-4">
               <Link href="/classements" className="hover:text-foreground">

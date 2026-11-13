@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { levelForXp } from "@/lib/levels";
 
-type User = { username: string; full_name?: string | null; avatar_url?: string | null; xp?: number };
+type User = { username: string; full_name?: string | null; avatar_url?: string | null; xp?: number | null };
 
 // L'initiale reste visible sous la photo : en mode « données réduites », la photo n'est pas chargée.
 export function Avatar({ user, size = 32 }: { user: User; size?: number }) {

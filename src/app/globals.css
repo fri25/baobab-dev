@@ -55,6 +55,7 @@
 }
 
 @theme inline {
+  --container-5xl: 80rem;
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-foreground: var(--foreground);
@@ -73,10 +74,17 @@
 }
 
 body {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
   background:
     radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--violet) 4%, transparent), transparent 34rem),
     var(--background);
   color: var(--foreground);
+}
+
+body > main {
+  flex: 1 0 auto;
 }
 
 ::selection {
@@ -90,10 +98,25 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .animate-magazine-detail {
+    animation: magazine-detail-in 180ms ease-out both;
+  }
+
   :where(a, button) {
     transition-property: color, background-color, border-color, box-shadow, transform, opacity;
     transition-duration: 160ms;
     transition-timing-function: ease-out;
+  }
+}
+
+@keyframes magazine-detail-in {
+  from {
+    opacity: 0.6;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

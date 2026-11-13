@@ -30,9 +30,9 @@ export default async function SquadsPage() {
         {squads?.map((s) => {
           const members = s.squad_members.filter((m: { status: string }) => m.status === "member").length + 1;
           return (
-            <li key={s.id} className="rounded-xl border border-border bg-surface p-5">
+            <li className="group rounded-2xl border border-border/80 bg-surface p-5 shadow-sm motion-safe:transition motion-safe:duration-200 motion-reduce:transition-none motion-safe:hover:-translate-y-1 motion-safe:hover:border-primary/40 motion-safe:hover:shadow-xl motion-safe:hover:shadow-primary/5" key={s.id}>
               <div className="flex items-start justify-between gap-2">
-                <Link href={`/squads/${s.id}`} className="text-lg font-semibold hover:text-primary">
+                <Link href={`/squads/${s.id}`} className="text-lg font-semibold transition-colors group-hover:text-primary">
                   {s.name}
                 </Link>
                 <span

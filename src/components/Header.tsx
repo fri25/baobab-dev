@@ -15,11 +15,12 @@ async function currentUser() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return null;
-  const [{ data: profile }, { count }, { data: unreadChats }] = await Promise.all([
+  const [{ data: profile }, { count, error: notificationCountError }, { data: unreadChats }] = await Promise.all([
     supabase.from("profiles").select("id, username, full_name, avatar_url, xp, role").eq("id", data.user.id).single(),
     supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", data.user.id).is("read_at", null),
     supabase.rpc("unread_conversations_count"),
   ]);
+  if (notificationCountError) throw new Error("Impossible de charger le nombre de notifications non lues.", { cause: notificationCountError });
   return profile ? { ...profile, unread: count ?? 0, unreadChats: (unreadChats as number | null) ?? 0 } : null;
 }
 

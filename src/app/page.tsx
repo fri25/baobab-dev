@@ -1,44 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { EcosystemCarousel } from "@/app/EcosystemCarousel";
 import { LEVELS } from "@/lib/levels";
-
-const PILLARS = [
-  {
-    number: "01",
-    title: "Se rencontrer",
-    text: "Profil pré-rempli depuis GitHub, matching par compétences, classements par ville et par pays.",
-    icon: "◎",
-    accent: "from-tech/20 to-transparent",
-  },
-  {
-    number: "02",
-    title: "Échanger",
-    text: "Questions-réponses, le Griot sur l'app et WhatsApp, Pair-Debugging à moins de 5 Ko/s.",
-    icon: "↗",
-    accent: "from-violet/20 to-transparent",
-  },
-  {
-    number: "03",
-    title: "Partager",
-    text: "Le Showroom des projets africains, ton activité GitHub en direct, la Stack Afrique vérifiée.",
-    icon: "⌘",
-    accent: "from-primary/20 to-transparent",
-  },
-  {
-    number: "04",
-    title: "Collaborer",
-    text: "Des Squads formées par compétences, du débogage à plusieurs, des audits entre pairs.",
-    icon: "⟡",
-    accent: "from-leaf/15 to-transparent",
-  },
-  {
-    number: "05",
-    title: "Gagner",
-    text: "Primes de la Micro-Bourse, clone IA, missions. Versements en Mobile Money, Wave ou Orange Money.",
-    icon: "✳",
-    accent: "from-gold/20 to-transparent",
-  },
-];
 
 const LOOP = [
   { step: "Aider", text: "Tu réponds, le Griot cite ta réponse : +5 XP à chaque citation.", symbol: "↗" },
@@ -137,28 +100,9 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Un écosystème complet</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Tout ce qu&apos;il faut pour faire grandir la communauté.</h2>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Cinq étapes pour faire grandir la communauté.</h2>
           </div>
-          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-            {PILLARS.map((pillar, index) => (
-              <article
-                key={pillar.title}
-                className={`group relative overflow-hidden rounded-2xl border border-border/70 bg-surface/65 p-5 shadow-sm backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 motion-reduce:transition-none ${
-                  index === 0 ? "lg:col-span-2" : "lg:col-span-1"
-                }`}
-              >
-                <div aria-hidden="true" className={`absolute inset-0 bg-gradient-to-br ${pillar.accent} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
-                <div className="relative">
-                  <div className="flex items-start justify-between">
-                    <span className="bg-gradient-to-br from-primary via-gold to-violet bg-clip-text font-mono text-sm font-bold text-transparent">{pillar.number}</span>
-                    <span aria-hidden="true" className="text-2xl text-muted transition-colors group-hover:text-primary">{pillar.icon}</span>
-                  </div>
-                  <h3 className="mt-7 text-lg font-semibold">{pillar.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{pillar.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <EcosystemCarousel />
         </div>
       </section>
 

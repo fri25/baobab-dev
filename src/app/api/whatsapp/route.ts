@@ -42,13 +42,9 @@ export async function POST(request: Request) {
     const sources = result.sources
       .map((s, i) => `[${i + 1}] ${s.author_username}${s.author_city ? ` (${s.author_city})` : ""} : ${appUrl}/questions/${s.question_id}`)
       .join("\n");
-    const expertReview =
-      result.answerOrigin === "zai"
-        ? `\n\n⚠️ Réponse du Griot non encore validée par la communauté. Pour demander un avis expert, retrouve cette question dans l’application : ${appUrl}/griot`
-        : "";
     await reply(
       message.from,
-      `${toWhatsApp(result.answer)}${expertReview}${sources ? `\n\n*Sources*\n${sources}` : ""}`,
+      `${toWhatsApp(result.answer)}${sources ? `\n\n*Sources*\n${sources}` : `\n\nPublie ta question : ${appUrl}/questions/new`}`,
     );
   }
   return NextResponse.json({ ok: true });

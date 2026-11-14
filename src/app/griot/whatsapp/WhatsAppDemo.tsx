@@ -1,37 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { GriotResult } from "@/lib/griot";
 
-type Bubble = { me: boolean; text: string; time: string; sources?: GriotResult["sources"] };
+type Bubble = { me: boolean; text: string; time: string };
 
 const now = () => new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
 // Rendu au format WhatsApp : *gras*, ```code```
-function WaText({ text, sources = [] }: { text: string; sources?: GriotResult["sources"] }) {
+function WaText({ text }: { text: string }) {
   return (
     <>
-      {text.split(/(```[\s\S]*?```|\*[^*\n]+\*|\[\d+\])/g).map((part, i) => {
-        const citation = /^\[(\d+)\]$/.exec(part);
-        const source = citation ? sources[Number(citation[1]) - 1] : undefined;
-        if (source) {
-          return (
-            <Link key={i} href={`/questions/${source.question_id}`} className="text-primary underline">
-              {part}
-            </Link>
-          );
-        }
-        if (part.startsWith("```")) {
-          return (
-            <code key={i} className="my-1 block whitespace-pre-wrap rounded bg-black/5 p-1.5 font-mono text-[11px]">
-              {part.slice(3, -3).replace(/^\w*\n/, "")}
-            </code>
-          );
-        }
-        if (part.startsWith("*") && part.endsWith("*")) return <strong key={i}>{part.slice(1, -1)}</strong>;
-        return <span key={i}>{part}</span>;
-      })}
+      {text.split(/(```[\s\S]*?```|\*[^*\n]+\*)/g).map((part, i) =>
+        part.startsWith("```") ? (
+          <code key={i} className="my-1 block whitespace-pre-wrap rounded bg-black/5 p-1.5 font-mono text-[11px]">
+            {part.slice(3, -3).replace(/^\w*\n/, "")}
+          </code>
+        ) : part.startsWith("*") && part.endsWith("*") ? (
+          <strong key={i}>{part.slice(1, -1)}</strong>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
     </>
   );
 }
@@ -50,26 +40,20 @@ export function WhatsAppDemo() {
     setDraft("");
     setBubbles((b) => [...b, { me: true, text: q, time: now() }]);
     setTyping(true);
-    try {
-      const res = await fetch("/api/griot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, channel: "whatsapp" }),
-      });
-      const json = (await res.json()) as GriotResult & { error?: string };
-      if (!res.ok) throw new Error(json.error ?? "Le Griot n'a pas pu répondre.");
-      let text = json.answer.replace(/\*\*([^*]+)\*\*/g, "*$1*");
-      if (json.answerOrigin === "zai") {
-        text += "\n\n⚠️ Réponse du Griot, non validée par la communauté.";
-        text += "\nPour demander l'avis d'un expert, publie la question sur Baobab Dev.";
-      }
-      setBubbles((b) => [...b, { me: false, text, time: now(), sources: json.sources }]);
-    } catch (error) {
-      const text = error instanceof Error ? error.message : "Impossible de joindre le Griot. Réessaie dans un instant.";
-      setBubbles((b) => [...b, { me: false, text, time: now() }]);
-    } finally {
-      setTyping(false);
+    const res = await fetch("/api/griot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q, channel: "whatsapp" }),
+    });
+    const json = (await res.json()) as GriotResult & { error?: string };
+    let text = json.error ?? json.answer.replace(/\*\*([^*]+)\*\*/g, "*$1*");
+    if (!json.error && json.sources.length) {
+      text += `\n\n*Sources*\n${json.sources
+        .map((s, i) => `[${i + 1}] ${s.author_username}${s.author_city ? ` (${s.author_city})` : ""} · +5 XP`)
+        .join("\n")}`;
     }
+    setBubbles((b) => [...b, { me: false, text, time: now() }]);
+    setTyping(false);
   }
 
   return (
@@ -85,18 +69,7 @@ export function WhatsAppDemo() {
         {bubbles.map((b, i) => (
           <li key={i} className={`flex ${b.me ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] whitespace-pre-line rounded-lg px-2.5 py-1.5 shadow-sm ${b.me ? "bg-[#d9fdd3]" : "bg-white"}`}>
-              <WaText text={b.text} sources={b.sources} />
-              {b.sources && b.sources.length > 0 && (
-                <div className="mt-1 border-t border-black/10 pt-1">
-                  <strong>Sources</strong>
-                  {b.sources.map((source, i) => (
-                    <Link key={source.answer_id} href={`/questions/${source.question_id}`} className="block text-primary underline">
-                      [{i + 1}] {source.author_username}
-                      {source.author_city ? ` (${source.author_city})` : ""} · +5 XP
-                    </Link>
-                  ))}
-                </div>
-              )}
+              <WaText text={b.text} />
               <span className="mt-0.5 block text-right text-[10px] text-[#667781]">{b.time}</span>
             </div>
           </li>

@@ -53,7 +53,7 @@ export default async function RootLayout({
     >
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ServiceWorker />
-        <Header themePreference={theme} />
+        <Header />
         {children}
         <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 py-3 text-sm text-muted backdrop-blur">
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 sm:flex-row sm:items-center sm:justify-between">

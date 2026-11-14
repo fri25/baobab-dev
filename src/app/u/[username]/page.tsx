@@ -134,7 +134,7 @@ export default async function ProfilePage({ params }: Props) {
               <span className="text-muted">Langues : {profile.languages.join(", ")}</span>
             )}
             {profile.programming_languages.length > 0 ? (
-              <span className="text-muted">Langages de programmation : {profile.programming_languages.join(", ")}</span>
+              <span className="text-muted">{`Langages de programmation : ${profile.programming_languages.join(", ")}`}</span>
             ) : isOwner ? (
               <Link href="/parametres" className="text-primary hover:underline">
                 Ajouter tes langages de programmation

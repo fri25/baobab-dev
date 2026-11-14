@@ -123,6 +123,11 @@ export function QuestionMagazine({
                     </span>
                   </span>
                   <span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                    {(question.images?.length ?? 0) > 0 && (
+                      <span className="rounded border border-border px-2 py-0.5" title="Question avec images">
+                        🖼 {question.images?.length}
+                      </span>
+                    )}
                     {question.tags.slice(0, 3).map((tag) => (
                       <span key={tag} className="rounded-full bg-tech/10 px-2 py-0.5 font-mono text-tech">
                         {tag}

@@ -43,6 +43,10 @@ await page(`/discussions/${TOPIC}`, null, "client_reference");
 await page(`/discussions/${dm.id}`, aicha.cookie, "Pair-Debugging");
 await page(`/discussions/${dm.id}`, moussa.cookie, null, 404);
 await page("/discussions/new", aicha.cookie, "Lancer un sujet");
+await page("/discussions/new", aicha.cookie, "Mise en forme de Description du sujet");
+const suggestionsResponse = await fetch(`${APP}/api/profiles/suggest?q=Kof`, { headers: { cookie: aicha.cookie } });
+const suggestions = await suggestionsResponse.json();
+ok("suggestions de pseudo depuis les profils", suggestionsResponse.status === 200 && suggestions.users.some((u) => u.username === "koffi"));
 await page("/u/koffi", aicha.cookie, "Envoyer un message");
 
 // Non-lus
@@ -92,12 +96,115 @@ ok("une seule notification pour plusieurs messages non lus", dmNotifs?.length ==
 const { error: eJoin } = await ibrahim.c.from("messages").insert({ conversation_id: FLUTTER, author_id: ibrahim.id, body: "Et pour iOS, une astuce équivalente ?" });
 const { data: joined } = await admin.from("conversation_members").select("user_id").eq("conversation_id", FLUTTER).eq("user_id", ibrahim.id);
 ok("écrire dans un sujet le rejoint automatiquement", !eJoin && joined?.length === 1, eJoin?.message);
-await moussa.c.from("messages").insert({ conversation_id: TOPIC, author_id: moussa.id, body: "@koffi tu as un exemple de lien de paiement CinetPay ?" });
+await moussa.c.from("messages").insert({ conversation_id: TOPIC, author_id: moussa.id, body: "@Koffi tu as un exemple de lien de paiement CinetPay ?" });
 const { data: mention } = await admin.from("notifications").select("payload").eq("user_id", koffi.id).eq("kind", "mention");
-ok("@mention : Koffi notifié", mention?.some((n) => n.payload.from === "moussa"));
-const { data: topicId, error: eTopic } = await fatou.c.rpc("create_topic", { p_title: "Hébergement pas cher en FCFA", p_description: "VPS, Mobile Money", p_tags: ["hébergement"] });
+ok("@mention insensible à la casse : Koffi notifié", mention?.some((n) => n.payload.from === "moussa"));
+const { data: topicId, error: eTopic } = await fatou.c.rpc("create_topic", {
+  p_title: "Hébergement pas cher en FCFA",
+  p_description: "VPS, Mobile Money",
+  p_tags: ["hébergement"],
+  p_images: [],
+});
 ok("créer un sujet", !eTopic && !!topicId, eTopic?.message);
 await page(`/discussions/${topicId}`, null, "Hébergement pas cher");
+await page(`/discussions/${topicId}`, null, "Partager le sujet");
+await page(`/discussions/${topicId}`, fatou.cookie, "Pseudo Baobab Dev");
+
+const { data: instantInvite, error: instantInviteError } = await fatou.c.rpc("invite_to_topic", {
+  p_conversation: topicId,
+  p_username: "koffi",
+  p_scheduled_at: null,
+});
+const { data: instantMember } = await admin
+  .from("conversation_members")
+  .select("user_id")
+  .eq("conversation_id", topicId)
+  .eq("user_id", koffi.id)
+  .maybeSingle();
+const { data: instantNotification } = await admin
+  .from("notifications")
+  .select("payload")
+  .eq("user_id", koffi.id)
+  .eq("kind", "topic_invitation")
+  .contains("payload", { conversation_id: topicId });
+ok("invitation immédiate : membre ajouté et notifié", !!instantInvite && !instantInviteError && !!instantMember && !!instantNotification?.length);
+
+const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+const { data: cancelledInvite, error: scheduleError } = await fatou.c.rpc("invite_to_topic", {
+  p_conversation: topicId,
+  p_username: "moussa",
+  p_scheduled_at: future,
+});
+const { error: cancelError } = cancelledInvite
+  ? await fatou.c.rpc("cancel_topic_invitation", { p_invitation: cancelledInvite })
+  : { error: scheduleError };
+const { data: cancelledRow } = cancelledInvite
+  ? await admin.from("topic_invitations").select("id").eq("id", cancelledInvite).maybeSingle()
+  : { data: null };
+ok("annuler une invitation programmée", !!cancelledInvite && !cancelError && !cancelledRow);
+
+const { data: dueInvite, error: dueInviteError } = await fatou.c.rpc("invite_to_topic", {
+  p_conversation: topicId,
+  p_username: "ibrahim",
+  p_scheduled_at: future,
+});
+const { error: moveDueError } = dueInvite
+  ? await admin.from("topic_invitations").update({ scheduled_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", dueInvite)
+  : { error: dueInviteError };
+const { data: dispatched, error: dispatchError } = dueInvite && !moveDueError
+  ? await admin.rpc("dispatch_topic_invitations")
+  : { data: null, error: moveDueError ?? dueInviteError };
+const { data: dueMember } = await admin
+  .from("conversation_members")
+  .select("user_id")
+  .eq("conversation_id", topicId)
+  .eq("user_id", ibrahim.id)
+  .maybeSingle();
+ok("traiter une invitation programmée arrivée à échéance", !dispatchError && dispatched === 1 && !!dueMember, dispatchError?.message);
+
+// Demande d'avis du Griot : sujet public et notification in-app à un expert compétent
+const { data: griotQuery, error: griotQueryError } = await admin
+  .from("griot_queries")
+  .insert({
+    user_id: aicha.id,
+    channel: "app",
+    question: "Comment intégrer Laravel avec un webhook de paiement ?",
+    answer: "Vérifie la signature du webhook avant de traiter le paiement.",
+    status: "answered",
+  })
+  .select("id")
+  .single();
+const { data: reviewRows, error: reviewError } = griotQuery
+  ? await aicha.c.rpc("request_griot_review", { p_query_id: griotQuery.id, p_tags: ["Laravel"] })
+  : { data: null, error: griotQueryError };
+const review = reviewRows?.[0];
+ok("demande du Griot : sujet public créé", !reviewError && !!review?.conversation_id, reviewError?.message);
+if (review?.conversation_id) {
+  const { data: expertNotification } = await admin
+    .from("notifications")
+    .select("id")
+    .eq("user_id", koffi.id)
+    .eq("kind", "griot_review")
+    .eq("payload->>conversation_id", review.conversation_id);
+  ok("demande du Griot : Koffi reçoit une notification d'expert", expertNotification?.length === 1);
+  const { data: publicThread } = await moussa.c
+    .from("conversations")
+    .select("id")
+    .eq("id", review.conversation_id)
+    .single();
+  const { data: reviewMessage } = await moussa.c
+    .from("messages")
+    .select("body")
+    .eq("conversation_id", review.conversation_id)
+    .single();
+  ok("demande du Griot : sujet et échange visibles publiquement", !!publicThread && reviewMessage?.body.includes("webhook de paiement"));
+
+  const { data: retryRows, error: retryError } = await aicha.c.rpc("request_griot_review", {
+    p_query_id: griotQuery.id,
+    p_tags: ["Laravel"],
+  });
+  ok("demande du Griot : un nouvel essai réutilise le même sujet", !retryError && retryRows?.[0]?.conversation_id === review.conversation_id);
+}
 await ibrahim.c.rpc("leave_topic", { p_conversation: FLUTTER });
 const { data: left } = await admin.from("conversation_members").select("user_id").eq("conversation_id", FLUTTER).eq("user_id", ibrahim.id);
 ok("quitter un sujet", left?.length === 0);

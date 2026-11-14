@@ -23,3 +23,10 @@ export function budgetLabel(min: number | null, max: number | null) {
 
 export const scoreClass = (score: number) =>
   score >= 70 ? "bg-leaf text-background" : score >= 50 ? "bg-gold text-background" : "border border-border text-muted";
+
+export function daysUntilDeadline(deadline: string, now = Date.now()) {
+  const beninToday = new Date(now + 60 * 60 * 1000).toISOString().slice(0, 10);
+  const due = Date.parse(`${deadline}T00:00:00Z`);
+  const today = Date.parse(`${beninToday}T00:00:00Z`);
+  return Math.round((due - today) / 86_400_000);
+}

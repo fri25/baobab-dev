@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { levelForXp } from "@/lib/levels";
 
-type User = { username: string; full_name?: string | null; avatar_url?: string | null };
+type User = { username: string; full_name?: string | null; avatar_url?: string | null; xp?: number | null };
 
 // L'initiale reste visible sous la photo : en mode « données réduites », la photo n'est pas chargée.
 export function Avatar({ user, size = 32 }: { user: User; size?: number }) {
@@ -30,11 +31,17 @@ export function Avatar({ user, size = 32 }: { user: User; size?: number }) {
 }
 
 export function UserChip({ user, detail }: { user: User & { city?: string | null }; detail?: string }) {
+  const level = typeof user.xp === "number" ? levelForXp(user.xp) : null;
   return (
     <Link href={`/u/${user.username}`} className="inline-flex items-center gap-2 text-sm hover:text-primary">
       <Avatar user={user} size={24} />
       <span className="font-medium">{user.full_name ?? user.username}</span>
       {(detail ?? user.city) && <span className="text-muted">· {detail ?? user.city}</span>}
+      {level && (
+        <span className="rounded-full bg-gold/10 px-2 py-0.5 font-mono text-[10px] font-medium text-gold" title={level.name}>
+          {user.xp} XP
+        </span>
+      )}
     </Link>
   );
 }

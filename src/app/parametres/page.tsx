@@ -1,7 +1,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ProfilePhotoInput } from "@/components/ProfilePhotoInput";
 import { requireSession } from "@/lib/auth";
 import { parseTags } from "@/lib/format";
+import {
+  isValidProfileAvatar,
+  MAX_PROFILE_AVATAR_SIZE,
+  ownProfileAvatarPath,
+  PROFILE_AVATAR_TYPES,
+  PROFILE_AVATARS_BUCKET,
+} from "@/lib/profile-avatars";
 import { OPEN_TO } from "@/lib/recruiter-labels";
 import { AvatarUploader } from "./AvatarUploader";
 
@@ -14,14 +22,40 @@ const COUNTRIES = ["Bénin", "Burkina Faso", "Côte d'Ivoire", "Sénégal", "Tog
 async function saveProfile(formData: FormData) {
   "use server";
   const { supabase, user } = await requireSession("/parametres");
+  const { data: current, error: currentError } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
+  if (currentError) redirect(`/parametres?error=${encodeURIComponent(currentError.message)}`);
+
+  const avatarEntry = formData.get("avatar");
+  const avatarFile = avatarEntry instanceof File && avatarEntry.size > 0 ? avatarEntry : null;
+  let avatarUrl = current.avatar_url;
+  let uploadedAvatarPath: string | null = null;
+
+  if (avatarFile) {
+    const extension = Object.entries(PROFILE_AVATAR_TYPES).find(([type]) => type === avatarFile.type)?.[1];
+    if (!extension || avatarFile.size > MAX_PROFILE_AVATAR_SIZE || !(await isValidProfileAvatar(avatarFile, avatarFile.type))) {
+      redirect(`/parametres?error=${encodeURIComponent("Choisis une image JPEG, PNG ou WebP de 3 Mo maximum.")}`);
+    }
+
+    uploadedAvatarPath = `${user.id}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from(PROFILE_AVATARS_BUCKET)
+      .upload(uploadedAvatarPath, avatarFile, { contentType: avatarFile.type, cacheControl: "31536000" });
+    if (uploadError) redirect(`/parametres?error=${encodeURIComponent(uploadError.message)}`);
+    avatarUrl = supabase.storage.from(PROFILE_AVATARS_BUCKET).getPublicUrl(uploadedAvatarPath).data.publicUrl;
+  } else if (formData.get("remove_avatar") === "on") {
+    avatarUrl = null;
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
+      avatar_url: avatarUrl,
       full_name: String(formData.get("full_name") || "") || null,
       bio: String(formData.get("bio") || "") || null,
       country: String(formData.get("country") || "") || null,
       city: String(formData.get("city") || "") || null,
       languages: parseTags(formData.get("languages")),
+      programming_languages: parseTags(formData.get("programming_languages")),
       timezone: String(formData.get("timezone") || "Africa/Porto-Novo"),
       availability: String(formData.get("availability")),
       goals: GOALS.filter((g) => formData.get(`goal_${g}`) === "on"),
@@ -33,7 +67,20 @@ async function saveProfile(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
-  if (error) redirect(`/parametres?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    const cleanupError = uploadedAvatarPath
+      ? (await supabase.storage.from(PROFILE_AVATARS_BUCKET).remove([uploadedAvatarPath])).error
+      : null;
+    const message = cleanupError ? `${error.message} La nouvelle photo n'a pas pu être supprimée.` : error.message;
+    redirect(`/parametres?error=${encodeURIComponent(message)}`);
+  }
+
+  let photoCleanupWarning = false;
+  const oldAvatarPath = ownProfileAvatarPath(current.avatar_url, user.id);
+  if (oldAvatarPath && oldAvatarPath !== uploadedAvatarPath && oldAvatarPath !== ownProfileAvatarPath(avatarUrl, user.id)) {
+    const { error: removeError } = await supabase.storage.from(PROFILE_AVATARS_BUCKET).remove([oldAvatarPath]);
+    photoCleanupWarning = Boolean(removeError);
+  }
 
   // Technologies déclarées à la main (les détectées sur GitHub sont conservées)
   const manual = parseTags(formData.get("skills"));
@@ -46,12 +93,12 @@ async function saveProfile(formData: FormData) {
       .upsert((skills ?? []).map((s) => ({ user_id: user.id, skill_id: s.id, source: "manual", weight: 1 })), { ignoreDuplicates: true });
   }
   revalidatePath("/", "layout");
-  redirect("/parametres?ok=1");
+  redirect(photoCleanupWarning ? "/parametres?ok=1&warning=photo-cleanup" : "/parametres?ok=1");
 }
 
-export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string; warning?: string }> }) {
   const { supabase, user } = await requireSession("/parametres");
-  const { error, ok } = await searchParams;
+  const { error, ok, warning } = await searchParams;
   const [{ data: p }, { data: skills }, { data: badges }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase.from("user_skills").select("source, skills(name)").eq("user_id", user.id),
@@ -67,6 +114,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <h1 className="text-2xl font-bold">Mon profil</h1>
       {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
       {ok && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">Profil enregistré.</p>}
+      {warning === "photo-cleanup" && (
+        <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+          Le profil est enregistré, mais l&apos;ancienne photo n&apos;a pas pu être supprimée.
+        </p>
+      )}
 
       <div className="mt-6">
         <AvatarUploader
@@ -81,6 +133,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <form action={saveProfile} className="mt-6 space-y-4">
+        <ProfilePhotoInput username={p.username} fullName={p.full_name} avatarUrl={p.avatar_url} />
         <label className="block text-sm font-medium">
           Nom affiché
           <input name="full_name" defaultValue={p.full_name ?? ""} className={input} />
@@ -114,6 +167,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <input name="timezone" defaultValue={p.timezone ?? ""} className={input} />
           </label>
         </div>
+        <label className="block text-sm font-medium">
+          Langages de programmation qui t’intéressent (séparés par des virgules)
+          <input
+            name="programming_languages"
+            defaultValue={p.programming_languages?.join(", ") ?? ""}
+            placeholder="JavaScript, Python, PHP, Go"
+            className={input}
+          />
+        </label>
         <label className="block text-sm font-medium">
           Disponibilité
           <select name="availability" defaultValue={p.availability ?? "available"} className={input}>

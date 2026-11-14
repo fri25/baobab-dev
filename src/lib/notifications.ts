@@ -28,6 +28,13 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: "Nouvelle réponse à ta question", href: `/questions/${p.question_id}` };
     case "question_for_you":
       return { id: n.id, title: `Question ${p.skill} pour toi`, detail: String(p.title), href: `/questions/${p.question_id}` };
+    case "griot_review":
+      return {
+        id: n.id,
+        title: `Avis d’expert demandé · ${p.skill}`,
+        detail: String(p.title),
+        href: `/discussions/${p.conversation_id}`,
+      };
     case "bounty_contribution":
       return { id: n.id, title: "Ton ticket a été abondé", detail: `+${Number(p.amount).toLocaleString("fr-FR")} FCFA`, href: `/bourse/${p.bounty_id}` };
     case "squad_application":
@@ -44,8 +51,19 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: "Tu es tiré·e au sort pour arbitrer un litige", href: `/bourse/${p.bounty_id}` };
     case "direct_message":
       return { id: n.id, title: `Message de @${p.from}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
+    case "topic_invitation":
+      return {
+        id: n.id,
+        title: `@${p.from} t’invite dans # ${p.title}`,
+        href: `/discussions/${p.conversation_id}`,
+      };
     case "mention":
-      return { id: n.id, title: `@${p.from} t'a mentionné·e dans # ${p.title}`, detail: String(p.excerpt), href: `/discussions/${p.conversation_id}` };
+      return {
+        id: n.id,
+        title: `@${p.from} t'a mentionné·e dans la discussion « ${p.title} »`,
+        detail: String(p.excerpt),
+        href: `/discussions/${p.conversation_id}`,
+      };
     case "clone_flagged":
       return { id: n.id, title: "Une réponse de ton clone a été signalée", detail: String(p.question), href: "/clones/mon-clone" };
     case "clone_suspended":
@@ -66,6 +84,15 @@ export function toToast(n: Notification): Toast | null {
       return { id: n.id, title: `🎯 ${p.organization_name ?? p.organization} cherche ton profil`, detail: `${p.title} · correspondance ${p.score}/100`, href: `/radar/${p.opportunity_id}` };
     case "opportunity_response":
       return { id: n.id, title: `Nouvelle réponse de ${p.from}`, detail: String(p.title), href: `/radar/${p.opportunity_id}` };
+    case "opportunity_deadline": {
+      const days = Number(p.days_before);
+      return {
+        id: n.id,
+        title: `Échéance dans ${days} jour${days > 1 ? "s" : ""}`,
+        detail: `Candidatures pour ${p.title}`,
+        href: `/radar/${p.opportunity_id}`,
+      };
+    }
     case "opportunity_response_status": {
       const label: Record<string, string> = { shortlisted: "Présélectionné·e", accepted: "Retenu·e !", declined: "Non retenu·e" };
       return { id: n.id, title: `${label[String(p.status)] ?? p.status} : ${p.title}`, href: `/radar/${p.opportunity_id}` };
@@ -107,4 +134,3 @@ export function toToast(n: Notification): Toast | null {
       return null;
   }
 }
-

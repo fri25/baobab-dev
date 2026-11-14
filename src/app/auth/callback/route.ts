@@ -21,6 +21,6 @@ export async function GET(request: Request) {
     await importGithubProfile(supabase, data.user.id, profile.github_username);
   }
   const next = searchParams.get("next");
-  const target = next && next.startsWith("/") && !next.startsWith("//") && next !== "/fil" ? next : `/u/${profile?.username ?? ""}`;
+  const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/discussions";
   return NextResponse.redirect(`${origin}${target}`);
 }

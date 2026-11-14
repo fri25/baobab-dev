@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { ServiceWorker } from "@/components/ServiceWorker";
+import { isThemePreference } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#b9561a",
+  themeColor: "#0b0f19",
 };
 
 async function toggleLite() {
@@ -39,18 +40,25 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const lite = Boolean((await cookies()).get("lite"));
+  const cookieStore = await cookies();
+  const lite = Boolean(cookieStore.get("lite"));
+  const themeCookie = cookieStore.get("theme")?.value;
+  const theme = isThemePreference(themeCookie) ? themeCookie : "dark";
 
   return (
-    <html lang="fr" data-lite={lite ? "" : undefined}>
+    <html
+      lang="fr"
+      data-lite={lite ? "" : undefined}
+      data-theme={theme === "system" ? undefined : theme}
+    >
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ServiceWorker />
-        <Header />
+        <Header themePreference={theme} />
         {children}
-        <footer className="mt-16 border-t border-border py-6 text-sm text-muted">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4">
+        <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 py-3 text-sm text-muted backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 sm:flex-row sm:items-center sm:justify-between">
             <span>Baobab Dev · Coupe d&apos;Afrique des développeurs 2026</span>
-            <nav className="flex flex-wrap gap-4">
+            <nav className="flex min-w-0 gap-4 overflow-x-auto whitespace-nowrap pb-1 pr-20 sm:pb-0">
               <Link href="/classements" className="hover:text-foreground">
                 Classements
               </Link>

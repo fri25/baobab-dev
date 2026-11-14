@@ -15,7 +15,7 @@ export default async function PublishPage({ searchParams }: { searchParams: Prom
       <h1 className="text-2xl font-bold">Publier un besoin numérique</h1>
       <p className="mt-1 text-muted">
         PME, ONG, mairie ou startup : décris ton besoin avec tes mots, ou colle un appel d&apos;offres. Le Radar en extrait les
-        technologies, le budget et le délai, puis alerte les devs et les Squads qui correspondent.
+        technologies, le budget et le délai. Après vérification, l&apos;annonce sera publiée et les profils correspondants alertés.
       </p>
       {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
 
@@ -57,7 +57,7 @@ export default async function PublishPage({ searchParams }: { searchParams: Prom
           <input name="contact" className={input} />
         </label>
         <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Analyser le besoin</button>
-        <p className="text-xs text-muted">Tu pourras relire et corriger l&apos;extraction avant de publier.</p>
+        <p className="text-xs text-muted">Tu pourras relire et corriger l&apos;extraction avant de la soumettre à la modération.</p>
       </form>
     </main>
   );

@@ -1,21 +1,18 @@
-import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import { toToast } from "@/lib/notifications";
 import { requireSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
+import { markAllNotificationsRead, openNotification } from "./actions";
 
 export const metadata = { title: "Notifications · Baobab Dev" };
 
-async function markAllRead() {
-  "use server";
+export default async function NotificationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { supabase, user } = await requireSession("/notifications");
-  await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", user.id).is("read_at", null);
-  revalidatePath("/", "layout");
-}
-
-export default async function NotificationsPage() {
-  const { supabase, user } = await requireSession("/notifications");
-  const { data: notifications } = await supabase
+  const { error: actionError } = await searchParams;
+  const { data: notifications, error: notificationsError } = await supabase
     .from("notifications")
     .select("id, kind, payload, read_at, created_at")
     .eq("user_id", user.id)
@@ -26,12 +23,14 @@ export default async function NotificationsPage() {
     <main className="mx-auto max-w-2xl px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Notifications</h1>
-        <form action={markAllRead}>
+        <form action={markAllNotificationsRead}>
           <button className="text-sm text-primary">Tout marquer comme lu</button>
         </form>
       </div>
+      {actionError && <p role="alert" className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{actionError}</p>}
+      {notificationsError && <p role="alert" className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">Les notifications n’ont pas pu être chargées.</p>}
       <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-surface">
-        {notifications?.length ? (
+        {notificationsError ? null : notifications?.length ? (
           notifications.map((n) => {
             const t = toToast(n as never);
             if (!t) return null;
@@ -50,13 +49,11 @@ export default async function NotificationsPage() {
             );
             return (
               <li key={n.id}>
-                {t.href ? (
-                  <Link href={t.href} className="block hover:bg-background">
+                <form action={openNotification.bind(null, n.id)}>
+                  <button type="submit" className="block w-full text-left hover:bg-background">
                     {content}
-                  </Link>
-                ) : (
-                  content
-                )}
+                  </button>
+                </form>
               </li>
             );
           })

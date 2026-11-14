@@ -12,6 +12,7 @@ import { levelForXp } from "@/lib/levels";
 import { getProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import { XP_METHODS } from "@/lib/xp-rewards";
+import { XpProgress } from "@/components/XpProgress";
 
 const AVAILABILITY = {
   available: { label: "Disponible", color: "var(--leaf)" },
@@ -87,14 +88,24 @@ export default async function ProfilePage({ params }: Props) {
     <main className="mx-auto max-w-5xl px-4 py-8">
       {/* En-tête */}
       <section className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        {profile.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-full border border-border" />
-        ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-ink">
-            {(profile.full_name ?? profile.username).charAt(0).toUpperCase()}
-          </div>
-        )}
+        <div className="relative h-24 w-24 shrink-0">
+          {profile.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-full border border-border object-cover" />
+          ) : (
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-ink">
+              {(profile.full_name ?? profile.username).charAt(0).toUpperCase()}
+            </div>
+          )}
+          {isOwner && (
+            <Link
+              href="/parametres#photo"
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-background px-3 py-1 text-xs font-medium shadow-sm hover:border-primary hover:text-primary"
+            >
+              Modifier la photo
+            </Link>
+          )}
+        </div>
         <div className="flex-1">
           <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold">
             {profile.full_name ?? profile.username}
@@ -177,30 +188,7 @@ export default async function ProfilePage({ params }: Props) {
       </section>
 
       {/* Niveau et progression */}
-      <section className="mt-8 rounded-2xl border border-border bg-surface p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p>
-            <span className="text-sm text-muted">Niveau {lvl.level}</span>{" "}
-            <span className="text-xl font-bold">{lvl.name}</span>
-          </p>
-          <p className="font-mono text-lg font-semibold text-primary">{profile.xp.toLocaleString("fr-FR")} XP</p>
-        </div>
-        <div
-          className="mt-3 h-3 overflow-hidden rounded-full bg-border"
-          role="progressbar"
-          aria-valuenow={Math.round(lvl.progress * 100)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          <div className="h-full rounded-full bg-leaf" style={{ width: `${Math.round(lvl.progress * 100)}%` }} />
-        </div>
-        <p className="mt-2 text-sm text-muted">
-          {lvl.next
-            ? `Encore ${(lvl.next.floor - profile.xp).toLocaleString("fr-FR")} XP pour devenir ${lvl.next.name}`
-            : "Niveau maximal atteint"}
-          {lvl.level < 5 && " · le clone IA se débloque au niveau Expert"}
-        </p>
-      </section>
+      <XpProgress profileId={profile.id} xp={profile.xp} />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
@@ -361,7 +349,7 @@ export default async function ProfilePage({ params }: Props) {
                   profile.activity.map((a, i) => (
                     <li key={`${a.created_at}-${i}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                       <span>
-                        {XP_REASONS[a.reason] ?? a.reason}
+                        {a.reason === "content_removed" ? "Ajustement du solde XP" : XP_REASONS[a.reason] ?? a.reason}
                         <span className="block text-xs text-muted">
                           {new Date(a.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                         </span>

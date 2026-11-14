@@ -20,11 +20,28 @@ export default async function ConversationPage({
   const { invites } = await searchParams;
   const { supabase, user } = await getSession();
 
-  const { data: conversation } = await supabase
+  const conversationResult = await supabase
     .from("conversations")
     .select("id, kind, title, description, tags, created_by, scheduled_at")
     .eq("id", id)
     .maybeSingle();
+  let conversation = conversationResult.data;
+  const missingImagesColumn =
+    conversationResult.error?.message.includes("images") &&
+    (conversationResult.error.code === "42703" || conversationResult.error.code === "PGRST204");
+  if (missingImagesColumn) {
+    const legacyResult = await supabase
+      .from("conversations")
+      .select("id, kind, title, description, tags, created_by")
+      .eq("id", id)
+      .maybeSingle();
+    if (legacyResult.error) {
+      throw new Error("Impossible de charger cette discussion.", { cause: legacyResult.error });
+    }
+    conversation = legacyResult.data ? { ...legacyResult.data, images: [] } : null;
+  } else if (conversationResult.error) {
+    throw new Error("Impossible de charger cette discussion.", { cause: conversationResult.error });
+  }
   if (!conversation) notFound(); // conversation privée d'autres devs : invisible (RLS)
 
   const [{ data: rows }, { data: members }] = await Promise.all([

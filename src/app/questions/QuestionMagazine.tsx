@@ -45,10 +45,10 @@ export function QuestionMagazine({
   }
 
   return (
-    <section className="mt-6 grid gap-4 lg:h-[calc(100dvh-24rem)] lg:min-h-[20rem] lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.8fr)] 2xl:h-[calc(100dvh-21rem)]">
+    <section className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.8fr)]">
       <article
         aria-live="polite"
-        className="min-h-72 overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-7 lg:min-h-0 lg:p-8"
+        className="min-w-0 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-7 lg:p-8"
       >
         {selectedQuestion && (
           <div key={selectedQuestion.id} className="animate-magazine-detail">
@@ -94,7 +94,7 @@ export function QuestionMagazine({
 
       <aside
         aria-label="Liste des questions"
-        className="min-h-0 overflow-y-auto rounded-2xl border border-border bg-background/70 p-3 lg:h-full"
+        className="min-h-72 overflow-y-auto rounded-2xl border border-border bg-background/70 p-3 lg:sticky lg:top-28 lg:h-[calc(100dvh-9rem)] lg:min-h-[20rem]"
       >
         <h2 className="sticky top-0 z-10 rounded-xl bg-background/95 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted backdrop-blur">
           Les plus récentes

@@ -111,7 +111,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
         <Markdown text={question.body} />
         <QuestionImages images={question.images ?? []} />
         <div className="mt-3 flex justify-end">
-          <ReportButton targetType="question" targetId={id} path={path} />
+          {user && <ReportButton targetType="question" targetId={id} path={path} />}
         </div>
         <Comments comments={commentsOf(id)} action={user ? addComment.bind(null, id, "question", id) : undefined} />
       </article>
@@ -175,7 +175,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
                         </button>
                       </form>
                     )}
-                    <ReportButton targetType="answer" targetId={answer.id} path={path} />
+                    {user && <ReportButton targetType="answer" targetId={answer.id} path={path} />}
                   </div>
                 </div>
                 <Comments

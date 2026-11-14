@@ -45,19 +45,41 @@ export async function getProfile(username: string): Promise<ProfileView | null> 
     supabase.from("projects").select("name, slug, description, stack").eq("owner_id", p.id).order("created_at", { ascending: false }),
     supabase.rpc("profile_xp_breakdown", { p_user: p.id }),
   ]);
+  let xpEntries: XpBreakdownRow[];
   if (xpBreakdown.error) {
-    throw new Error("Impossible de charger le détail des XP du profil.", { cause: xpBreakdown.error });
+    const breakdownFunctionMissing =
+      xpBreakdown.error.code === "PGRST202" ||
+      xpBreakdown.error.message.includes("profile_xp_breakdown");
+    if (!breakdownFunctionMissing) {
+      throw new Error("Impossible de charger le détail des XP du profil.", { cause: xpBreakdown.error });
+    }
+
+    const { data: points, error } = await supabase
+      .from("points_log")
+      .select("reason, amount")
+      .eq("user_id", p.id);
+    if (error) {
+      throw new Error("Impossible de charger le journal des XP du profil.", { cause: error });
+    }
+
+    const totals = new Map<string, number>();
+    for (const point of points ?? []) {
+      totals.set(point.reason, (totals.get(point.reason) ?? 0) + point.amount);
+    }
+    xpEntries = [...totals].map(([reason, total]) => ({ reason, total }));
+  } else {
+    xpEntries = (xpBreakdown.data as XpBreakdownRow[] | null) ?? [];
   }
-  const xpEntries = xpBreakdown.data as XpBreakdownRow[] | null;
 
   return {
     ...p,
+    programming_languages: p.programming_languages ?? [],
     skills: (skills.data ?? []).map((s) => ({
       name: (s.skills as unknown as { name: string }).name,
       weight: s.weight,
       source: s.source,
     })),
-    xpBreakdown: (xpEntries ?? []).map((entry) => ({
+    xpBreakdown: xpEntries.map((entry) => ({
       reason: entry.reason,
       amount: Number(entry.total),
     })),

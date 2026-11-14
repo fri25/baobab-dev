@@ -60,8 +60,6 @@ async function saveProfile(formData: FormData) {
       pinned_badges: formData.getAll("pinned").map(String).slice(0, 3),
       whatsapp_number: String(formData.get("whatsapp_number") || "").replace(/[\s.-]/g, "") || null,
       whatsapp_alerts: formData.get("whatsapp_alerts") === "on",
-      recruiter_visible: formData.get("recruiter_visible") === "on",
-      open_to: OPEN_TO.filter((o) => formData.get(`open_${o.value}`) === "on").map((o) => o.value),
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -76,6 +74,16 @@ async function saveProfile(formData: FormData) {
   const { error: programmingLanguagesError } = await supabase
     .from("profiles")
     .update({ programming_languages: parseTags(formData.get("programming_languages")) })
+    .eq("id", user.id);
+
+  // Les préférences recruteurs ont leur propre migration. Les isoler évite
+  // qu'une ancienne base bloque l'enregistrement d'une photo ou du profil.
+  const { error: recruiterPreferencesError } = await supabase
+    .from("profiles")
+    .update({
+      recruiter_visible: formData.get("recruiter_visible") === "on",
+      open_to: OPEN_TO.filter((o) => formData.get(`open_${o.value}`) === "on").map((o) => o.value),
+    })
     .eq("id", user.id);
 
   let photoCleanupWarning = false;
@@ -96,14 +104,24 @@ async function saveProfile(formData: FormData) {
       .upsert((skills ?? []).map((s) => ({ user_id: user.id, skill_id: s.id, source: "manual", weight: 1 })), { ignoreDuplicates: true });
   }
   revalidatePath("/", "layout");
-  if (programmingLanguagesError) {
-    const migrationMissing =
-      programmingLanguagesError.code === "42703" || programmingLanguagesError.code === "PGRST204";
+  if (programmingLanguagesError || recruiterPreferencesError) {
+    const migrationMissing = [programmingLanguagesError, recruiterPreferencesError].some(
+      (updateError) => updateError?.code === "42703" || updateError?.code === "PGRST204",
+    );
+    const fields = [
+      programmingLanguagesError ? "les langages de programmation" : null,
+      recruiterPreferencesError ? "les préférences recruteurs" : null,
+    ]
+      .filter((field): field is string => field !== null)
+      .join(" et ");
+    const details = [programmingLanguagesError?.message, recruiterPreferencesError?.message]
+      .filter((message): message is string => Boolean(message))
+      .join(" · ");
     redirect(
-      `/parametres?warning=languages&error=${encodeURIComponent(
+      `/parametres?warning=profile-fields&error=${encodeURIComponent(
         migrationMissing
-          ? "Le profil et la photo ont été enregistrés, mais les langages n’ont pas pu l’être. Applique la migration Supabase du profil puis réessaie."
-          : `Le profil et la photo ont été enregistrés, mais les langages n’ont pas pu l’être : ${programmingLanguagesError.message}`,
+          ? `Le profil et la photo ont été enregistrés, mais ${fields} n’ont pas pu l’être. Applique les migrations Supabase puis réessaie.`
+          : `Le profil et la photo ont été enregistrés, mais ${fields} n’ont pas pu l’être : ${details}`,
       )}`,
     );
   }
@@ -122,6 +140,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     (skills ?? [])
       .filter((s) => s.source === source)
       .map((s) => (s.skills as unknown as { name: string }).name);
+  // Certains environnements peuvent encore contenir des profils créés avant
+  // l'ajout des préférences recruteurs. Les valeurs par défaut permettent à la
+  // page de rester consultable pendant la mise à niveau de la base.
+  const languages = Array.isArray(p.languages) ? p.languages : [];
+  const goals = Array.isArray(p.goals) ? p.goals : [];
+  const pinnedBadges = Array.isArray(p.pinned_badges) ? p.pinned_badges : [];
+  const openTo = Array.isArray(p.open_to) ? p.open_to : [];
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
@@ -162,7 +187,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium">
             Langues (fr, en, wo, fon…)
-            <input name="languages" defaultValue={p.languages.join(", ")} className={input} />
+            <input name="languages" defaultValue={languages.join(", ")} className={input} />
           </label>
           <label className="block text-sm font-medium">
             Fuseau horaire
@@ -191,7 +216,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div className="mt-1 flex flex-wrap gap-3 text-sm">
             {GOALS.map((g) => (
               <label key={g} className="flex items-center gap-1.5">
-                <input type="checkbox" name={`goal_${g}`} defaultChecked={p.goals.includes(g)} /> {g}
+                <input type="checkbox" name={`goal_${g}`} defaultChecked={goals.includes(g)} /> {g}
               </label>
             ))}
           </div>
@@ -211,7 +236,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 const badge = b.badges as unknown as { code: string; name: string; tier: string };
                 return (
                   <label key={badge.code} className="flex items-center gap-1.5">
-                    <input type="checkbox" name="pinned" value={badge.code} defaultChecked={p.pinned_badges.includes(badge.code)} />
+                    <input type="checkbox" name="pinned" value={badge.code} defaultChecked={pinnedBadges.includes(badge.code)} />
                     {badge.name} ({badge.tier})
                   </label>
                 );
@@ -222,7 +247,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <fieldset className="rounded-lg border border-border bg-surface p-3">
           <legend className="px-1 text-sm font-medium">Recruteurs</legend>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="recruiter_visible" defaultChecked={p.recruiter_visible} /> Mon profil apparaît dans la recherche des
+            <input type="checkbox" name="recruiter_visible" defaultChecked={p.recruiter_visible ?? true} /> Mon profil apparaît dans la recherche des
             recruteurs abonnés
           </label>
           <p className="mt-1 text-xs text-muted">
@@ -236,7 +261,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div className="mt-1 flex flex-wrap gap-3 text-sm">
             {OPEN_TO.map((o) => (
               <label key={o.value} className="flex items-center gap-1.5">
-                <input type="checkbox" name={`open_${o.value}`} defaultChecked={p.open_to.includes(o.value)} /> {o.label}
+                <input type="checkbox" name={`open_${o.value}`} defaultChecked={openTo.includes(o.value)} /> {o.label}
               </label>
             ))}
           </div>

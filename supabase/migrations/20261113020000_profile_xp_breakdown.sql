@@ -1,5 +1,5 @@
 alter table public.profiles
-  add column programming_languages text[] not null default '{}';
+  add column if not exists programming_languages text[] not null default '{}';
 
 grant update (programming_languages) on public.profiles to authenticated;
 

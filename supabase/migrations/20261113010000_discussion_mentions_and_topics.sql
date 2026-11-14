@@ -1,14 +1,14 @@
 alter table public.conversations
-  add column images text[] not null default '{}';
+  add column if not exists images text[] not null default '{}';
 
 alter table public.conversations
-  drop constraint conversations_title_check,
+  drop constraint if exists conversations_title_check,
   add constraint conversations_title_check
     check (kind = 'direct' or char_length(title) between 3 and 200);
 
-drop function public.create_topic(text, text, text[]);
+drop function if exists public.create_topic(text, text, text[]);
 
-create function public.create_topic(
+create or replace function public.create_topic(
   p_title text,
   p_description text,
   p_tags text[],

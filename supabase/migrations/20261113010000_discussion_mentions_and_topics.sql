@@ -2,7 +2,8 @@ alter table public.conversations
   add column images text[] not null default '{}';
 
 alter table public.conversations
-  drop constraint conversations_title_check,
+  drop constraint if exists conversations_check, -- nom généré par Postgres pour la contrainte de titre
+  drop constraint if exists conversations_title_check,
   add constraint conversations_title_check
     check (kind = 'direct' or char_length(title) between 3 and 200);
 

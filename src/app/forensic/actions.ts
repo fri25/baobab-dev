@@ -23,7 +23,6 @@ export async function createAudit(formData: FormData) {
     p_max_auditors: Number(formData.get("max_auditors")) || 3,
     p_fee: Number(formData.get("fee")),
     p_days: Number(formData.get("days")) || 14,
-    p_accept_nda: formData.get("nda") === "on",
   });
   if (error) redirect(`/forensic/new?error=${encodeURIComponent(error.message)}`);
 

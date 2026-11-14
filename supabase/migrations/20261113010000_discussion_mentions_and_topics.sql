@@ -6,49 +6,7 @@ alter table public.conversations
   add constraint conversations_title_check
     check (kind = 'direct' or char_length(title) between 3 and 200);
 
-drop function public.create_topic(text, text, text[]);
-
-create function public.create_topic(
-  p_title text,
-  p_description text,
-  p_tags text[],
-  p_images text[] default '{}'
-)
-returns uuid
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_id uuid;
-begin
-  if auth.uid() is null then raise exception 'Connexion requise'; end if;
-  if p_title is null
-    or char_length(trim(p_title)) not between 10 and 200
-    or nullif(trim(p_description), '') is null
-  then
-    raise exception 'Un titre de 10 à 200 caractères et une description sont obligatoires';
-  end if;
-
-  insert into conversations (kind, title, description, tags, images, created_by)
-  values (
-    'topic',
-    trim(p_title),
-    trim(p_description),
-    coalesce(p_tags[1:5], '{}'),
-    coalesce(p_images[1:4], '{}'),
-    auth.uid()
-  )
-  returning id into v_id;
-
-  insert into conversation_members (conversation_id, user_id, role)
-  values (v_id, auth.uid(), 'owner');
-  return v_id;
-end
-$$;
-
-revoke execute on function public.create_topic(text, text, text[], text[]) from public, anon;
-grant execute on function public.create_topic(text, text, text[], text[]) to authenticated;
+-- create_topic : la version de main (sujets programmés, 20261111000000_retours.sql) est conservée.
 
 create or replace function public.after_message()
 returns trigger

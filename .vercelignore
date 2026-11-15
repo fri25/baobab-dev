@@ -1,0 +1,13 @@
+/.next
+/.next-build
+/tests
+/node_modules
+/supabase
+*.log
+*.tsbuildinfo
+# Secrets locaux : jamais envoyés à Vercel (les variables sont configurées dans le projet Vercel)
+.env*
+!.env.example
+.vercel
+next-dev.log
+supabase-start.log

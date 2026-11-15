@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { similarQuestions } from "../actions";
@@ -8,6 +9,7 @@ type Similar = Awaited<ReturnType<typeof similarQuestions>>;
 
 // Avant publication, le Griot suggère les questions existantes (§5.3)
 export function TitleWithSuggestions() {
+  const t = useT();
   const [title, setTitle] = useState("");
   const [similar, setSimilar] = useState<Similar>([]);
 
@@ -21,7 +23,7 @@ export function TitleWithSuggestions() {
   return (
     <div>
       <label className="block text-sm font-medium" htmlFor="title">
-        Titre
+        {t("Titre")}
       </label>
       <input
         id="title"
@@ -31,12 +33,12 @@ export function TitleWithSuggestions() {
         maxLength={200}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Ex. Comment vérifier la signature d'un webhook FedaPay dans Laravel ?"
+        placeholder={t("Ex. Comment vérifier la signature d'un webhook FedaPay dans Laravel ?")}
         className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2"
       />
       {similar.length > 0 && (
         <div className="mt-2 rounded-lg border border-leaf/40 bg-leaf/5 p-3 text-sm">
-          <p className="font-medium text-leaf">Le Griot a trouvé des questions proches :</p>
+          <p className="font-medium text-leaf">{t("Le Griot a trouvé des questions proches :")}</p>
           <ul className="mt-1 space-y-1">
             {similar.map((s) => (
               <li key={s.id}>
@@ -44,7 +46,7 @@ export function TitleWithSuggestions() {
                   {s.title}
                 </Link>{" "}
                 <span className="text-xs text-muted">
-                  {s.has_accepted ? "· réponse validée" : `· ${s.answers_count} réponse(s)`}
+                  {s.has_accepted ? t("· réponse validée") : `· ${s.answers_count} réponse(s)`}
                 </span>
               </li>
             ))}

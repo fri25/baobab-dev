@@ -1,5 +1,7 @@
 "use client";
 
+import { dateLocale } from "@/lib/i18n/current";
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sendSquadMessage } from "../actions";
@@ -15,6 +17,7 @@ export function SquadChat({
   initial: Message[];
   members: Record<string, string>;
 }) {
+  const t = useT();
   const [messages, setMessages] = useState(initial);
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLOListElement>(null);
@@ -42,12 +45,12 @@ export function SquadChat({
   return (
     <div className="flex h-96 flex-col rounded-xl border border-border bg-surface">
       <ol ref={listRef} className="flex-1 space-y-2 overflow-y-auto p-4 text-sm">
-        {messages.length === 0 && <li className="text-muted">Lancez la discussion.</li>}
+        {messages.length === 0 && <li className="text-muted">{t("Lancez la discussion.")}</li>}
         {messages.map((m) => (
           <li key={m.id}>
             <span className="font-medium">{members[m.author_id] ?? "?"}</span>{" "}
             <span className="text-xs text-muted">
-              {new Date(m.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+              {new Date(m.created_at).toLocaleTimeString(dateLocale(), { hour: "2-digit", minute: "2-digit" })}
             </span>
             <p className="whitespace-pre-line">{m.body}</p>
           </li>
@@ -65,10 +68,10 @@ export function SquadChat({
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Message à la Squad…"
+          placeholder={t("Message à la Squad…")}
           className="flex-1 rounded-lg bg-background px-3 py-2 text-sm outline-none"
         />
-        <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">Envoyer</button>
+        <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">{t("Envoyer")}</button>
       </form>
     </div>
   );

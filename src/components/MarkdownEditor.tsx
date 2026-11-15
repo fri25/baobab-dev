@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useRef, useState } from "react";
 import { Markdown } from "@/components/Markdown";
 
@@ -30,6 +31,7 @@ const ACTIONS: Action[] = [
 
 // Éditeur Markdown léger : barre d'outils, raccourcis clavier et aperçu fidèle au rendu publié.
 export function MarkdownEditor({ name, id, required, rows = 10, maxLength, placeholder, defaultValue = "", draftKey }: Props) {
+  const t = useT();
   const key = draftKey ? `brouillon:${draftKey}` : null;
   const ref = useRef<HTMLTextAreaElement>(null);
   const [value, setValue] = useState(defaultValue);
@@ -102,13 +104,13 @@ export function MarkdownEditor({ name, id, required, rows = 10, maxLength, place
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-background px-2 py-1.5">
         <div className="flex gap-1 rounded-lg bg-border/40 p-0.5" role="tablist">
           <button type="button" role="tab" aria-selected={tab === "write"} onClick={() => setTab("write")} className={tabClass(tab === "write")}>
-            Écrire
+            {t("Écrire")}
           </button>
           <button type="button" role="tab" aria-selected={tab === "preview"} onClick={() => setTab("preview")} className={tabClass(tab === "preview")}>
-            Aperçu
+            {t("Aperçu")}
           </button>
         </div>
-        <div className="flex flex-wrap gap-0.5" aria-label="Mise en forme">
+        <div className="flex flex-wrap gap-0.5" aria-label={t("Mise en forme")}>
           {ACTIONS.map((a) => (
             <button
               key={a.title}
@@ -142,16 +144,16 @@ export function MarkdownEditor({ name, id, required, rows = 10, maxLength, place
       />
       {tab === "preview" && (
         <div className="min-h-40 px-4 py-3" style={{ minHeight: `${rows * 1.5}rem` }}>
-          {value.trim() ? <Markdown text={value} /> : <p className="text-sm text-muted">Rien à prévisualiser pour l&apos;instant.</p>}
+          {value.trim() ? <Markdown text={value} /> : <p className="text-sm text-muted">{t("Rien à prévisualiser pour l'instant.")}</p>}
         </div>
       )}
 
       <div className="flex flex-wrap justify-between gap-2 border-t border-border bg-background px-3 py-1.5 text-xs text-muted">
         <span>
-          Markdown : **gras**, *italique*, `code`, ```bloc```, [lien](url), - liste, ## titre
+          {t("Markdown : **gras**, *italique*, `code`, ```bloc```, [lien](url), - liste, ## titre")}
         </span>
         <span>
-          {restored && "Brouillon restauré · "}
+          {restored && t("Brouillon restauré · ")}
           {maxLength ? `${value.length}/${maxLength}` : `${value.length} caractères`}
         </span>
       </div>

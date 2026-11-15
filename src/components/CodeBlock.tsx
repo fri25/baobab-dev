@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useState } from "react";
 import hljs from "highlight.js/lib/core";
 import bash from "highlight.js/lib/languages/bash";
@@ -61,6 +62,7 @@ const aliases: Record<string, string> = {
 };
 
 export function CodeBlock({ code, language }: { code: string; language: string }) {
+  const t = useT();
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const normalizedLanguage = aliases[language] ?? language;
   const highlighted = Boolean(language && hljs.getLanguage(normalizedLanguage));
@@ -83,14 +85,14 @@ export function CodeBlock({ code, language }: { code: string; language: string }
       data-lang={language || undefined}
     >
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
-        <span className="font-mono text-xs text-[#e3b341]">{language || "code"}</span>
+        <span className="font-mono text-xs text-[#e3b341]">{language || t("code")}</span>
         <button
           type="button"
           onClick={copyCode}
           className="shrink-0 rounded border border-white/15 px-2 py-1 text-xs text-[#c9d1d9] transition hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#e3b341]"
           aria-live="polite"
         >
-          {copyStatus === "copied" ? "Copié" : copyStatus === "failed" ? "Copie impossible" : "Copier"}
+          {copyStatus === "copied" ? t("Copié") : copyStatus === "failed" ? t("Copie impossible") : t("Copier")}
         </button>
       </div>
       <pre className="m-0 overflow-x-auto px-4 py-3 text-sm leading-relaxed">

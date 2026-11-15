@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { apiKeyFrom, PAUSED_MESSAGE, recordUsage, resolveApiKey } from "@/lib/centrale";
 import { hasAnthropicCredentials } from "@/lib/griot";
 
+// Appels à l'IA ou à GitHub : au-delà du délai par défaut des fonctions Vercel
+export const maxDuration = 60;
+
 // Proxy compatible avec l'API Messages : la clé Baobab (bk_…) remplace la clé du fournisseur,
 // les jetons consommés sont facturés au millier sur le portefeuille du membre.
 export async function POST(request: Request) {

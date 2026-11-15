@@ -1,15 +1,19 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import { toToast } from "@/lib/notifications";
 import { requireSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
 import { markAllNotificationsRead, openNotification } from "./actions";
 
-export const metadata = { title: "Notifications · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Notifications · Baobab Dev") };
+}
 
 export default async function NotificationsPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  const tr = await getT();
   const { supabase, user } = await requireSession("/notifications");
   const { error: actionError } = await searchParams;
   const { data: notifications, error: notificationsError } = await supabase
@@ -22,13 +26,13 @@ export default async function NotificationsPage({
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Notifications</h1>
+        <h1 className="text-2xl font-bold">{tr("Notifications")}</h1>
         <form action={markAllNotificationsRead}>
-          <button className="text-sm text-primary">Tout marquer comme lu</button>
+          <button className="text-sm text-primary">{tr("Tout marquer comme lu")}</button>
         </form>
       </div>
-      {actionError && <p role="alert" className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{actionError}</p>}
-      {notificationsError && <p role="alert" className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">Les notifications n’ont pas pu être chargées.</p>}
+      {actionError && <p role="alert" className="mt-4 rounded-lg bg-danger/10 p-3 text-sm text-danger">{actionError}</p>}
+      {notificationsError && <p role="alert" className="mt-4 rounded-lg bg-danger/10 p-3 text-sm text-danger">{tr("Les notifications n’ont pas pu être chargées.")}</p>}
       <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-surface">
         {notificationsError ? null : notifications?.length ? (
           notifications.map((n) => {
@@ -58,10 +62,10 @@ export default async function NotificationsPage({
             );
           })
         ) : (
-          <li className="px-4 py-6 text-center text-muted">Rien de neuf pour l&apos;instant.</li>
+          <li className="px-4 py-6 text-center text-muted">{tr("Rien de neuf pour l'instant.")}</li>
         )}
       </ul>
-      <p className="mt-4 text-xs text-muted">Notifications WhatsApp et email : V1, avec choix des canaux.</p>
+      <p className="mt-4 text-xs text-muted">{tr("Notifications WhatsApp et email : V1, avec choix des canaux.")}</p>
     </main>
   );
 }

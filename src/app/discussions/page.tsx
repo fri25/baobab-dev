@@ -1,10 +1,14 @@
+import { dateLocale } from "@/lib/i18n/current";
+import { getT, pageTitle } from "@/lib/i18n/server";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const metadata = { title: "Discussions · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Discussions · Baobab Dev") };
+}
 
 type Conversation = {
   id: string;
@@ -26,6 +30,7 @@ export default async function DiscussionsPage({
 }: {
   searchParams: Promise<{ onglet?: string; error?: string }>;
 }) {
+  const tr = await getT();
   const { onglet, error } = await searchParams;
   const { supabase, user } = await getSession();
   const tab = onglet === "sujets" || !user ? "sujets" : "prives";
@@ -56,23 +61,23 @@ export default async function DiscussionsPage({
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Discussions</h1>
-          <p className="text-muted">Écris à un dev en privé ou rejoins un sujet pour discuter avec la communauté.</p>
+          <h1 className="text-2xl font-bold">{tr("Discussions")}</h1>
+          <p className="text-muted">{tr("Écris à un dev en privé ou rejoins un sujet pour discuter avec la communauté.")}</p>
         </div>
         <Link href="/discussions/new" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-          Lancer un sujet
+          {tr("Lancer un sujet")}
         </Link>
       </div>
-      {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
+      {error && <p className="mt-4 rounded-lg bg-danger/10 p-3 text-sm text-danger">{error}</p>}
 
       <nav className="mt-6 flex gap-2 text-sm">
         {user && (
           <Link href="/discussions" className={tabClass(tab === "prives")}>
-            Messages privés {badge(directUnread)}
+            {tr("Messages privés")}{" "}{badge(directUnread)}
           </Link>
         )}
         <Link href="/discussions?onglet=sujets" className={tabClass(tab === "sujets")}>
-          Sujets {badge(topicUnread)}
+          {tr("Sujets")}{" "}{badge(topicUnread)}
         </Link>
       </nav>
 
@@ -88,7 +93,7 @@ export default async function DiscussionsPage({
                     <span className="shrink-0 text-xs text-muted">{timeAgo(c.last_message_at)}</span>
                   </div>
                   <p className={`truncate text-sm ${c.unread ? "text-foreground" : "text-muted"}`}>
-                    {c.last_body ? `${c.last_author === c.other_username ? "" : "Toi : "}${c.last_body}` : "Nouvelle conversation"}
+                    {c.last_body ? `${c.last_author === c.other_username ? "" : "Toi : "}${c.last_body}` : tr("Nouvelle conversation")}
                   </p>
                 </div>
                 {badge(c.unread)}
@@ -97,7 +102,7 @@ export default async function DiscussionsPage({
           ))}
           {!direct.length && (
             <li className="px-4 py-6 text-center text-sm text-muted">
-              Aucun message. Pour écrire à un dev, ouvre son profil et clique sur « Envoyer un message ».
+              {tr("Aucun message. Pour écrire à un dev, ouvre son profil et clique sur « Envoyer un message ».")}
             </li>
           )}
         </ul>
@@ -115,20 +120,19 @@ export default async function DiscussionsPage({
                       # {t.title}
                       {t.scheduled_at && new Date(t.scheduled_at) > new Date() && (
                         <span className="ml-2 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-normal text-gold">
-                          programmé ·{" "}
-                          {new Date(t.scheduled_at).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" })}
+                          {tr("programmé ·")}{" "}
+                          {new Date(t.scheduled_at).toLocaleString(dateLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" })}
                         </span>
                       )}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
-                      {joined && <span className="text-xs text-leaf">membre</span>}
+                      {joined && <span className="text-xs text-leaf">{tr("membre")}</span>}
                       {badge(unread)}
                     </span>
                   </div>
                   {t.description && <p className="mt-1 line-clamp-2 text-sm text-muted">{t.description}</p>}
                   <p className="mt-2 text-xs text-muted">
-                    {members} membre{members > 1 ? "s" : ""} · {t.messages_count} message{t.messages_count > 1 ? "s" : ""} ·
-                    actif {timeAgo(t.last_message_at)}
+                    {members}{" "}{tr("membre")}{members > 1 ? "s" : ""} · {t.messages_count}{" "}{tr("message")}{t.messages_count > 1 ? "s" : ""}{" "}{tr("· actif")}{" "}{timeAgo(t.last_message_at)}
                     {t.tags.length > 0 && ` · ${t.tags.join(", ")}`}
                   </p>
                 </Link>

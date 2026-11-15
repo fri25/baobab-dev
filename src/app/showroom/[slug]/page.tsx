@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { Markdown } from "@/components/Markdown";
 import { notFound } from "next/navigation";
@@ -16,6 +17,7 @@ export default async function ProjectPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  const t = await getT();
   const { slug } = await params;
   const { error } = await searchParams;
   const { supabase, user, profile } = await getSession();
@@ -47,28 +49,28 @@ export default async function ProjectPage({
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <Link href="/showroom" className="text-sm text-muted hover:text-primary">
-        ← Showroom
+        {t("← Showroom")}
       </Link>
-      {project.project_of_week_at && <p className="mt-3 text-xs font-semibold uppercase text-gold">Projet de la semaine</p>}
+      {project.project_of_week_at && <p className="mt-3 text-xs font-semibold uppercase text-gold">{t("Projet de la semaine")}</p>}
       <h1 className="mt-1 text-3xl font-bold">{project.name}</h1>
       <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
         <UserChip user={project.owner} />
         <span className="rounded-full border border-border px-2 py-0.5 text-xs">{PROJECT_STATUS[project.status]}</span>
         {founder && project.abandon_status === "adopted" && (
           <span className="text-xs text-muted">
-            Fondé par{" "}
+            {t("Fondé par")}{" "}
             <Link href={`/u/${founder.username}`} className="text-foreground hover:text-primary">
               {founder.full_name ?? founder.username}
             </Link>
-            , repris {timeAgo(project.adopted_at)}
+            {t(", repris")}{" "}{timeAgo(project.adopted_at)}
           </span>
         )}
       </div>
-      {error && <p className="mt-3 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
+      {error && <p className="mt-3 rounded-lg bg-danger/10 p-3 text-sm text-danger">{error}</p>}
       <AbandonPanel project={project} userId={user?.id ?? null} founderName={founder?.full_name ?? founder?.username ?? null} />
       {user?.id === project.owner_id && !["ceded", "archived"].includes(project.abandon_status ?? "") && (
         <Link href={`/centrale/nouvelle?projet=${project.id}`} className="mt-4 inline-block text-sm text-primary hover:underline">
-          Héberger ce projet via la Centrale d&apos;achat →
+          {t("Héberger ce projet via la Centrale d'achat →")}
         </Link>
       )}
 
@@ -94,17 +96,17 @@ export default async function ProjectPage({
         </form>
         {project.demo_url && (
           <a href={project.demo_url} className="rounded-full border border-border px-4 py-2 text-sm hover:bg-surface">
-            Voir la démo
+            {t("Voir la démo")}
           </a>
         )}
         {project.repo_url && (
           <a href={project.repo_url} className="rounded-full border border-border px-4 py-2 text-sm hover:bg-surface">
-            Dépôt
+            {t("Dépôt")}
           </a>
         )}
         {isModerator && !project.project_of_week_at && (
           <form action={electProjectOfWeek.bind(null, project.id, slug)}>
-            <button className="rounded-full border border-gold px-4 py-2 text-sm text-gold">Élire projet de la semaine</button>
+            <button className="rounded-full border border-gold px-4 py-2 text-sm text-gold">{t("Élire projet de la semaine")}</button>
           </form>
         )}
       </div>
@@ -115,14 +117,14 @@ export default async function ProjectPage({
           className="mt-6 block rounded-xl border border-leaf bg-leaf/5 p-4 hover:bg-leaf/10"
         >
           <span className="font-medium text-leaf">
-            {project.squad.status === "recruiting" ? "Ce projet cherche des collaborateurs" : "L'équipe du projet"}
+            {project.squad.status === "recruiting" ? t("Ce projet cherche des collaborateurs") : t("L'équipe du projet")}
           </span>
           <span className="block text-sm text-muted">{project.squad.name} →</span>
         </Link>
       )}
 
       <section className="mt-10">
-        <h2 className="font-semibold">Commentaires et suggestions</h2>
+        <h2 className="font-semibold">{t("Commentaires et suggestions")}</h2>
         <ul className="mt-3 space-y-3">
           {(comments ?? []).map((c) => (
             <li key={c.id} className="rounded-lg border border-border bg-surface p-3 text-sm">
@@ -135,8 +137,8 @@ export default async function ProjectPage({
         </ul>
         {user && (
           <form action={commentProject.bind(null, project.id, slug)} className="mt-3 flex gap-2">
-            <input name="body" required placeholder="Une suggestion ?" className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
-            <button className="rounded-lg border border-border px-4 text-sm">Envoyer</button>
+            <input name="body" required placeholder={t("Une suggestion ?")} className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+            <button className="rounded-lg border border-border px-4 text-sm">{t("Envoyer")}</button>
           </form>
         )}
         <div className="mt-4 text-right">

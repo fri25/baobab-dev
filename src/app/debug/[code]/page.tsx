@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth";
@@ -5,6 +6,7 @@ import { joinDebugSession } from "../actions";
 import { DebugRoom } from "./DebugRoom";
 
 export default async function DebugSessionPage({ params }: { params: Promise<{ code: string }> }) {
+  const t = await getT();
   const { code } = await params;
   const { supabase, user, profile } = await requireSession(`/debug/${code}`);
 
@@ -39,11 +41,11 @@ export default async function DebugSessionPage({ params }: { params: Promise<{ c
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <Link href="/debug" className="text-sm text-muted hover:text-primary">
-        ← Pair-Debugging
+        {t("← Pair-Debugging")}
       </Link>
       <h1 className="mt-2 text-2xl font-bold">{session.title}</h1>
       <p className="mb-4 text-sm text-muted">
-        Hôte : {names[session.host_id]} · code <span className="font-mono">{code}</span>
+        {t("Hôte :")}{" "}{names[session.host_id]}{" "}{t("· code")}{" "}<span className="font-mono">{code}</span>
       </p>
       <DebugRoom
         sessionId={session.id}

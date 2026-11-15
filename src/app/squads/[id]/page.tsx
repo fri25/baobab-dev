@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar, UserChip } from "@/components/Avatar";
@@ -41,6 +42,7 @@ const COLUMNS = [
 ] as const;
 
 export default async function SquadPage({ params }: { params: Promise<{ id: string }> }) {
+  const tr = await getT();
   const { id } = await params;
   const { supabase, user } = await getSession();
 
@@ -79,14 +81,14 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <Link href="/squads" className="text-sm text-muted hover:text-primary">
-        ← Squads
+        {tr("← Squads")}
       </Link>
       <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{squad.name}</h1>
           {squad.project && (
             <Link href={`/showroom/${squad.project.slug}`} className="text-sm text-primary">
-              Projet : {squad.project.name}
+              {tr("Projet :")}{" "}{squad.project.name}
             </Link>
           )}
         </div>
@@ -94,9 +96,9 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
       </div>
       <p className="mt-4 max-w-3xl">{squad.description}</p>
       <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted">
-        {squad.roles_needed.length > 0 && <span>Rôles : {squad.roles_needed.join(", ")}</span>}
-        {squad.duration_weeks && <span>Durée : {squad.duration_weeks} semaines</span>}
-        {squad.commitment && <span>Engagement : {squad.commitment}</span>}
+        {squad.roles_needed.length > 0 && <span>{tr("Rôles :")}{" "}{squad.roles_needed.join(", ")}</span>}
+        {squad.duration_weeks && <span>{tr("Durée :")}{" "}{squad.duration_weeks}{" "}{tr("semaines")}</span>}
+        {squad.commitment && <span>{tr("Engagement :")}{" "}{squad.commitment}</span>}
       </div>
 
       {/* Actions selon le rôle */}
@@ -107,31 +109,31 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
               {squad.roles_needed.map((r: string) => (
                 <option key={r}>{r}</option>
               ))}
-              <option value="">Autre</option>
+              <option value="">{tr("Autre")}</option>
             </select>
-            <button className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-ink">Postuler</button>
+            <button className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-ink">{tr("Postuler")}</button>
           </form>
         )}
-        {me?.status === "applied" && <span className="rounded-full border border-border px-4 py-2 text-sm">Candidature envoyée</span>}
+        {me?.status === "applied" && <span className="rounded-full border border-border px-4 py-2 text-sm">{tr("Candidature envoyée")}</span>}
         {me?.status === "invited" && (
           <form action={acceptInvite.bind(null, id)}>
-            <button className="rounded-full bg-leaf px-5 py-2 text-sm font-medium text-background">Accepter l&apos;invitation</button>
+            <button className="rounded-full bg-leaf px-5 py-2 text-sm font-medium text-background">{tr("Accepter l'invitation")}</button>
           </form>
         )}
         {me?.status === "member" && squad.status === "active" && (
           <form action={setMemberStatus.bind(null, id, user!.id, "left")}>
-            <button className="rounded-full border border-border px-4 py-2 text-sm text-muted">Quitter (-20 XP)</button>
+            <button className="rounded-full border border-border px-4 py-2 text-sm text-muted">{tr("Quitter (-20 XP)")}</button>
           </form>
         )}
         {isOwner && squad.status === "recruiting" && (
           <form action={setSquadStatus.bind(null, id, "active")}>
-            <button className="rounded-full border border-border px-4 py-2 text-sm">Démarrer le projet</button>
+            <button className="rounded-full border border-border px-4 py-2 text-sm">{tr("Démarrer le projet")}</button>
           </form>
         )}
         {isOwner && squad.status === "active" && (
           <form action={setSquadStatus.bind(null, id, "completed")}>
             <button className="rounded-full bg-leaf px-4 py-2 text-sm font-medium text-background">
-              Clôturer la Squad (+60 XP par membre)
+              {tr("Clôturer la Squad (+60 XP par membre)")}
             </button>
           </form>
         )}
@@ -142,7 +144,7 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
           {isMember ? (
             <>
               <section>
-                <h2 className="mb-3 font-semibold">Tableau de tâches</h2>
+                <h2 className="mb-3 font-semibold">{tr("Tableau de tâches")}</h2>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {COLUMNS.map((col) => (
                     <div key={col.status} className="rounded-xl border border-border bg-surface p-3">
@@ -170,37 +172,37 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
                   ))}
                 </div>
                 <form action={addTask.bind(null, id)} className="mt-3 flex gap-2">
-                  <input name="title" required placeholder="Nouvelle tâche" className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
-                  <button className="rounded-lg border border-border px-4 text-sm">Ajouter</button>
+                  <input name="title" required placeholder={tr("Nouvelle tâche")} className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+                  <button className="rounded-lg border border-border px-4 text-sm">{tr("Ajouter")}</button>
                 </form>
               </section>
               <section>
-                <h2 className="mb-3 font-semibold">Discussion</h2>
+                <h2 className="mb-3 font-semibold">{tr("Discussion")}</h2>
                 <SquadChat squadId={id} initial={messages ?? []} members={names} />
               </section>
               <Link href={`/centrale/nouvelle?squad=${id}`} className="mr-4 text-sm text-primary">
-                Créer un environnement pour la Squad (Centrale d&apos;achat) →
+                {tr("Créer un environnement pour la Squad (Centrale d'achat) →")}
               </Link>
               {squad.project?.repo_url && (
                 <a href={squad.project.repo_url} className="text-sm text-primary">
-                  Dépôt du projet →
+                  {tr("Dépôt du projet →")}
                 </a>
               )}
             </>
           ) : (
             <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
-              Les tâches et la discussion sont réservées aux membres de la Squad.
+              {tr("Les tâches et la discussion sont réservées aux membres de la Squad.")}
             </p>
           )}
         </div>
 
         <aside className="space-y-8">
           <section>
-            <h2 className="mb-3 font-semibold">Équipe</h2>
+            <h2 className="mb-3 font-semibold">{tr("Équipe")}</h2>
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm">
                 <UserChip user={squad.owner} />
-                <span className="text-xs text-muted">porteur</span>
+                <span className="text-xs text-muted">{tr("porteur")}</span>
               </li>
               {active.map((m) => (
                 <li key={m.user_id} className="flex items-center gap-2 text-sm">
@@ -213,20 +215,20 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
 
           {isOwner && pending.length > 0 && (
             <section>
-              <h2 className="mb-3 font-semibold">Candidatures</h2>
+              <h2 className="mb-3 font-semibold">{tr("Candidatures")}</h2>
               <ul className="space-y-2">
                 {pending.map((m) => (
                   <li key={m.user_id} className="rounded-lg border border-border bg-surface p-3 text-sm">
                     <UserChip user={m.profile} />
                     <p className="text-xs text-muted">
-                      {m.role ?? "Rôle libre"} · {levelForXp(m.profile.xp).name}
+                      {m.role ?? tr("Rôle libre")} · {levelForXp(m.profile.xp).name}
                     </p>
                     <div className="mt-2 flex gap-2">
                       <form action={setMemberStatus.bind(null, id, m.user_id, "member")}>
-                        <button className="rounded bg-leaf px-3 py-1 text-xs text-background">Accepter</button>
+                        <button className="rounded bg-leaf px-3 py-1 text-xs text-background">{tr("Accepter")}</button>
                       </form>
                       <form action={setMemberStatus.bind(null, id, m.user_id, "rejected")}>
-                        <button className="rounded border border-border px-3 py-1 text-xs">Refuser</button>
+                        <button className="rounded border border-border px-3 py-1 text-xs">{tr("Refuser")}</button>
                       </form>
                     </div>
                   </li>
@@ -237,8 +239,8 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
 
           {isOwner && (candidates as Candidate[] | null)?.length ? (
             <section>
-              <h2 className="mb-1 font-semibold">Profils suggérés</h2>
-              <p className="mb-3 text-xs text-muted">Classés par compétences, disponibilité et réputation.</p>
+              <h2 className="mb-1 font-semibold">{tr("Profils suggérés")}</h2>
+              <p className="mb-3 text-xs text-muted">{tr("Classés par compétences, disponibilité et réputation.")}</p>
               <ul className="space-y-2">
                 {(candidates as Candidate[]).map((c) => (
                   <li key={c.user_id} className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3">
@@ -253,7 +255,7 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
                       <p className="truncate font-mono text-xs text-leaf">{c.matched_skills.join(" · ")}</p>
                     </div>
                     <form action={inviteToSquad.bind(null, id, c.user_id)}>
-                      <button className="rounded-full border border-primary px-3 py-1 text-xs text-primary">Inviter</button>
+                      <button className="rounded-full border border-primary px-3 py-1 text-xs text-primary">{tr("Inviter")}</button>
                     </form>
                   </li>
                 ))}

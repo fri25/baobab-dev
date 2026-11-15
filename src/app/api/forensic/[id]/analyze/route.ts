@@ -3,6 +3,9 @@ import { analyzeRepo } from "@/lib/forensic";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+// Appels à l'IA ou à GitHub : au-delà du délai par défaut des fonctions Vercel
+export const maxDuration = 60;
+
 // Relance l'analyse automatique (après une correction, ou un dépôt rendu public). Porteur uniquement.
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

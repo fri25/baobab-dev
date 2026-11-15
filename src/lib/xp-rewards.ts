@@ -1,4 +1,5 @@
-export const XP_METHODS = [
+import { localized } from "@/lib/i18n/current";
+const XP_METHODS_FR = [
   {
     reason: "answer_upvoted",
     label: "Réponse appréciée",
@@ -79,3 +80,6 @@ export const XP_METHODS = [
     href: "/questions",
   },
 ] as const;
+
+// Libellés traduits à la lecture (voir src/lib/i18n/current.ts)
+export const XP_METHODS = localized(XP_METHODS_FR);

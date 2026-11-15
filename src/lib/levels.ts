@@ -1,5 +1,6 @@
+import { localized } from "@/lib/i18n/current";
 // Miroir de public.level_for_xp (§5.7 du cahier des charges)
-export const LEVELS = [
+const LEVELS_FR = [
   { level: 1, name: "Graine", floor: 0 },
   { level: 2, name: "Pousse", floor: 100 },
   { level: 3, name: "Jeune Baobab", floor: 300 },
@@ -16,3 +17,6 @@ export function levelForXp(xp: number) {
   const progress = next ? (xp - current.floor) / (next.floor - current.floor) : 1;
   return { ...current, next, progress };
 }
+
+// Libellés traduits à la lecture (voir src/lib/i18n/current.ts)
+export const LEVELS = localized(LEVELS_FR);

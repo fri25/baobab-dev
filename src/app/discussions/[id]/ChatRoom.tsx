@@ -1,5 +1,7 @@
 "use client";
 
+import { dateLocale } from "@/lib/i18n/current";
+import { useT } from "@/lib/i18n/client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
@@ -29,10 +31,11 @@ type Props = {
   hasMore: boolean;
 };
 
-const time = (d: string) => new Date(d).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-const day = (d: string) => new Date(d).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+const time = (d: string) => new Date(d).toLocaleTimeString(dateLocale(), { hour: "2-digit", minute: "2-digit" });
+const day = (d: string) => new Date(d).toLocaleDateString(dateLocale(), { weekday: "long", day: "numeric", month: "long" });
 
 export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages, initialPeople, hasMore: initialHasMore }: Props) {
+  const t = useT();
   const [messages, setMessages] = useState(initialMessages);
   const [people, setPeople] = useState(initialPeople);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -190,10 +193,10 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
   return (
     <div className="mt-4 flex h-[calc(100dvh-14rem)] min-h-[420px] flex-col rounded-2xl border border-border bg-surface">
       <div className="flex items-center justify-between border-b border-border px-4 py-2 text-xs text-muted">
-        <span>{kind === "direct" ? "Conversation privée" : "Sujet public : tout le monde peut lire"}</span>
+        <span>{kind === "direct" ? t("Conversation privée") : t("Sujet public : tout le monde peut lire")}</span>
         {online > 0 && (
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-leaf" /> {online} en ligne
+            <span className="h-2 w-2 rounded-full bg-leaf" /> {online}{" "}{t("en ligne")}
           </span>
         )}
       </div>
@@ -209,11 +212,11 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
         {hasMore && (
           <li className="mb-3 text-center">
             <button onClick={loadOlder} className="rounded-full border border-border px-3 py-1 text-xs text-muted hover:text-foreground">
-              Messages précédents
+              {t("Messages précédents")}
             </button>
           </li>
         )}
-        {messages.length === 0 && <li className="py-10 text-center text-sm text-muted">Aucun message. Lance la discussion !</li>}
+        {messages.length === 0 && <li className="py-10 text-center text-sm text-muted">{t("Aucun message. Lance la discussion !")}</li>}
         {messages.map((m, i) => {
           const prev = messages[i - 1];
           const newDay = !prev || day(prev.created_at) !== day(m.created_at);
@@ -258,7 +261,7 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
                 {!m.deleted_at && meId && (
                   <div className="flex shrink-0 items-start gap-2 text-xs text-muted opacity-0 group-hover:opacity-100 focus-within:opacity-100">
                     <button onClick={() => setReplyTo(m)} className="hover:text-foreground">
-                      Répondre
+                      {t("Répondre")}
                     </button>
                     {mine ? (
                       <button
@@ -270,7 +273,7 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
                         }}
                         className="hover:text-primary"
                       >
-                        Supprimer
+                        {t("Supprimer")}
                       </button>
                     ) : (
                       <button
@@ -283,7 +286,7 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
                         }}
                         className="hover:text-primary"
                       >
-                        Signaler
+                        {t("Signaler")}
                       </button>
                     )}
                   </div>
@@ -305,14 +308,14 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
           {replyTo && (
             <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-background px-3 py-1.5 text-xs">
               <span className="truncate">
-                Réponse à <strong>{name(replyTo.author_id)}</strong> : {replyTo.body}
+                {t("Réponse à")}{" "}<strong>{name(replyTo.author_id)}</strong> : {replyTo.body}
               </span>
-              <button type="button" onClick={() => setReplyTo(null)} aria-label="Annuler la réponse">
+              <button type="button" onClick={() => setReplyTo(null)} aria-label={t("Annuler la réponse")}>
                 ✕
               </button>
             </div>
           )}
-          {error && <p className="mb-2 text-xs text-primary">{error}</p>}
+          {error && <p className="mb-2 text-xs text-danger">{error}</p>}
           <div className="flex items-end gap-2">
             <div className="relative min-w-0 flex-1">
               <textarea
@@ -335,9 +338,9 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
                 placeholder={
                   kind === "topic"
                     ? isMember
-                      ? "Ton message… (@pseudo pour mentionner, ` pour le code)"
-                      : "Écris pour rejoindre le sujet… (@pseudo pour mentionner)"
-                    : "Ton message… (` pour le code)"
+                      ? t("Ton message… (@pseudo pour mentionner, ` pour le code)")
+                      : t("Écris pour rejoindre le sujet… (@pseudo pour mentionner)")
+                    : t("Ton message… (` pour le code)")
                 }
                 className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
               />
@@ -346,17 +349,17 @@ export function ChatRoom({ conversationId, kind, meId, isMember, initialMessages
               )}
             </div>
             <button disabled={sending || !draft.trim()} className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-ink disabled:opacity-50">
-              Envoyer
+              {t("Envoyer")}
             </button>
           </div>
-          <p className="mt-1 text-[11px] text-muted">Entrée pour envoyer · Maj+Entrée pour aller à la ligne</p>
+          <p className="mt-1 text-[11px] text-muted">{t("Entrée pour envoyer · Maj+Entrée pour aller à la ligne")}</p>
         </form>
       ) : (
         <p className="border-t border-border p-4 text-center text-sm">
           <Link href={`/login?next=/discussions/${conversationId}`} className="text-primary">
-            Connecte-toi
+            {t("Connecte-toi")}
           </Link>{" "}
-          pour participer.
+          {t("pour participer.")}
         </p>
       )}
     </div>

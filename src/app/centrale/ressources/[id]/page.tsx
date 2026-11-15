@@ -1,3 +1,5 @@
+import { dateLocale } from "@/lib/i18n/current";
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
@@ -6,6 +8,7 @@ import { INFRA_CATEGORY, INFRA_UNIT, PAUSE_REASON, price } from "@/lib/centrale-
 import { setResourceStatus } from "../../actions";
 
 export default async function ResourcePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
+  const t = await getT();
   const { id } = await params;
   const { error } = await searchParams;
   const { supabase, user } = await getSession();
@@ -34,9 +37,9 @@ export default async function ResourcePage({ params, searchParams }: { params: P
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <Link href="/centrale" className="text-sm text-muted hover:text-primary">
-        ← Centrale d&apos;achat
+        {t("← Centrale d'achat")}
       </Link>
-      {error && <p className="mt-3 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
+      {error && <p className="mt-3 rounded-lg bg-danger/10 p-3 text-sm text-danger">{error}</p>}
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -45,11 +48,11 @@ export default async function ResourcePage({ params, searchParams }: { params: P
           </p>
           <h1 className="font-mono text-2xl font-bold">{r.name}</h1>
           <p className="text-sm text-muted">
-            {offer.name} · {price(offer.price)} / {INFRA_UNIT[offer.unit]} · créée {timeAgo(r.created_at)}
+            {offer.name} · {price(offer.price)} / {INFRA_UNIT[offer.unit]}{" "}{t("· créée")}{" "}{timeAgo(r.created_at)}
             {project && (
               <>
                 {" "}
-                · projet{" "}
+                {t("· projet")}{" "}
                 <Link href={`/showroom/${project.slug}`} className="text-primary">
                   {project.name}
                 </Link>
@@ -58,7 +61,7 @@ export default async function ResourcePage({ params, searchParams }: { params: P
             {squad && (
               <>
                 {" "}
-                · Squad{" "}
+                {t("· Squad")}{" "}
                 <Link href={`/squads/${squad.id}`} className="text-primary">
                   {squad.name}
                 </Link>
@@ -68,7 +71,7 @@ export default async function ResourcePage({ params, searchParams }: { params: P
         </div>
         <span className={`flex items-center gap-2 rounded-full px-3 py-1 text-sm ${r.status === "active" ? "bg-leaf/10 text-leaf" : "bg-primary/10 text-primary"}`}>
           <span className={`h-2 w-2 rounded-full ${r.status === "active" ? "bg-leaf" : "bg-primary"}`} />
-          {r.status === "active" ? "Active" : `En pause : ${PAUSE_REASON[r.pause_reason ?? "manuel"]}`}
+          {r.status === "active" ? t("Active") : `En pause : ${PAUSE_REASON[r.pause_reason ?? "manuel"]}`}
         </span>
       </div>
 
@@ -76,27 +79,26 @@ export default async function ResourcePage({ params, searchParams }: { params: P
         <div className="mt-4 flex flex-wrap gap-2">
           {r.status === "active" ? (
             <form action={setResourceStatus.bind(null, id, "paused")}>
-              <button className="rounded-full border border-border px-4 py-1.5 text-sm">Mettre en pause</button>
+              <button className="rounded-full border border-border px-4 py-1.5 text-sm">{t("Mettre en pause")}</button>
             </form>
           ) : (
             <form action={setResourceStatus.bind(null, id, "active")}>
-              <button className="rounded-full bg-leaf px-4 py-1.5 text-sm font-medium text-background">Reprendre</button>
+              <button className="rounded-full bg-leaf px-4 py-1.5 text-sm font-medium text-background">{t("Reprendre")}</button>
             </form>
           )}
           <form action={setResourceStatus.bind(null, id, "deleted")}>
-            <button className="rounded-full px-4 py-1.5 text-sm text-muted hover:text-primary">Supprimer</button>
+            <button className="rounded-full px-4 py-1.5 text-sm text-muted hover:text-primary">{t("Supprimer")}</button>
           </form>
         </div>
       )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <section>
-          <h2 className="font-semibold">Utilisation</h2>
+          <h2 className="font-semibold">{t("Utilisation")}</h2>
           {offer.category === "ia" && (
             <div className="mt-2 text-sm">
               <p className="text-muted">
-                Clé <code className="font-mono">{r.api_key_prefix}…</code>, compatible avec l&apos;API Messages. Facturation au millier de jetons
-                (entrée + sortie).
+                {t("Clé")}{" "}<code className="font-mono">{r.api_key_prefix}…</code>{t(", compatible avec l'API Messages. Facturation au millier de jetons (entrée + sortie).")}
               </p>
               <pre className="mt-2 overflow-x-auto rounded-lg bg-[#1f1a14] p-3 text-xs text-[#f3ece2]">{`curl ${base}/api/centrale/ia/v1/messages \\
   -H "x-api-key: $BAOBAB_KEY" \\
@@ -108,9 +110,7 @@ export default async function ResourcePage({ params, searchParams }: { params: P
           {offer.category === "sms" && (
             <div className="mt-2 text-sm">
               <p className="text-muted">
-                Clé <code className="font-mono">{r.api_key_prefix}…</code>. Un SMS = 160 caractères. Limite anti-spam : 100 SMS par heure, au-delà la
-                ressource est suspendue. Bac à sable : les SMS sont validés et facturés, la transmission aux opérateurs arrive avec la passerelle
-                régionale.
+                {t("Clé")}{" "}<code className="font-mono">{r.api_key_prefix}…</code>{t(". Un SMS = 160 caractères. Limite anti-spam : 100 SMS par heure, au-delà la ressource est suspendue. Bac à sable : les SMS sont validés et facturés, la transmission aux opérateurs arrive avec la passerelle régionale.")}
               </p>
               <pre className="mt-2 overflow-x-auto rounded-lg bg-[#1f1a14] p-3 text-xs text-[#f3ece2]">{`curl ${base}/api/centrale/sms \\
   -H "x-api-key: $BAOBAB_KEY" \\
@@ -120,29 +120,29 @@ export default async function ResourcePage({ params, searchParams }: { params: P
           )}
           {["calcul", "base_de_donnees", "build", "monitoring"].includes(offer.category) && (
             <p className="mt-2 text-sm text-muted">
-              Facturée à l&apos;heure tant qu&apos;elle est active. Mets-la en pause quand tu ne t&apos;en sers pas.
+              {t("Facturée à l'heure tant qu'elle est active. Mets-la en pause quand tu ne t'en sers pas.")}
               {offer.category === "base_de_donnees" && r.last_backup_at && ` Dernière sauvegarde automatique ${timeAgo(r.last_backup_at)}.`}
             </p>
           )}
-          {offer.category === "domaine" && <p className="mt-2 text-sm text-muted">Réservé pour un an, DNS géré par la Centrale.</p>}
+          {offer.category === "domaine" && <p className="mt-2 text-sm text-muted">{t("Réservé pour un an, DNS géré par la Centrale.")}</p>}
         </section>
 
         <section>
-          <h2 className="font-semibold">Consommation récente · {fcfa(total)}</h2>
+          <h2 className="font-semibold">{t("Consommation récente ·")}{" "}{fcfa(total)}</h2>
           <ul className="mt-2 divide-y divide-border rounded-xl border border-border bg-surface text-sm">
             {usage?.map((u) => (
               <li key={u.id} className="flex items-center justify-between gap-3 px-4 py-2">
                 <span>
-                  {Number(u.quantity).toLocaleString("fr-FR", { maximumFractionDigits: 3 })} {INFRA_UNIT[u.unit]}
+                  {Number(u.quantity).toLocaleString(dateLocale(), { maximumFractionDigits: 3 })} {INFRA_UNIT[u.unit]}
                   <span className="block text-xs text-muted">
-                    {new Date(u.created_at).toLocaleString("fr-FR")}
+                    {new Date(u.created_at).toLocaleString(dateLocale())}
                     {u.from_credits > 0 && ` · ${fcfa(u.from_credits)} en crédits`}
                   </span>
                 </span>
                 <span className="font-mono">{fcfa(u.amount)}</span>
               </li>
             ))}
-            {!usage?.length && <li className="px-4 py-3 text-muted">Aucune consommation pour l&apos;instant.</li>}
+            {!usage?.length && <li className="px-4 py-3 text-muted">{t("Aucune consommation pour l'instant.")}</li>}
           </ul>
         </section>
       </div>

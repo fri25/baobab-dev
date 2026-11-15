@@ -98,7 +98,8 @@ async function findSources(question: string): Promise<GriotSource[]> {
     console.error("Griot : embeddings indisponibles, repli plein texte", error);
   }
   if (vector) {
-    const { data, error } = await admin.rpc("match_answers", { query_embedding: JSON.stringify(vector), match_count: 8 });
+    // Seuil calibré sur voyage-3.5 : questions pertinentes ≥ 0,50, hors sujet ≤ 0,41.
+    const { data, error } = await admin.rpc("match_answers", { query_embedding: JSON.stringify(vector), match_count: 8, min_similarity: 0.45 });
     if (data?.length) return data;
     if (error) console.error("Griot : échec de la recherche sémantique, repli plein texte", error);
   }

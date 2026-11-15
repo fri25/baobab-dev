@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UserChip } from "@/components/Avatar";
@@ -12,7 +13,8 @@ import { acceptAnswer, addComment, createAnswer, vote } from "../actions";
 
 type Comment = { id: string; target_id: string; body: string; created_at: string; author: { username: string; full_name: string | null } };
 
-function Comments({ comments, action }: { comments: Comment[]; action?: (formData: FormData) => Promise<void> }) {
+async function Comments({ comments, action }: { comments: Comment[]; action?: (formData: FormData) => Promise<void> }) {
+  const t = await getT();
   return (
     <div className="mt-3 border-t border-border pt-2 text-sm">
       {comments.map((c) => (
@@ -26,10 +28,10 @@ function Comments({ comments, action }: { comments: Comment[]; action?: (formDat
       ))}
       {action && (
         <details>
-          <summary className="cursor-pointer text-xs text-muted hover:text-primary">Commenter</summary>
+          <summary className="cursor-pointer text-xs text-muted hover:text-primary">{t("Commenter")}</summary>
           <form action={action} className="mt-2 flex gap-2">
             <input name="body" required className="flex-1 rounded border border-border bg-background px-2 py-1" />
-            <button className="rounded border border-border px-3">Envoyer</button>
+            <button className="rounded border border-border px-3">{t("Envoyer")}</button>
           </form>
         </details>
       )}
@@ -38,6 +40,7 @@ function Comments({ comments, action }: { comments: Comment[]; action?: (formDat
 }
 
 export default async function QuestionPage({ params }: { params: Promise<{ id: string }> }) {
+  const tr = await getT();
   const { id } = await params;
   const { supabase, user } = await getSession();
 
@@ -74,7 +77,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <Link href="/questions" className="text-sm text-muted hover:text-primary">
-        ← Questions
+        {tr("← Questions")}
       </Link>
       <h1 className="mt-2 text-2xl font-bold">{question.title}</h1>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
@@ -92,7 +95,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
           href={`/bourse/${question.bounty.id}`}
           className="mt-4 flex items-center justify-between rounded-xl border border-gold bg-gold/10 p-4"
         >
-          <span className="font-medium">Prime de la Micro-Bourse</span>
+          <span className="font-medium">{tr("Prime de la Micro-Bourse")}</span>
           <span className="font-mono font-semibold text-gold">{fcfa(question.bounty.total_amount)}</span>
         </Link>
       ) : (
@@ -102,7 +105,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
             href={`/bourse/new?question=${id}`}
             className="mt-4 block rounded-xl border border-dashed border-border p-3 text-sm text-muted hover:border-gold hover:text-foreground"
           >
-            Toujours bloqué·e ? <span className="font-medium text-gold">Convertir en ticket de la Micro-Bourse avec une prime →</span>
+            {tr("Toujours bloqué·e ?")}{" "}<span className="font-medium text-gold">{tr("Convertir en ticket de la Micro-Bourse avec une prime →")}</span>
           </Link>
         )
       )}
@@ -117,7 +120,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
       </article>
 
       <h2 className="mt-10 text-lg font-semibold">
-        {answers?.length ?? 0} réponse{(answers?.length ?? 0) > 1 ? "s" : ""}
+        {answers?.length ?? 0}{" "}{tr("réponse")}{(answers?.length ?? 0) > 1 ? "s" : ""}
       </h2>
       <ul className="mt-4 space-y-4">
         {answers?.map((answer) => {
@@ -132,7 +135,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
                 <form action={vote.bind(null, id, answer.id, 1)}>
                   <button
                     disabled={!user || isMine}
-                    aria-label="Vote positif"
+                    aria-label={tr("Vote positif")}
                     className={`rounded px-2 text-lg disabled:opacity-40 ${myVote === 1 ? "text-leaf" : "text-muted hover:text-leaf"}`}
                   >
                     ▲
@@ -142,14 +145,14 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
                 <form action={vote.bind(null, id, answer.id, -1)}>
                   <button
                     disabled={!user || isMine}
-                    aria-label="Vote négatif"
+                    aria-label={tr("Vote négatif")}
                     className={`rounded px-2 text-lg disabled:opacity-40 ${myVote === -1 ? "text-primary" : "text-muted hover:text-primary"}`}
                   >
                     ▼
                   </button>
                 </form>
                 {answer.is_accepted && (
-                  <span className="mt-1 text-xl text-leaf" title="Réponse validée par l'auteur">
+                  <span className="mt-1 text-xl text-leaf" title={tr("Réponse validée par l'auteur")}>
                     ✓
                   </span>
                 )}
@@ -163,7 +166,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
                     <span className="text-muted">· {timeAgo(answer.created_at)}</span>
                     {answer.griot_citations_count > 0 && (
                       <span className="rounded bg-leaf/10 px-2 py-0.5 text-xs text-leaf">
-                        Cité {answer.griot_citations_count}× par le Griot
+                        {tr("Cité")}{" "}{answer.griot_citations_count}{tr("× par le Griot")}
                       </span>
                     )}
                   </div>
@@ -171,7 +174,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
                     {isAuthor && !question.accepted_answer_id && !isMine && (
                       <form action={acceptAnswer.bind(null, id, answer.id)}>
                         <button className="rounded-full border border-leaf px-3 py-1 text-xs text-leaf hover:bg-leaf hover:text-background">
-                          Valider cette réponse
+                          {tr("Valider cette réponse")}
                         </button>
                       </form>
                     )}
@@ -191,25 +194,25 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
       {user ? (
         // La clé remonte le formulaire après chaque réponse publiée (vide les images jointes)
         <form key={answers?.length ?? 0} action={createAnswer.bind(null, id)} className="mt-8 space-y-3">
-          <h2 className="text-lg font-semibold">Ta réponse</h2>
+          <h2 className="text-lg font-semibold">{tr("Ta réponse")}</h2>
           <DraftTextarea
             draftKey={`reponse:${id}`}
             name="body"
             required
             rows={8}
-            placeholder="Explique ta solution. Encadre le code avec ```"
+            placeholder={tr("Explique ta solution. Encadre le code avec ```")}
             className="w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm"
           />
           <ImageUploader userId={user.id} />
-          <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Répondre</button>
-          <p className="text-xs text-muted">+10 XP par vote positif, +25 XP si ta réponse est validée, +5 XP à chaque citation du Griot.</p>
+          <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">{tr("Répondre")}</button>
+          <p className="text-xs text-muted">{tr("+10 XP par vote positif, +25 XP si ta réponse est validée, +5 XP à chaque citation du Griot.")}</p>
         </form>
       ) : (
         <p className="mt-8 rounded-xl border border-border bg-surface p-4 text-center text-sm">
           <Link href={`/login?next=${path}`} className="text-primary">
-            Connecte-toi
+            {tr("Connecte-toi")}
           </Link>{" "}
-          pour répondre et voter.
+          {tr("pour répondre et voter.")}
         </p>
       )}
     </main>

@@ -25,7 +25,7 @@ async function login(user) {
 }
 async function page(path, cookie, expect) {
   const res = await fetch(APP + path, { headers: cookie ? { cookie } : {}, redirect: "manual" });
-  const body = res.status === 200 ? await res.text() : "";
+  const body = res.status === 200 ? (await res.text()).replace(/<!-- -->/g, "") : "";
   const found = expect ? body.includes(expect) : true;
   ok(`page ${path}`, res.status === 200 && found, `${res.status}${expect && !found ? `, « ${expect} » absent` : ""}`);
 }

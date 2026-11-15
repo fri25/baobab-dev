@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ import { openNotification } from "@/app/notifications/actions";
 
 // Cloche + toasts en direct (Supabase Realtime) : badges, XP du Griot, primes…
 export function LiveNotifications({ userId, unread: initialUnread }: { userId: string; unread: number }) {
+  const tr = useT();
   const [unread, setUnread] = useState(initialUnread);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [realtimeError, setRealtimeError] = useState<string | null>(null);
@@ -91,13 +93,13 @@ export function LiveNotifications({ userId, unread: initialUnread }: { userId: s
       <Link
         href="/notifications"
         className="relative rounded-full p-1.5 text-muted hover:text-foreground"
-        aria-label={realtimeError ? "Notifications, synchronisation indisponible" : "Notifications"}
-        title={realtimeError ?? "Notifications"}
+        aria-label={realtimeError ? tr("Notifications, synchronisation indisponible") : tr("Notifications")}
+        title={realtimeError ?? tr("Notifications")}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
-        {realtimeError && <span aria-hidden="true" className="absolute right-0 top-0 h-2 w-2 rounded-full bg-primary" />}
+        {realtimeError && <span aria-hidden="true" className="absolute right-0 top-0 h-2 w-2 rounded-full bg-danger" />}
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-ink">
             {unread > 9 ? "9+" : unread}

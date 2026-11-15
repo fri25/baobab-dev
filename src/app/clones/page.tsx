@@ -1,13 +1,17 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { getSession } from "@/lib/auth";
 import { levelForXp } from "@/lib/levels";
 
-export const metadata = { title: "Clones IA · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Clones IA · Baobab Dev") };
+}
 
 type Stats = { clone_id: string; questions: number; avg_rating: number | null; ratings: number };
 
 export default async function ClonesPage() {
+  const t = await getT();
   const { supabase, profile } = await getSession();
   const [{ data: clones }, { data: stats }, { data: mine }] = await Promise.all([
     supabase
@@ -25,23 +29,21 @@ export default async function ClonesPage() {
     <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Clones IA des seniors</h1>
+          <h1 className="text-2xl font-bold">{t("Clones IA des seniors")}</h1>
           <p className="max-w-2xl text-muted">
-            Le savoir des seniors, disponible à toute heure. Chaque clone répond uniquement à partir des contenus de son senior,
-            et lui reverse 70 % des revenus. Première question gratuite, puis 100 FCFA, ou 2 000 FCFA par mois pour tous les
-            clones avec le Pass.
+            {t("Le savoir des seniors, disponible à toute heure. Chaque clone répond uniquement à partir des contenus de son senior, et lui reverse 70 % des revenus. Première question gratuite, puis 100 FCFA, ou 2 000 FCFA par mois pour tous les clones avec le Pass.")}
           </p>
         </div>
         {mine ? (
           <Link href="/clones/mon-clone" className="rounded-full border border-border px-4 py-2 text-sm hover:bg-surface">
-            Mon clone
+            {t("Mon clone")}
           </Link>
         ) : canCreate ? (
           <Link href="/clones/mon-clone" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-            Créer mon clone
+            {t("Créer mon clone")}
           </Link>
         ) : (
-          <span className="rounded-full border border-border px-4 py-2 text-xs text-muted">Création dès le niveau Expert (2 000 XP)</span>
+          <span className="rounded-full border border-border px-4 py-2 text-xs text-muted">{t("Création dès le niveau Expert (2 000 XP)")}</span>
         )}
       </div>
 
@@ -57,7 +59,7 @@ export default async function ClonesPage() {
                   <div className="min-w-0">
                     <p className="font-semibold">{c.name}</p>
                     <p className="truncate text-xs text-muted">
-                      Clone de {owner.full_name ?? owner.username} · {levelForXp(owner.xp).name}
+                      {t("Clone de")}{" "}{owner.full_name ?? owner.username} · {levelForXp(owner.xp).name}
                       {owner.city && ` · ${owner.city}`}
                     </p>
                   </div>
@@ -66,13 +68,13 @@ export default async function ClonesPage() {
                 {c.description && <p className="mt-1 line-clamp-2 flex-1 text-sm text-muted">{c.description}</p>}
                 <p className="mt-3 text-xs text-muted">
                   {s?.avg_rating ? `★ ${s.avg_rating} (${s.ratings} avis) · ` : ""}
-                  {s?.questions ?? 0} question(s) traitée(s)
+                  {s?.questions ?? 0}{" "}{t("question(s) traitée(s)")}
                 </p>
               </Link>
             </li>
           );
         })}
-        {!clones?.length && <li className="text-sm text-muted">Aucun clone publié pour l&apos;instant.</li>}
+        {!clones?.length && <li className="text-sm text-muted">{t("Aucun clone publié pour l'instant.")}</li>}
       </ul>
     </main>
   );

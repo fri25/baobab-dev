@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
 
@@ -17,6 +18,7 @@ export function RelationsPicker({
   selected: string[];
   onChange: (ids: string[]) => void;
 }) {
+  const t = useT();
   const [filter, setFilter] = useState("");
   const f = filter.trim().toLowerCase();
   const list = relations
@@ -26,7 +28,7 @@ export function RelationsPicker({
   if (!relations.length) {
     return (
       <p className="text-xs text-muted">
-        Tu n&apos;as pas encore de relations : elles apparaissent quand tu échanges en privé avec un dev ou rejoins une Squad.
+        {t("Tu n'as pas encore de relations : elles apparaissent quand tu échanges en privé avec un dev ou rejoins une Squad.")}
       </p>
     );
   }
@@ -36,7 +38,7 @@ export function RelationsPicker({
       <input
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        placeholder="Rechercher une relation…"
+        placeholder={t("Rechercher une relation…")}
         className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
       />
       <ul className="mt-2 max-h-56 space-y-0.5 overflow-y-auto">
@@ -61,9 +63,9 @@ export function RelationsPicker({
             </li>
           );
         })}
-        {!list.length && <li className="px-2 py-1.5 text-xs text-muted">Aucune relation à inviter.</li>}
+        {!list.length && <li className="px-2 py-1.5 text-xs text-muted">{t("Aucune relation à inviter.")}</li>}
       </ul>
-      {selected.length > 0 && <p className="mt-1 text-xs text-leaf">{selected.length} relation(s) sélectionnée(s)</p>}
+      {selected.length > 0 && <p className="mt-1 text-xs text-leaf">{selected.length}{" "}{t("relation(s) sélectionnée(s)")}</p>}
     </div>
   );
 }

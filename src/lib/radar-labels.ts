@@ -1,6 +1,7 @@
+import { localized, tc } from "@/lib/i18n/current";
 import { fcfa } from "@/lib/format";
 
-export const ORG_TYPE: Record<string, string> = {
+const ORG_TYPE_FR: Record<string, string> = {
   pme: "PME",
   ong: "ONG",
   collectivite: "Collectivité",
@@ -8,7 +9,7 @@ export const ORG_TYPE: Record<string, string> = {
   entreprise: "Entreprise",
 };
 
-export const RESPONSE_STATUS: Record<string, string> = {
+const RESPONSE_STATUS_FR: Record<string, string> = {
   sent: "Envoyée",
   shortlisted: "Présélectionnée",
   accepted: "Retenue",
@@ -16,8 +17,8 @@ export const RESPONSE_STATUS: Record<string, string> = {
 };
 
 export function budgetLabel(min: number | null, max: number | null) {
-  if (!min && !max) return "Budget non précisé";
-  if (min && max && min !== max) return `${fcfa(min)} à ${fcfa(max)}`;
+  if (!min && !max) return tc("Budget non précisé");
+  if (min && max && min !== max) return tc("{min} à {max}", { min: fcfa(min), max: fcfa(max) });
   return fcfa((max ?? min)!);
 }
 
@@ -30,3 +31,7 @@ export function daysUntilDeadline(deadline: string, now = Date.now()) {
   const today = Date.parse(`${beninToday}T00:00:00Z`);
   return Math.round((due - today) / 86_400_000);
 }
+
+// Libellés traduits à la lecture (voir src/lib/i18n/current.ts)
+export const ORG_TYPE = localized(ORG_TYPE_FR);
+export const RESPONSE_STATUS = localized(RESPONSE_STATUS_FR);

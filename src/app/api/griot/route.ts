@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { askGriot, GRIOT_DAILY_QUOTA } from "@/lib/griot";
 
+// Appels à l'IA ou à GitHub : au-delà du délai par défaut des fonctions Vercel
+export const maxDuration = 90; // le Griot coupe lui-même l'appel au modèle à 60 s et répond en mode dégradé
+
 const HISTORY_PAGE_SIZE = 30;
 
 export async function GET(request: Request) {

@@ -1,3 +1,4 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -8,7 +9,9 @@ import { collectNow, reviewOpportunity } from "@/app/radar/actions";
 import { Deadline } from "@/app/radar/Deadline";
 import { budgetLabel, ORG_TYPE } from "@/lib/radar-labels";
 
-export const metadata = { title: "Modération · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Modération · Baobab Dev") };
+}
 
 const TARGET_HREF: Record<string, (id: string) => string> = {
   question: (id) => `/questions/${id}`,
@@ -54,6 +57,7 @@ async function moderate(reportId: number, action: "remove" | "dismiss") {
 }
 
 export default async function ModerationPage() {
+  const tr = await getT();
   const { supabase, profile } = await requireSession("/moderation");
   if (!["moderator", "admin"].includes(profile.role)) notFound();
 
@@ -82,7 +86,7 @@ export default async function ModerationPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold">Modération et administration</h1>
+      <h1 className="text-2xl font-bold">{tr("Modération et administration")}</h1>
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
         {stats.map((s, i) => (
@@ -95,14 +99,13 @@ export default async function ModerationPage() {
 
       <section className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold">Radar : opportunités à valider ({pending?.length ?? 0})</h2>
+          <h2 className="font-semibold">{tr("Radar : opportunités à valider (")}{pending?.length ?? 0})</h2>
           <form action={collectNow}>
-            <button className="rounded-full border border-border px-3 py-1 text-xs hover:border-primary">Collecter les flux maintenant</button>
+            <button className="rounded-full border border-border px-3 py-1 text-xs hover:border-primary">{tr("Collecter les flux maintenant")}</button>
           </form>
         </div>
         <p className="text-xs text-muted">
-          Appels d&apos;offres collectés et besoins publiés par les organisations. Rien n&apos;est visible du public avant validation ;
-          traite d&apos;abord les dates limites proches.
+          {tr("Appels d'offres collectés et besoins publiés par les organisations. Rien n'est visible du public avant validation ; traite d'abord les dates limites proches.")}
         </p>
         <ul className="mt-3 space-y-2">
           {pending?.map((o) => (
@@ -111,14 +114,14 @@ export default async function ModerationPage() {
                 <div className="min-w-0">
                   <p className="text-xs text-muted">
                     {o.organization_name} · {ORG_TYPE[o.org_type]} {o.country && `· ${o.country}`} ·{" "}
-                    {o.source === "collectee" ? "collecté" : "publié"} {timeAgo(o.created_at)}
+                    {o.source === "collectee" ? tr("collecté") : tr("publié")} {timeAgo(o.created_at)}
                   </p>
                   <Link href={`/radar/${o.id}`} className="font-medium hover:text-primary">
                     {o.title}
                   </Link>
                   <p className="mt-1 line-clamp-2 text-muted">{o.need}</p>
                   <p className="mt-1 text-xs text-muted">
-                    {o.technologies.join(", ") || "Technologies non détectées"} · {budgetLabel(o.budget_min, o.budget_max)}
+                    {o.technologies.join(", ") || tr("Technologies non détectées")} · {budgetLabel(o.budget_min, o.budget_max)}
                   </p>
                   {o.source_url && (
                     <a href={o.source_url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate font-mono text-xs text-primary">
@@ -126,26 +129,26 @@ export default async function ModerationPage() {
                     </a>
                   )}
                 </div>
-                {o.deadline ? <Deadline date={o.deadline} compact /> : <span className="text-xs text-muted">Sans date limite</span>}
+                {o.deadline ? <Deadline date={o.deadline} compact /> : <span className="text-xs text-muted">{tr("Sans date limite")}</span>}
               </div>
               <form className="mt-3 flex flex-wrap gap-2">
                 <input type="hidden" name="back" value="/moderation" />
-                <input name="note" placeholder="Motif (si refus)" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs" />
+                <input name="note" placeholder={tr("Motif (si refus)")} className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs" />
                 <button formAction={reviewOpportunity.bind(null, o.id, true)} className="rounded-full bg-leaf px-3 py-1 text-xs font-medium text-background">
-                  Valider et publier
+                  {tr("Valider et publier")}
                 </button>
                 <button formAction={reviewOpportunity.bind(null, o.id, false)} className="rounded-full border border-border px-3 py-1 text-xs">
-                  Refuser
+                  {tr("Refuser")}
                 </button>
               </form>
             </li>
           ))}
-          {!pending?.length && <li className="text-sm text-muted">Aucune opportunité en attente.</li>}
+          {!pending?.length && <li className="text-sm text-muted">{tr("Aucune opportunité en attente.")}</li>}
         </ul>
       </section>
 
       <section className="mt-8">
-        <h2 className="font-semibold">Signalements ouverts ({reports?.length ?? 0})</h2>
+        <h2 className="font-semibold">{tr("Signalements ouverts (")}{reports?.length ?? 0})</h2>
         <ul className="mt-3 space-y-2">
           {reports?.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4 text-sm">
@@ -154,27 +157,27 @@ export default async function ModerationPage() {
                 <p className="text-xs text-muted">
                   {r.target_type} ·{" "}
                   <Link href={TARGET_HREF[r.target_type](r.target_id)} className="text-primary">
-                    voir
+                    {tr("voir")}
                   </Link>{" "}
-                  · par @{(r.reporter as unknown as { username: string }).username} · {timeAgo(r.created_at)}
+                  {tr("· par @")}{(r.reporter as unknown as { username: string }).username} · {timeAgo(r.created_at)}
                 </p>
               </div>
               <div className="flex gap-2">
                 <form action={moderate.bind(null, r.id, "remove")}>
-                  <button className="rounded-full bg-primary px-3 py-1 text-xs text-primary-ink">Supprimer (-15 XP)</button>
+                  <button className="rounded-full bg-primary px-3 py-1 text-xs text-primary-ink">{tr("Supprimer (-15 XP)")}</button>
                 </form>
                 <form action={moderate.bind(null, r.id, "dismiss")}>
-                  <button className="rounded-full border border-border px-3 py-1 text-xs">Classer</button>
+                  <button className="rounded-full border border-border px-3 py-1 text-xs">{tr("Classer")}</button>
                 </form>
               </div>
             </li>
           ))}
-          {!reports?.length && <li className="text-sm text-muted">File vide.</li>}
+          {!reports?.length && <li className="text-sm text-muted">{tr("File vide.")}</li>}
         </ul>
       </section>
 
       <section className="mt-8">
-        <h2 className="font-semibold">Litiges de la Micro-Bourse</h2>
+        <h2 className="font-semibold">{tr("Litiges de la Micro-Bourse")}</h2>
         <ul className="mt-3 space-y-2">
           {disputes?.map((d) => {
             const bounty = d.bounty as unknown as { id: string; title: string; total_amount: number };
@@ -188,41 +191,41 @@ export default async function ModerationPage() {
               </li>
             );
           })}
-          {!disputes?.length && <li className="text-sm text-muted">Aucun litige.</li>}
+          {!disputes?.length && <li className="text-sm text-muted">{tr("Aucun litige.")}</li>}
         </ul>
       </section>
 
       <section className="mt-8">
-        <h2 className="font-semibold">Sources du Radar (flux RSS ou Atom d&apos;appels d&apos;offres)</h2>
-        <p className="text-xs text-muted">Collectées automatiquement : seules les annonces liées au numérique sont retenues, puis placées dans la file de validation ci-dessus.</p>
+        <h2 className="font-semibold">{tr("Sources du Radar (flux RSS ou Atom d'appels d'offres)")}</h2>
+        <p className="text-xs text-muted">{tr("Collectées automatiquement : seules les annonces liées au numérique sont retenues, puis placées dans la file de validation ci-dessus.")}</p>
         <ul className="mt-3 space-y-2">
           {sources?.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface p-3 text-sm">
               <span className="min-w-0">
                 <span className="font-medium">{s.name}</span> {s.country && <span className="text-muted">· {s.country}</span>}
                 <span className="block truncate font-mono text-xs text-muted">{s.url}</span>
-                <span className="text-xs text-muted">{s.last_fetched_at ? `collectée ${timeAgo(s.last_fetched_at)}` : "jamais collectée"}</span>
+                <span className="text-xs text-muted">{s.last_fetched_at ? `collectée ${timeAgo(s.last_fetched_at)}` : tr("jamais collectée")}</span>
               </span>
               <form action={toggleRadarSource.bind(null, s.id, !s.active)}>
-                <button className="rounded-full border border-border px-3 py-1 text-xs">{s.active ? "Désactiver" : "Activer"}</button>
+                <button className="rounded-full border border-border px-3 py-1 text-xs">{s.active ? tr("Désactiver") : tr("Activer")}</button>
               </form>
             </li>
           ))}
         </ul>
         <form action={addRadarSource} className="mt-3 grid gap-2 sm:grid-cols-[1fr_2fr_1fr_auto]">
-          <input name="name" required placeholder="Nom de la source" className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
-          <input name="url" type="url" required placeholder="https://…/flux.rss" className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm" />
-          <input name="country" placeholder="Pays" className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">Ajouter</button>
+          <input name="name" required placeholder={tr("Nom de la source")} className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+          <input name="url" type="url" required placeholder={tr("https://…/flux.rss")} className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm" />
+          <input name="country" placeholder={tr("Pays")} className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+          <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">{tr("Ajouter")}</button>
         </form>
       </section>
 
       <section className="mt-8">
-        <h2 className="font-semibold">Centrale d&apos;achat : ristourne annuelle</h2>
-        <p className="text-xs text-muted">20 % de la marge de l&apos;année, reversés en crédits au prorata de la consommation de chaque membre. Une seule fois par an.</p>
+        <h2 className="font-semibold">{tr("Centrale d'achat : ristourne annuelle")}</h2>
+        <p className="text-xs text-muted">{tr("20 % de la marge de l'année, reversés en crédits au prorata de la consommation de chaque membre. Une seule fois par an.")}</p>
         <form action={distributeRebate} className="mt-2 flex gap-2">
           <input name="year" type="number" defaultValue={new Date().getFullYear() - 1} className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">Verser la ristourne</button>
+          <button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-ink">{tr("Verser la ristourne")}</button>
         </form>
       </section>
     </main>

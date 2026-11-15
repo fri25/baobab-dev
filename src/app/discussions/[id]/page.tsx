@@ -1,3 +1,5 @@
+import { dateLocale } from "@/lib/i18n/current";
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
@@ -16,6 +18,7 @@ export default async function ConversationPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ invites?: string }>;
 }) {
+  const t = await getT();
   const { id } = await params;
   const { invites } = await searchParams;
   const { supabase, user } = await getSession();
@@ -56,14 +59,14 @@ export default async function ConversationPage({
   const isMember = Boolean(user && memberList.some((m) => m.user_id === user.id));
   const { data: relations } = conversation.kind === "topic" && isMember ? await supabase.rpc("my_relations") : { data: [] };
   const opensAt = conversation.scheduled_at && new Date(conversation.scheduled_at) > new Date() ? new Date(conversation.scheduled_at) : null;
-  const opensLabel = opensAt?.toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" });
+  const opensLabel = opensAt?.toLocaleString(dateLocale(), { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Porto-Novo" });
   const other = conversation.kind === "direct" ? memberList.find((m) => m.user_id !== user?.id) : undefined;
 
   return (
     <main className="mx-auto flex max-w-5xl gap-6 px-4 py-6">
       <div className="min-w-0 flex-1">
         <Link href={conversation.kind === "direct" ? "/discussions" : "/discussions?onglet=sujets"} className="text-sm text-muted hover:text-primary">
-          ← Discussions
+          {t("← Discussions")}
         </Link>
 
         <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -87,25 +90,24 @@ export default async function ConversationPage({
           {conversation.kind === "topic" && user && (
             <form action={(isMember ? leaveTopic : joinTopic).bind(null, id)}>
               <button className={`rounded-full px-4 py-1.5 text-sm ${isMember ? "border border-border text-muted" : "bg-primary font-medium text-primary-ink"}`}>
-                {isMember ? "Quitter le sujet" : "Rejoindre"}
+                {isMember ? t("Quitter le sujet") : t("Rejoindre")}
               </button>
             </form>
           )}
         </div>
 
-        {invites && <p className="mt-3 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">{invites} relation(s) invitée(s) : elles ont reçu une notification.</p>}
+        {invites && <p className="mt-3 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">{invites}{" "}{t("relation(s) invitée(s) : elles ont reçu une notification.")}</p>}
         {opensAt && (
           <p className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm">
-            <strong>Sujet programmé</strong> : les messages s&apos;ouvrent le {opensLabel} (heure de Cotonou). Les membres seront
-            prévenus. {user?.id === conversation.created_by ? "En tant que créateur·rice, tu peux déjà poster un message d'accueil." : ""}
+            <strong>{t("Sujet programmé")}</strong>{" "}{t(": les messages s'ouvrent le")}{" "}{opensLabel}{" "}{t("(heure de Cotonou). Les membres seront prévenus.")}{" "}{user?.id === conversation.created_by ? t("En tant que créateur·rice, tu peux déjà poster un message d'accueil.") : ""}
           </p>
         )}
 
         {conversation.kind === "topic" && (
           <details className="mt-3 rounded-xl border border-border bg-surface p-3 text-sm lg:hidden">
-            <summary className="cursor-pointer font-medium">Partager{isMember ? " ou inviter des relations" : " le sujet"}</summary>
+            <summary className="cursor-pointer font-medium">{t("Partager")}{isMember ? t(" ou inviter des relations") : t(" le sujet")}</summary>
             <div className="mt-3 space-y-4">
-              <ShareTopic title={conversation.title ?? "Sujet"} />
+              <ShareTopic title={conversation.title ?? t("Sujet")} />
               {isMember && <InviteRelations conversationId={id} relations={(relations ?? []) as Relation[]} members={memberList.map((m) => m.user_id)} />}
             </div>
           </details>
@@ -125,28 +127,28 @@ export default async function ConversationPage({
       {conversation.kind === "topic" && (
         <aside className="hidden w-64 shrink-0 space-y-6 lg:block">
           <section className="mt-8">
-            <h2 className="text-sm font-semibold">Partager le sujet</h2>
+            <h2 className="text-sm font-semibold">{t("Partager le sujet")}</h2>
             <div className="mt-2">
-              <ShareTopic title={conversation.title ?? "Sujet"} />
+              <ShareTopic title={conversation.title ?? t("Sujet")} />
             </div>
           </section>
           {isMember && (
             <section>
-              <h2 className="text-sm font-semibold">Inviter des relations</h2>
+              <h2 className="text-sm font-semibold">{t("Inviter des relations")}</h2>
               <div className="mt-2">
                 <InviteRelations conversationId={id} relations={(relations ?? []) as Relation[]} members={memberList.map((m) => m.user_id)} />
               </div>
             </section>
           )}
           <section>
-          <h2 className="text-sm font-semibold">{memberList.length} membre(s)</h2>
+          <h2 className="text-sm font-semibold">{memberList.length}{" "}{t("membre(s)")}</h2>
           <ul className="mt-3 space-y-2">
             {memberList.map((m) => (
               <li key={m.user_id}>
                 <Link href={`/u/${m.profile.username}`} className="flex items-center gap-2 text-sm hover:text-primary">
                   <Avatar user={m.profile} size={24} />
                   <span className="truncate">{m.profile.full_name ?? m.profile.username}</span>
-                  {m.role === "owner" && <span className="text-xs text-muted">créateur</span>}
+                  {m.role === "owner" && <span className="text-xs text-muted">{t("créateur")}</span>}
                 </Link>
               </li>
             ))}

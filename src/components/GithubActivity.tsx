@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import Link from "next/link";
 import { timeAgo } from "@/lib/format";
 import { type Activity, activityByDay } from "@/lib/github-activity";
@@ -11,8 +12,9 @@ const ICON: Record<Activity["kind"], string> = {
   star: "★",
 };
 
-export function ActivityList({ activities, showLogin = false, canConvert = false }: { activities: Activity[]; showLogin?: boolean; canConvert?: boolean }) {
-  if (!activities.length) return <p className="text-sm text-muted">Aucune activité publique récente.</p>;
+export async function ActivityList({ activities, showLogin = false, canConvert = false }: { activities: Activity[]; showLogin?: boolean; canConvert?: boolean }) {
+  const t = await getT();
+  if (!activities.length) return <p className="text-sm text-muted">{t("Aucune activité publique récente.")}</p>;
   return (
     <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
       {activities.map((a) => (
@@ -33,7 +35,7 @@ export function ActivityList({ activities, showLogin = false, canConvert = false
                 href={`/bourse/new?issue=${encodeURIComponent(a.issueUrl)}&titre=${encodeURIComponent(a.title.replace("Issue ouverte : ", ""))}`}
                 className="text-xs text-gold hover:underline"
               >
-                Transformer en ticket de la Micro-Bourse →
+                {t("Transformer en ticket de la Micro-Bourse →")}
               </Link>
             )}
           </div>
@@ -43,11 +45,12 @@ export function ActivityList({ activities, showLogin = false, canConvert = false
   );
 }
 
-export function ActivityHeatmap({ activities }: { activities: Activity[] }) {
+export async function ActivityHeatmap({ activities }: { activities: Activity[] }) {
+  const t = await getT();
   const days = activityByDay(activities);
   const max = Math.max(1, ...days.map((d) => d.count));
   return (
-    <div className="flex gap-0.5" role="img" aria-label="Activité GitHub des 30 derniers jours">
+    <div className="flex gap-0.5" role="img" aria-label={t("Activité GitHub des 30 derniers jours")}>
       {days.map((d) => (
         <span
           key={d.day}

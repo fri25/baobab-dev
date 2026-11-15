@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import Link from "next/link";
 import { useState } from "react";
 import { UserChip } from "@/components/Avatar";
@@ -33,13 +34,14 @@ export function QuestionMagazine({
   questions: Question[];
   initialSelectedId: string | null;
 }) {
+  const t = useT();
   const [selectedId, setSelectedId] = useState(initialSelectedId ?? questions[0]?.id ?? null);
   const selectedQuestion = questions.find((question) => question.id === selectedId) ?? questions[0];
 
   if (!questions.length) {
     return (
       <div className="mt-6 rounded-2xl border border-dashed border-border bg-surface p-8 text-center text-muted">
-        Aucune question trouvée.
+        {t("Aucune question trouvée.")}
       </div>
     );
   }
@@ -54,10 +56,10 @@ export function QuestionMagazine({
           <div key={selectedQuestion.id} className="animate-magazine-detail">
             <div className="flex flex-wrap items-center gap-2 text-xs">
               {selectedQuestion.accepted_answer_id && (
-                <span className="rounded-full bg-leaf/10 px-3 py-1 font-semibold text-leaf">Réponse validée</span>
+                <span className="rounded-full bg-leaf/10 px-3 py-1 font-semibold text-leaf">{t("Réponse validée")}</span>
               )}
               {selectedQuestion.bounty_id && (
-                <span className="rounded-full bg-gold/10 px-3 py-1 font-semibold text-gold">Question primée</span>
+                <span className="rounded-full bg-gold/10 px-3 py-1 font-semibold text-gold">{t("Question primée")}</span>
               )}
               <span className="text-muted">{timeAgo(selectedQuestion.created_at)}</span>
             </div>
@@ -65,7 +67,7 @@ export function QuestionMagazine({
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {selectedQuestion.author && <UserChip user={selectedQuestion.author} />}
               <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">
-                {selectedQuestion.answers_count} réponse{selectedQuestion.answers_count > 1 ? "s" : ""}
+                {selectedQuestion.answers_count}{" "}{t("réponse")}{selectedQuestion.answers_count > 1 ? "s" : ""}
               </span>
             </div>
             <div className="mt-5 flex flex-wrap gap-2">
@@ -86,18 +88,18 @@ export function QuestionMagazine({
               href={`/questions/${selectedQuestion.id}`}
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-ink hover:opacity-90"
             >
-              Lire les réponses et participer <span aria-hidden="true">→</span>
+              {t("Lire les réponses et participer")}{" "}<span aria-hidden="true">→</span>
             </Link>
           </div>
         )}
       </article>
 
       <aside
-        aria-label="Liste des questions"
+        aria-label={t("Liste des questions")}
         className="min-h-72 overflow-y-auto rounded-2xl border border-border bg-background/70 p-3 lg:sticky lg:top-28 lg:h-[calc(100dvh-9rem)] lg:min-h-[20rem]"
       >
         <h2 className="sticky top-0 z-10 rounded-xl bg-background/95 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted backdrop-blur">
-          Les plus récentes
+          {t("Les plus récentes")}
         </h2>
         <ul className="space-y-2">
           {questions.map((question) => {
@@ -124,7 +126,7 @@ export function QuestionMagazine({
                   </span>
                   <span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
                     {(question.images?.length ?? 0) > 0 && (
-                      <span className="rounded border border-border px-2 py-0.5" title="Question avec images">
+                      <span className="rounded border border-border px-2 py-0.5" title={t("Question avec images")}>
                         🖼 {question.images?.length}
                       </span>
                     )}

@@ -1,3 +1,4 @@
+import { getT } from "@/lib/i18n/server";
 import { timeAgo } from "@/lib/format";
 import { adoptProject, decideAbandoned } from "../actions";
 import { CheckRepoButton } from "./CheckRepoButton";
@@ -18,7 +19,8 @@ type Project = {
 };
 
 // Détecteur de projets abandonnés (§7.3) : bandeau et choix du propriétaire, reprise par la communauté
-export function AbandonPanel({ project, userId, founderName }: { project: Project; userId: string | null; founderName: string | null }) {
+export async function AbandonPanel({ project, userId, founderName }: { project: Project; userId: string | null; founderName: string | null }) {
+  const t = await getT();
   const isOwner = userId === project.owner_id;
   const stats = (
     <p className="mt-1 text-xs text-muted">
@@ -31,26 +33,26 @@ export function AbandonPanel({ project, userId, founderName }: { project: Projec
   if (project.abandon_status === "detected") {
     return (
       <section className="mt-6 rounded-xl border border-gold bg-gold/5 p-4">
-        <p className="font-medium">Ce projet semble à l&apos;arrêt</p>
+        <p className="font-medium">{t("Ce projet semble à l'arrêt")}</p>
         {stats}
         {isOwner ? (
           <>
-            <p className="mt-2 text-sm">Il a suscité de l&apos;intérêt : que veux-tu en faire ?</p>
+            <p className="mt-2 text-sm">{t("Il a suscité de l'intérêt : que veux-tu en faire ?")}</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               <form action={decideAbandoned.bind(null, project.id, project.slug, "relancer")}>
-                <button className="w-full rounded-lg bg-leaf px-3 py-2 text-sm font-medium text-background">Le relancer avec une Squad</button>
+                <button className="w-full rounded-lg bg-leaf px-3 py-2 text-sm font-medium text-background">{t("Le relancer avec une Squad")}</button>
               </form>
               <form action={decideAbandoned.bind(null, project.id, project.slug, "ceder")}>
-                <button className="w-full rounded-lg border border-primary px-3 py-2 text-sm text-primary">Le céder à la communauté</button>
+                <button className="w-full rounded-lg border border-primary px-3 py-2 text-sm text-primary">{t("Le céder à la communauté")}</button>
               </form>
               <form action={decideAbandoned.bind(null, project.id, project.slug, "archiver")}>
-                <button className="w-full rounded-lg border border-border px-3 py-2 text-sm text-muted">L&apos;archiver</button>
+                <button className="w-full rounded-lg border border-border px-3 py-2 text-sm text-muted">{t("L'archiver")}</button>
               </form>
             </div>
-            <p className="mt-2 text-xs text-muted">En le cédant, tu restes crédité·e comme fondateur·rice et tu reçois le badge « Passeur de flambeau ».</p>
+            <p className="mt-2 text-xs text-muted">{t("En le cédant, tu restes crédité·e comme fondateur·rice et tu reçois le badge « Passeur de flambeau ».")}</p>
           </>
         ) : (
-          <p className="mt-2 text-sm text-muted">Son propriétaire a été prévenu et peut le relancer ou le céder.</p>
+          <p className="mt-2 text-sm text-muted">{t("Son propriétaire a été prévenu et peut le relancer ou le céder.")}</p>
         )}
       </section>
     );
@@ -59,14 +61,14 @@ export function AbandonPanel({ project, userId, founderName }: { project: Projec
   if (project.abandon_status === "ceded") {
     return (
       <section className="mt-6 rounded-xl border border-primary bg-primary/5 p-4">
-        <p className="font-medium">Projet à relancer</p>
+        <p className="font-medium">{t("Projet à relancer")}</p>
         <p className="mt-1 text-sm">
-          {founderName ?? "Son fondateur"} le cède à la communauté : reprends-le et donne-lui une seconde vie. Le fondateur reste crédité.
+          {founderName ?? t("Son fondateur")}{" "}{t("le cède à la communauté : reprends-le et donne-lui une seconde vie. Le fondateur reste crédité.")}
         </p>
         {stats}
         {userId && !isOwner && (
           <form action={adoptProject.bind(null, project.id, project.slug)} className="mt-3">
-            <button className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-ink">Reprendre ce projet</button>
+            <button className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-ink">{t("Reprendre ce projet")}</button>
           </form>
         )}
       </section>
@@ -76,13 +78,13 @@ export function AbandonPanel({ project, userId, founderName }: { project: Projec
   if (project.abandon_status === "archived" && isOwner) {
     return (
       <section className="mt-6 rounded-xl border border-border bg-surface p-4 text-sm">
-        <p>Projet archivé.</p>
+        <p>{t("Projet archivé.")}</p>
         <div className="mt-2 flex gap-2">
           <form action={decideAbandoned.bind(null, project.id, project.slug, "relancer")}>
-            <button className="rounded-full border border-border px-3 py-1 text-xs">Le relancer avec une Squad</button>
+            <button className="rounded-full border border-border px-3 py-1 text-xs">{t("Le relancer avec une Squad")}</button>
           </form>
           <form action={decideAbandoned.bind(null, project.id, project.slug, "ceder")}>
-            <button className="rounded-full border border-border px-3 py-1 text-xs">Le céder</button>
+            <button className="rounded-full border border-border px-3 py-1 text-xs">{t("Le céder")}</button>
           </form>
         </div>
       </section>
@@ -94,11 +96,11 @@ export function AbandonPanel({ project, userId, founderName }: { project: Projec
       <section className="mt-6 text-xs text-muted">
         {project.repo_checked_at ? (
           <>
-            Activité du dépôt vérifiée {timeAgo(project.repo_checked_at)}
+            {t("Activité du dépôt vérifiée")}{" "}{timeAgo(project.repo_checked_at)}
             {project.last_commit_at && ` · dernier commit ${timeAgo(project.last_commit_at)}`}.
           </>
         ) : (
-          "L'activité du dépôt est vérifiée chaque semaine."
+          t("L'activité du dépôt est vérifiée chaque semaine.")
         )}{" "}
         <CheckRepoButton projectId={project.id} />
       </section>

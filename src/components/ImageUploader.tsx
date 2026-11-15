@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useRef, useState } from "react";
 import { MAX_QUESTION_IMAGES, QUESTION_IMAGES_BUCKET } from "@/lib/images";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +24,7 @@ async function compress(file: File): Promise<Blob> {
 }
 
 export function ImageUploader({ userId, name = "images" }: { userId: string; name?: string }) {
+  const t = useT();
   const [images, setImages] = useState<Uploaded[]>([]);
   const [busy, setBusy] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -94,10 +96,9 @@ export function ImageUploader({ userId, name = "images" }: { userId: string; nam
         add(Array.from(e.dataTransfer.files));
       }}
     >
-      <p className="text-sm font-medium">Images (facultatif)</p>
+      <p className="text-sm font-medium">{t("Images (facultatif)")}</p>
       <p className="text-xs text-muted">
-        Capture d&apos;écran d&apos;une erreur, maquette… {MAX_QUESTION_IMAGES} max. Colle-les avec Ctrl+V ou glisse-les ici :
-        elles sont compressées avant l&apos;envoi.
+        {t("Capture d'écran d'une erreur, maquette…")}{" "}{MAX_QUESTION_IMAGES}{" "}{t("max. Colle-les avec Ctrl+V ou glisse-les ici : elles sont compressées avant l'envoi.")}
       </p>
 
       <div className="mt-2 flex flex-wrap gap-2">
@@ -105,11 +106,11 @@ export function ImageUploader({ userId, name = "images" }: { userId: string; nam
           <div key={img.path} className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={img.url} alt="" className="h-20 w-20 rounded-lg border border-border object-cover" />
-            <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[10px] text-white">{img.kb} Ko</span>
+            <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[10px] text-white">{img.kb}{" "}{t("Ko")}</span>
             <button
               type="button"
               onClick={() => remove(img)}
-              aria-label="Retirer l'image"
+              aria-label={t("Retirer l'image")}
               className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs text-background"
             >
               ✕
@@ -119,7 +120,7 @@ export function ImageUploader({ userId, name = "images" }: { userId: string; nam
         ))}
         {Array.from({ length: busy }, (_, i) => (
           <div key={`busy-${i}`} className="flex h-20 w-20 animate-pulse items-center justify-center rounded-lg border border-border text-xs text-muted">
-            envoi…
+            {t("envoi…")}
           </div>
         ))}
         {!full && (
@@ -129,7 +130,7 @@ export function ImageUploader({ userId, name = "images" }: { userId: string; nam
             className="flex h-20 w-20 flex-col items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted hover:border-primary hover:text-primary"
           >
             <span className="text-xl">+</span>
-            Ajouter
+            {t("Ajouter")}
           </button>
         )}
       </div>
@@ -144,7 +145,7 @@ export function ImageUploader({ userId, name = "images" }: { userId: string; nam
           e.target.value = "";
         }}
       />
-      {error && <p className="mt-1 text-xs text-primary">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
     </div>
   );
 }

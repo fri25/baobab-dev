@@ -1,11 +1,15 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { fcfa, timeAgo } from "@/lib/format";
 import { AUDIT_STATUS, scoreColor } from "@/lib/forensic-labels";
 
-export const metadata = { title: "Code Forensic · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Code Forensic · Baobab Dev") };
+}
 
 export default async function ForensicPage() {
+  const t = await getT();
   const { supabase, profile } = await getSession();
   const { data: audits } = await supabase
     .from("audits")
@@ -20,14 +24,16 @@ export default async function ForensicPage() {
   const count = (a: { audit_auditors: unknown }) => (a.audit_auditors as { count: number }[])[0]?.count ?? 0;
 
   type Audit = NonNullable<typeof audits>[number];
-  const Card = ({ a }: { a: Audit }) => (
+  const Card = async ({ a }: { a: Audit }) => {
+  const t = await getT();
+  return (
     <li>
       <Link href={`/forensic/${a.id}`} className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface p-4 hover:border-primary">
         <div className="min-w-0 flex-1">
           <p className="font-medium">{a.title}</p>
           <p className="mt-1 line-clamp-1 text-sm text-muted">{a.context}</p>
           <p className="mt-2 text-xs text-muted">
-            {AUDIT_STATUS[a.status]} · {count(a)}/{a.max_auditors} auditeur(s) · {a.confidentiality === "private" ? "confidentiel" : "public"}
+            {AUDIT_STATUS[a.status]} · {count(a)}/{a.max_auditors}{" "}{t("auditeur(s) ·")}{" "}{a.confidentiality === "private" ? t("confidentiel") : t("public")}
             {a.status !== "closed" && ` · échéance ${timeAgo(a.deadline)}`}
           </p>
         </div>
@@ -37,30 +43,30 @@ export default async function ForensicPage() {
             <span className="text-sm text-muted">/100</span>
           </span>
         ) : (
-          <span className="font-mono text-sm font-semibold text-gold">{fcfa(Math.floor((a.fee * 70) / 100))} aux auditeurs</span>
+          <span className="font-mono text-sm font-semibold text-gold">{fcfa(Math.floor((a.fee * 70) / 100))}{" "}{t("aux auditeurs")}</span>
         )}
       </Link>
     </li>
   );
+};
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Code Forensic</h1>
+          <h1 className="text-2xl font-bold">{t("Code Forensic")}</h1>
           <p className="max-w-2xl text-muted">
-            Une arène d&apos;audit exigeante mais constructive, avant un lancement ou une levée de fonds. Analyse automatique, puis 3 à
-            5 auditeurs de niveau Expert, confrontation, et un certificat à partager avec tes investisseurs.
+            {t("Une arène d'audit exigeante mais constructive, avant un lancement ou une levée de fonds. Analyse automatique, puis 3 à 5 auditeurs de niveau Expert, confrontation, et un certificat à partager avec tes investisseurs.")}
           </p>
         </div>
         <Link href="/forensic/new" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-          Lancer l&apos;audit
+          {t("Lancer l'audit")}
         </Link>
       </div>
 
       {mine.length > 0 && (
         <section className="mt-8">
-          <h2 className="font-semibold">Mes audits</h2>
+          <h2 className="font-semibold">{t("Mes audits")}</h2>
           <ul className="mt-3 space-y-3">
             {mine.map((a) => (
               <Card key={a.id} a={a} />
@@ -70,23 +76,23 @@ export default async function ForensicPage() {
       )}
 
       <section className="mt-8">
-        <h2 className="font-semibold">Audits qui cherchent des auditeurs</h2>
+        <h2 className="font-semibold">{t("Audits qui cherchent des auditeurs")}</h2>
         <p className="text-xs text-muted">
           {isExpert
-            ? "Rejoins un audit en signant l'accord de confidentialité (PDF remis aux deux parties) et partage 70 % du forfait avec les autres auditeurs."
-            : "Auditer est réservé aux devs de niveau Expert (2 000 XP)."}
+            ? t("Rejoins un audit en signant l'accord de confidentialité (PDF remis aux deux parties) et partage 70 % du forfait avec les autres auditeurs.")
+            : t("Auditer est réservé aux devs de niveau Expert (2 000 XP).")}
         </p>
         <ul className="mt-3 space-y-3">
           {recruiting.map((a) => (
             <Card key={a.id} a={a} />
           ))}
-          {!recruiting.length && <li className="text-sm text-muted">Aucun pour l&apos;instant.</li>}
+          {!recruiting.length && <li className="text-sm text-muted">{t("Aucun pour l'instant.")}</li>}
         </ul>
       </section>
 
       {closed.length > 0 && (
         <section className="mt-8">
-          <h2 className="font-semibold">Rapports publiés</h2>
+          <h2 className="font-semibold">{t("Rapports publiés")}</h2>
           <ul className="mt-3 space-y-3">
             {closed.map((a) => (
               <Card key={a.id} a={a} />

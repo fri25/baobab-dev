@@ -224,6 +224,51 @@ from (values
 join public.profiles p on p.username = v.username
 cross join (select id from public.challenges where kind = 'api') c;
 
+-- Défi corrigé automatiquement (tests publics et cachés)
+insert into public.challenges (title, description, kind, grading, function_name, starter_code, starts_at, ends_at, created_by) values
+  ('Rendu de monnaie en francs CFA',
+   E'Un marchand de Dakar rend la monnaie avec le moins de pièces et de billets possible.\n\nÉcris `rendreMonnaie(montant, valeurs)` qui renvoie le **nombre minimal** de pièces et billets pour rendre exactement `montant` FCFA avec les `valeurs` disponibles (en quantité illimitée), ou `-1` si c''est impossible.\n\n- `0 ≤ montant ≤ 100 000`\n- Attention : l''algorithme glouton ne marche pas toujours.\n- Correction automatique : 2 exemples publics et 6 tests cachés, 1 s par test.',
+   'algo', 'auto', 'rendreMonnaie',
+   E'function rendreMonnaie(montant, valeurs) {\n  // À toi de jouer\n  return -1;\n}\n',
+   now() - interval '1 day', now() + interval '6 days',
+   'a1000000-0000-4000-8000-000000000006');
+
+insert into public.challenge_tests (challenge_id, position, args, expected, is_public)
+select c.id, v.pos, v.args::jsonb, v.expected::jsonb, v.pub
+from (values
+  (1, '[1300, [500, 200, 100, 50, 25, 10, 5]]', '4', true),
+  (2, '[30, [25, 10]]', '3', true),
+  (3, '[0, [5]]', '0', false),
+  (4, '[7, [5, 10]]', '-1', false),
+  (5, '[10000, [10000, 5000, 2000, 1000, 500]]', '1', false),
+  (6, '[6, [1, 3, 4]]', '2', false),
+  (7, '[2465, [500, 200, 100, 50, 25, 10, 5]]', '9', false),
+  (8, '[100000, [5000, 2000, 25]]', '20', false)
+) as v(pos, args, expected, pub)
+cross join (select id from public.challenges where grading = 'auto') c;
+
+with subs as (
+  insert into public.challenge_submissions (challenge_id, user_id, note, score, graded_at, auto_report)
+  select c.id, p.id, v.note, v.score, now() - v.ago, jsonb_build_object('passed', v.passed, 'total', 8)
+  from (values
+    ('moussa', 'Programmation dynamique', 100.00, 8, interval '20 hours'),
+    ('ibrahim', null, 75.00, 6, interval '10 hours')
+  ) as v(username, note, score, passed, ago)
+  join public.profiles p on p.username = v.username
+  cross join (select id from public.challenges where grading = 'auto') c
+  returning id, user_id, score, auto_report
+)
+insert into public.challenge_solutions (submission_id, code, report, attempts)
+select s.id,
+  case when s.score = 100 then
+    E'function rendreMonnaie(montant, valeurs) {\n  const best = new Array(montant + 1).fill(Infinity);\n  best[0] = 0;\n  for (let m = 1; m <= montant; m++)\n    for (const v of valeurs) if (v <= m && best[m - v] + 1 < best[m]) best[m] = best[m - v] + 1;\n  return best[montant] === Infinity ? -1 : best[montant];\n}\n'
+  else
+    E'function rendreMonnaie(montant, valeurs) {\n  let n = 0;\n  for (const v of [...valeurs].sort((a, b) => b - a)) { n += Math.floor(montant / v); montant %= v; }\n  return montant === 0 ? n : -1;\n}\n'
+  end,
+  s.auto_report || '{"results": []}'::jsonb,
+  case when s.score = 100 then 2 else 3 end
+from subs s;
+
 insert into public.stack_items (name, slug, category, description, website, docs_url, compatible_versions, code_example, pitfalls, status, health_url, created_by) values
   ('FedaPay', 'fedapay', 'paiement',
    'Agrégateur de paiements Mobile Money (MTN, Moov) et cartes au Bénin, au Togo, en Côte d''Ivoire et au Sénégal.',

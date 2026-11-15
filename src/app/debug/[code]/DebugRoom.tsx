@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -74,6 +75,7 @@ type Props = {
 };
 
 export function DebugRoom(props: Props) {
+  const tr = useT();
   const { sessionId, code, me, isHost } = props;
   const [history] = useState(() => props.replay.flatMap((e) => e.payload.ops ?? []));
   const [restored] = useState(() => (history.length ? fold(history) : null));
@@ -260,18 +262,18 @@ export function DebugRoom(props: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-2 text-sm">
         <div className="flex items-center gap-3">
           <span className={`h-2.5 w-2.5 rounded-full ${online ? "bg-leaf" : props.ended ? "bg-muted" : "animate-pulse bg-gold"}`} />
-          <span>{props.ended ? "Session terminée" : online ? "Connecté" : "Reconnexion…"}</span>
-          <span className="text-muted">· {Object.keys(names).length} participant(s)</span>
+          <span>{props.ended ? tr("Session terminée") : online ? tr("Connecté") : tr("Reconnexion…")}</span>
+          <span className="text-muted">· {Object.keys(names).length}{" "}{tr("participant(s)")}</span>
         </div>
         <div className="flex items-center gap-3 font-mono text-xs">
-          <span className={rateOk ? "text-leaf" : "text-primary"}>{rate.toFixed(2)} Ko/s</span>
-          <span className="text-muted">{(total / 1024).toFixed(1)} Ko au total</span>
+          <span className={rateOk ? "text-leaf" : "text-primary"}>{rate.toFixed(2)}{" "}{tr("Ko/s")}</span>
+          <span className="text-muted">{(total / 1024).toFixed(1)}{" "}{tr("Ko au total")}</span>
         </div>
       </div>
 
       {props.ended ? (
         <button onClick={playReplay} className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-ink">
-          ▶ Rejouer la session ({(replayBytes / 1024).toFixed(1)} Ko)
+          {tr("▶ Rejouer la session (")}{(replayBytes / 1024).toFixed(1)}{" "}{tr("Ko)")}
         </button>
       ) : (
         <div className="flex flex-wrap gap-2 text-sm">
@@ -279,17 +281,17 @@ export function DebugRoom(props: Props) {
             onClick={() => navigator.clipboard.writeText(window.location.href)}
             className="rounded-full border border-border px-4 py-1.5"
           >
-            Copier le lien de partage
+            {tr("Copier le lien de partage")}
           </button>
           {!isHost && !canWrite && (
             <button onClick={() => send({ t: "ask" })} className="rounded-full border border-primary px-4 py-1.5 text-primary">
-              Demander la main
+              {tr("Demander la main")}
             </button>
           )}
-          {!isHost && canWrite && <span className="rounded-full bg-leaf/10 px-4 py-1.5 text-leaf">Tu as la main</span>}
+          {!isHost && canWrite && <span className="rounded-full bg-leaf/10 px-4 py-1.5 text-leaf">{tr("Tu as la main")}</span>}
           {isHost && (
             <button onClick={() => endDebugSession(sessionId, code)} className="rounded-full border border-border px-4 py-1.5 text-muted">
-              Terminer la session
+              {tr("Terminer la session")}
             </button>
           )}
         </div>
@@ -299,7 +301,7 @@ export function DebugRoom(props: Props) {
         <div className="rounded-xl border border-gold bg-gold/10 p-3 text-sm">
           {requests.map((u) => (
             <div key={u} className="flex items-center justify-between gap-2">
-              <span>{names[u] ?? "Un invité"} demande à prendre la main.</span>
+              <span>{names[u] ?? tr("Un invité")}{" "}{tr("demande à prendre la main.")}</span>
               <span className="flex gap-2">
                 <button
                   onClick={async () => {
@@ -309,10 +311,10 @@ export function DebugRoom(props: Props) {
                   }}
                   className="rounded bg-leaf px-3 py-1 text-xs text-background"
                 >
-                  Accepter
+                  {tr("Accepter")}
                 </button>
                 <button onClick={() => setRequests((r) => r.filter((x) => x !== u))} className="rounded border border-border px-3 py-1 text-xs">
-                  Refuser
+                  {tr("Refuser")}
                 </button>
               </span>
             </div>
@@ -327,7 +329,7 @@ export function DebugRoom(props: Props) {
               .filter(([id]) => id !== me.id)
               .map(([id, pos]) => (
                 <span key={id}>
-                  <span className="text-primary">▍</span> {names[id] ?? "invité"} · ligne {lineOf(pos)}
+                  <span className="text-primary">▍</span> {names[id] ?? tr("invité")}{" "}{tr("· ligne")}{" "}{lineOf(pos)}
                 </span>
               ))}
           </div>
@@ -339,12 +341,12 @@ export function DebugRoom(props: Props) {
             spellCheck={false}
             className="h-96 w-full rounded-xl border border-border bg-[#1f1a14] p-4 font-mono text-sm text-[#f3ece2] outline-none"
           />
-          {isHost && <p className="mt-1 text-xs text-muted">Les invités voient une version où les secrets sont remplacés par des •••.</p>}
+          {isHost && <p className="mt-1 text-xs text-muted">{tr("Les invités voient une version où les secrets sont remplacés par des •••.")}</p>}
         </div>
 
         <div className="space-y-4">
           <section>
-            <h2 className="mb-1 text-sm font-semibold">Terminal</h2>
+            <h2 className="mb-1 text-sm font-semibold">{tr("Terminal")}</h2>
             <pre className="h-40 overflow-y-auto rounded-xl bg-black p-3 font-mono text-xs text-green-300">
               {terminal.join("\n") || "$ "}
             </pre>
@@ -362,17 +364,17 @@ export function DebugRoom(props: Props) {
                 }}
                 className="mt-1"
               >
-                <input name="line" placeholder="Colle la sortie du terminal" className="w-full rounded-lg border border-border bg-surface px-2 py-1 font-mono text-xs" />
+                <input name="line" placeholder={tr("Colle la sortie du terminal")} className="w-full rounded-lg border border-border bg-surface px-2 py-1 font-mono text-xs" />
               </form>
             )}
           </section>
 
           <section>
-            <h2 className="mb-1 text-sm font-semibold">Discussion</h2>
+            <h2 className="mb-1 text-sm font-semibold">{tr("Discussion")}</h2>
             <ol className="h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface p-3 text-sm">
               {chat.map((m, i) => (
                 <li key={i}>
-                  <span className="font-medium">{m.from === me.id ? "Moi" : (names[m.from] ?? "invité")}</span> : {m.b}
+                  <span className="font-medium">{m.from === me.id ? tr("Moi") : (names[m.from] ?? tr("invité"))}</span> : {m.b}
                 </li>
               ))}
             </ol>
@@ -388,7 +390,7 @@ export function DebugRoom(props: Props) {
                 }}
                 className="mt-1"
               >
-                <input name="msg" placeholder="Message" className="w-full rounded-lg border border-border bg-surface px-2 py-1 text-sm" />
+                <input name="msg" placeholder={tr("Message")} className="w-full rounded-lg border border-border bg-surface px-2 py-1 text-sm" />
               </form>
             )}
           </section>

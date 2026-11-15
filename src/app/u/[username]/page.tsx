@@ -1,3 +1,5 @@
+import { dateLocale } from "@/lib/i18n/current";
+import { getT } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { plainText } from "@/lib/format";
@@ -28,6 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProfilePage({ params }: Props) {
+  const t = await getT();
   const { username } = await params;
   const profile = await getProfile(decodeURIComponent(username));
   if (!profile) notFound();
@@ -102,7 +105,7 @@ export default async function ProfilePage({ params }: Props) {
               href="/parametres#photo"
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-background px-3 py-1 text-xs font-medium shadow-sm hover:border-primary hover:text-primary"
             >
-              Modifier la photo
+              {t("Modifier la photo")}
             </Link>
           )}
         </div>
@@ -112,9 +115,9 @@ export default async function ProfilePage({ params }: Props) {
             {verified && (
               <span
                 className="rounded-full bg-leaf/15 px-2 py-0.5 text-xs font-medium text-leaf"
-                title="GitHub relié et au moins deux autres preuves d'activité (réponses acceptées, Squads, primes, défis, audits, projets)"
+                title={t("GitHub relié et au moins deux autres preuves d'activité (réponses acceptées, Squads, primes, défis, audits, projets)")}
               >
-                ✓ Profil vérifié
+                {t("✓ Profil vérifié")}
               </span>
             )}
           </h1>
@@ -131,18 +134,18 @@ export default async function ProfilePage({ params }: Props) {
               </span>
             )}
             {profile.languages.length > 0 && (
-              <span className="text-muted">Langues : {profile.languages.join(", ")}</span>
+              <span className="text-muted">{t("Langues :")}{" "}{profile.languages.join(", ")}</span>
             )}
             {profile.programming_languages.length > 0 ? (
               <span className="text-muted">{`Langages de programmation : ${profile.programming_languages.join(", ")}`}</span>
             ) : isOwner ? (
               <Link href="/parametres" className="text-primary hover:underline">
-                Ajouter tes langages de programmation
+                {t("Ajouter tes langages de programmation")}
               </Link>
             ) : null}
             {profile.github_username && (
               <a href={`https://github.com/${profile.github_username}`} className="text-primary hover:underline">
-                github.com/{profile.github_username}
+                {t("github.com/")}{profile.github_username}
               </a>
             )}
           </div>
@@ -151,7 +154,7 @@ export default async function ProfilePage({ params }: Props) {
           {auth.user && !isOwner && (
             <form action={startDirect.bind(null, profile.id)}>
               <button className="w-full rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-                Envoyer un message
+                {t("Envoyer un message")}
               </button>
             </form>
           )}
@@ -159,28 +162,28 @@ export default async function ProfilePage({ params }: Props) {
             href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
             className="rounded-full border border-border px-4 py-2 text-center text-sm hover:bg-surface"
           >
-            Partager sur WhatsApp
+            {t("Partager sur WhatsApp")}
           </a>
           <details className="text-center text-sm">
-            <summary className="cursor-pointer rounded-full border border-border px-4 py-2 hover:bg-surface">QR code</summary>
+            <summary className="cursor-pointer rounded-full border border-border px-4 py-2 hover:bg-surface">{t("QR code")}</summary>
             <div className="mt-2 w-32 rounded-lg bg-white p-1" dangerouslySetInnerHTML={{ __html: qr }} />
           </details>
           {auth.user && !isOwner && (
             <form action={toggleBlock.bind(null, profile.id, profile.username)}>
               <button className="w-full px-4 py-1 text-xs text-muted hover:text-primary">
-                {block ? "Débloquer" : "Bloquer les messages"}
+                {block ? t("Débloquer") : t("Bloquer les messages")}
               </button>
             </form>
           )}
           {isOwner && (
             <Link href="/parametres" className="rounded-full border border-border px-4 py-2 text-center text-sm hover:bg-surface">
-              Modifier
+              {t("Modifier")}
             </Link>
           )}
           {isOwner && (
             <form action="/auth/signout" method="post">
               <button className="w-full rounded-full border border-border px-4 py-2 text-center text-sm hover:bg-surface">
-                Se déconnecter
+                {t("Se déconnecter")}
               </button>
             </form>
           )}
@@ -194,7 +197,7 @@ export default async function ProfilePage({ params }: Props) {
         <div className="space-y-8 lg:col-span-2">
           {/* Badges épinglés */}
           <section>
-            <h2 className="mb-3 font-semibold">Badges épinglés</h2>
+            <h2 className="mb-3 font-semibold">{t("Badges épinglés")}</h2>
             {shownPinned.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-3">
                 {shownPinned.map((b) => (
@@ -202,12 +205,12 @@ export default async function ProfilePage({ params }: Props) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted">Pas encore de badge. Réponds à une question pour décrocher « Sage du Village ».</p>
+              <p className="text-sm text-muted">{t("Pas encore de badge. Réponds à une question pour décrocher « Sage du Village ».")}</p>
             )}
             {profile.badges.length > shownPinned.length && (
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm text-primary">
-                  Tous les badges ({profile.badges.length})
+                  {t("Tous les badges (")}{profile.badges.length})
                 </summary>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {profile.badges.map((b) => (
@@ -220,16 +223,16 @@ export default async function ProfilePage({ params }: Props) {
 
           {clone && (
             <Link href={`/clones/${clone.id}`} className="block rounded-xl border border-primary bg-surface p-4 hover:bg-background">
-              <span className="text-xs font-medium uppercase tracking-wide text-primary">🤖 Clone IA</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-primary">{t("🤖 Clone IA")}</span>
               <span className="mt-1 block font-semibold">{clone.name}</span>
-              <span className="block text-sm text-muted">{clone.specialty} · première question gratuite</span>
+              <span className="block text-sm text-muted">{clone.specialty}{" "}{t("· première question gratuite")}</span>
             </Link>
           )}
 
           {/* GitHub vivant */}
           {profile.github_username && (
             <section>
-              <h2 className="mb-3 font-semibold">Activité GitHub</h2>
+              <h2 className="mb-3 font-semibold">{t("Activité GitHub")}</h2>
               <ActivityHeatmap activities={activities} />
               <div className="mt-3">
                 <ActivityList activities={activities.slice(0, 6)} canConvert={isOwner} />
@@ -239,7 +242,7 @@ export default async function ProfilePage({ params }: Props) {
 
           {/* Projets */}
           <section>
-            <h2 className="mb-3 font-semibold">Projets</h2>
+            <h2 className="mb-3 font-semibold">{t("Projets")}</h2>
             {profile.projects.length > 0 ? (
               <ul className="space-y-3">
                 {profile.projects.map((p) => (
@@ -259,7 +262,7 @@ export default async function ProfilePage({ params }: Props) {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted">Aucun projet publié dans le Showroom.</p>
+              <p className="text-sm text-muted">{t("Aucun projet publié dans le Showroom.")}</p>
             )}
           </section>
         </div>
@@ -267,7 +270,7 @@ export default async function ProfilePage({ params }: Props) {
         <aside className="space-y-8">
           {/* Technologies */}
           <section>
-            <h2 className="mb-3 font-semibold">Technologies</h2>
+            <h2 className="mb-3 font-semibold">{t("Technologies")}</h2>
             {profile.skills.length > 0 ? (
               <ul className="space-y-2">
                 {profile.skills.map((s) => (
@@ -275,7 +278,7 @@ export default async function ProfilePage({ params }: Props) {
                     <div className="flex justify-between">
                       <span>{s.name}</span>
                       <span className="text-xs text-muted">
-                        {s.source === "github" ? `${s.weight} dépôt${s.weight > 1 ? "s" : ""}` : "déclaré"}
+                        {s.source === "github" ? `${s.weight} dépôt${s.weight > 1 ? "s" : ""}` : t("déclaré")}
                       </span>
                     </div>
                     <div className="mt-1 h-1.5 rounded-full bg-border">
@@ -288,20 +291,20 @@ export default async function ProfilePage({ params }: Props) {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted">Aucune technologie détectée.</p>
+              <p className="text-sm text-muted">{t("Aucune technologie détectée.")}</p>
             )}
           </section>
 
           <section>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="font-semibold">XP par catégorie</h2>
+              <h2 className="font-semibold">{t("XP par catégorie")}</h2>
               <span className="font-mono text-sm font-semibold text-primary">
-                {xpCategoryTotal.toLocaleString("fr-FR")} XP au total
+                {xpCategoryTotal.toLocaleString(dateLocale())}{" "}{t("XP au total")}
               </span>
             </div>
             {xpCategoryTotal !== profile.xp && (
               <p role="alert" className="mt-2 rounded-lg bg-primary/10 p-3 text-xs text-primary">
-                Le détail des catégories ne correspond pas au solde du profil. Actualise la page ou contacte l’équipe.
+                {t("Le détail des catégories ne correspond pas au solde du profil. Actualise la page ou contacte l’équipe.")}
               </p>
             )}
             <ul className="mt-3 space-y-2">
@@ -311,21 +314,21 @@ export default async function ProfilePage({ params }: Props) {
                   <div className="flex items-start gap-3 p-3">
                     <span className={`min-w-16 font-mono text-sm font-bold ${entry.amount > 0 ? "text-leaf" : entry.amount < 0 ? "text-primary" : "text-muted"}`}>
                       {entry.amount > 0 ? "+" : ""}
-                      {entry.amount.toLocaleString("fr-FR")} XP
+                      {entry.amount.toLocaleString(dateLocale())}{" "}{t("XP")}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
                         {entry.label}
                         {locked && (
                           <span className="rounded-full bg-border/60 px-2 py-0.5 text-[10px] text-muted">
-                            Verrouillé · niveau Expert
+                            {t("Verrouillé · niveau Expert")}
                           </span>
                         )}
                       </span>
                       <span className="mt-1 block text-xs text-muted">{entry.description}</span>
                       {locked && (
                         <span className="mt-1 block text-xs text-muted">
-                          Débloqué à {entry.requiredXp.toLocaleString("fr-FR")} XP.
+                          {t("Débloqué à")}{" "}{entry.requiredXp.toLocaleString(dateLocale())}{" "}{t("XP.")}
                         </span>
                       )}
                     </span>
@@ -343,15 +346,15 @@ export default async function ProfilePage({ params }: Props) {
               })}
             </ul>
             <details className="mt-3">
-              <summary className="cursor-pointer text-sm text-primary">Activité XP récente</summary>
+              <summary className="cursor-pointer text-sm text-primary">{t("Activité XP récente")}</summary>
               <ul className="mt-2 divide-y divide-border rounded-xl border border-border bg-surface">
                 {profile.activity.length > 0 ? (
                   profile.activity.map((a, i) => (
                     <li key={`${a.created_at}-${i}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                       <span>
-                        {a.reason === "content_removed" ? "Ajustement du solde XP" : XP_REASONS[a.reason] ?? a.reason}
+                        {a.reason === "content_removed" ? t("Ajustement du solde XP") : XP_REASONS[a.reason] ?? a.reason}
                         <span className="block text-xs text-muted">
-                          {new Date(a.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                          {new Date(a.created_at).toLocaleDateString(dateLocale(), { day: "numeric", month: "short" })}
                         </span>
                       </span>
                       <span className={`font-mono font-semibold ${a.amount >= 0 ? "text-leaf" : "text-primary"}`}>
@@ -361,7 +364,7 @@ export default async function ProfilePage({ params }: Props) {
                     </li>
                   ))
                 ) : (
-                  <li className="px-4 py-3 text-sm text-muted">Aucune activité pour l&apos;instant.</li>
+                  <li className="px-4 py-3 text-sm text-muted">{t("Aucune activité pour l'instant.")}</li>
                 )}
               </ul>
             </details>

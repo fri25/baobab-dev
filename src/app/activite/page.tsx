@@ -1,10 +1,14 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import { ActivityList } from "@/components/GithubActivity";
 import { githubActivity } from "@/lib/github-activity";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "GitHub vivant · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("GitHub vivant · Baobab Dev") };
+}
 
 export default async function ActivityPage() {
+  const t = await getT();
   const supabase = await createClient();
   const { data: devs } = await supabase
     .from("profiles")
@@ -18,15 +22,15 @@ export default async function ActivityPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold">GitHub vivant</h1>
+      <h1 className="text-2xl font-bold">{t("GitHub vivant")}</h1>
       <p className="mt-1 text-muted">
-        Le travail de la communauté, au fil des commits, Pull Requests, issues et versions publiés sur GitHub.
+        {t("Le travail de la communauté, au fil des commits, Pull Requests, issues et versions publiés sur GitHub.")}
       </p>
       <div className="mt-6">
         <ActivityList activities={all.slice(0, 40)} showLogin />
       </div>
       {!devs?.length && (
-        <p className="mt-4 text-sm text-muted">Les devs connectés avec GitHub apparaîtront ici.</p>
+        <p className="mt-4 text-sm text-muted">{t("Les devs connectés avec GitHub apparaîtront ici.")}</p>
       )}
     </main>
   );

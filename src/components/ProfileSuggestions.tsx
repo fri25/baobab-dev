@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useState } from "react";
 
 export type SuggestedProfile = {
@@ -18,6 +19,7 @@ export function ProfileSuggestions({
   onSelect: (profile: SuggestedProfile) => void;
   placement?: "above" | "below";
 }) {
+  const t = useT();
   const [users, setUsers] = useState<SuggestedProfile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,10 +63,10 @@ export function ProfileSuggestions({
 
   return (
     <div className={`absolute z-20 max-h-56 w-full overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-xl ${placement === "above" ? "bottom-full mb-1" : "top-full mt-1"}`}>
-      {loading && <p className="px-3 py-2 text-xs text-muted">Recherche…</p>}
-      {error && <p role="status" className="px-3 py-2 text-xs text-primary">{error}</p>}
+      {loading && <p className="px-3 py-2 text-xs text-muted">{t("Recherche…")}</p>}
+      {error && <p role="status" className="px-3 py-2 text-xs text-danger">{error}</p>}
       {!loading && !error && users.length === 0 && (
-        <p role="status" className="px-3 py-2 text-xs text-muted">Aucun membre trouvé.</p>
+        <p role="status" className="px-3 py-2 text-xs text-muted">{t("Aucun membre trouvé.")}</p>
       )}
       {users.map((profile) => (
         <button

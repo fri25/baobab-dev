@@ -1,9 +1,11 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function CheckRepoButton({ projectId }: { projectId: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -21,9 +23,9 @@ export function CheckRepoButton({ projectId }: { projectId: string }) {
         }}
         className="text-primary hover:underline disabled:opacity-50"
       >
-        {busy ? "Vérification…" : "Vérifier maintenant"}
+        {busy ? t("Vérification…") : t("Vérifier maintenant")}
       </button>
-      {error && <span className="ml-2 text-primary">{error}</span>}
+      {error && <span className="ml-2 text-danger">{error}</span>}
     </>
   );
 }

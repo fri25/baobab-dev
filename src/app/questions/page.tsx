@@ -1,12 +1,16 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import Link from "next/link";
 import { QuestionMagazine } from "@/app/questions/QuestionMagazine";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Questions · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Questions · Baobab Dev") };
+}
 
 type Props = { searchParams: Promise<{ q?: string; tag?: string; filtre?: string; selection?: string }> };
 
 export default async function QuestionsPage({ searchParams }: Props) {
+  const t = await getT();
   const { q, tag, filtre, selection } = await searchParams;
   const supabase = await createClient();
 
@@ -36,13 +40,13 @@ export default async function QuestionsPage({ searchParams }: Props) {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Questions</h1>
+        <h1 className="text-2xl font-bold">{t("Questions")}</h1>
         <div className="flex gap-2">
           <Link href="/griot" className="rounded-full border border-border px-4 py-2 text-sm hover:bg-surface">
-            Demander au Griot
+            {t("Demander au Griot")}
           </Link>
           <Link href="/questions/new" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-ink">
-            Poser une question
+            {t("Poser une question")}
           </Link>
         </div>
       </div>
@@ -51,12 +55,12 @@ export default async function QuestionsPage({ searchParams }: Props) {
         <input
           name="q"
           defaultValue={q}
-          placeholder="Rechercher : webhook FedaPay, USSD, Flutter hors ligne…"
+          placeholder={t("Rechercher : webhook FedaPay, USSD, Flutter hors ligne…")}
           className="w-full rounded-full border border-border bg-surface px-4 py-2 text-sm"
         />
         {tag && <input type="hidden" name="tag" value={tag} />}
         {filtre && <input type="hidden" name="filtre" value={filtre} />}
-        <button className="rounded-full border border-border px-4 text-sm">Chercher</button>
+        <button className="rounded-full border border-border px-4 text-sm">{t("Chercher")}</button>
       </form>
       <nav className="mt-4 flex flex-wrap gap-2 text-sm">
         {[

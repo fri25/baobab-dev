@@ -23,6 +23,7 @@ Projet réalisé pour la Coupe d'Afrique des développeurs 2026, d'après le cah
 - [Le Griot](#le-griot)
 - [Tests](#tests)
 - [Déploiement](#déploiement)
+- [Traduction](#traduction)
 - [Feuille de route](#feuille-de-route)
 
 ---
@@ -50,7 +51,7 @@ Le site est organisé autour d'une boucle : **aider → construire → être rec
 | **Showroom** | Vitrine des projets africains : description en Markdown avec aperçu, likes, projet de la semaine, appel à collaborateurs. | `/showroom` |
 | **Squads** | Équipes formées par matching de compétences, avec candidatures, invitations, tableau de tâches et discussion en temps réel. | `/squads` |
 | **Pair-Debugging fantôme** | Débogage à plusieurs façon Google Docs, en texte pur, à moins de 5 Ko/s. Curseurs visibles, terminal partagé, « Prendre la main », secrets masqués et relecture de la session. | `/debug` |
-| **Défis** | Défi hebdomadaire noté par un jury. Le podium gagne +100, +60 ou +30 XP. Les défis peuvent être sponsorisés. | `/defis` |
+| **Défis** | Défi hebdomadaire noté par un jury **ou corrigé automatiquement** : le participant écrit une fonction JavaScript, la teste sur les exemples publics, puis la soumet aux tests cachés (score sur 100, meilleur score conservé, à égalité le premier à l'atteindre l'emporte). Le podium gagne +100, +60 ou +30 XP. Les défis peuvent être sponsorisés. | `/defis` |
 | **Stack Afrique** | Catalogue d'outils africains (paiement, SMS, USSD…). Un outil devient « vérifié » quand 5 devs l'utilisent en production et qu'un modérateur valide sa fiche. Alerte en cas de panne. | `/stack` |
 | **Projets à relancer** | Détecteur de projets abandonnés : un projet du Showroom sans commit depuis 6 mois, avec des étoiles ou des forks et des issues sans réponse, est signalé à son propriétaire. Il peut le relancer avec une Squad, le céder à la communauté ou l'archiver. Le repreneur gagne +15 XP ; le fondateur reste crédité et reçoit le badge « Passeur de flambeau ». | `/showroom/relancer` |
 | **GitHub vivant** | Activité GitHub publique et carte des 30 derniers jours. Une issue peut devenir un ticket de la Micro-Bourse. | `/activite` |
@@ -106,6 +107,7 @@ Fonctionnement de l'espace recruteurs :
 
 - **Accueil léger** : 106 Ko de JavaScript au premier chargement, sans image décorative.
 - **PWA installable** : les pages déjà consultées restent lisibles hors connexion, et les brouillons sont gardés sur le téléphone.
+- **Français et anglais** : bouton FR / EN dans l'en-tête (choix mémorisé dans un cookie, sinon langue du navigateur). Les contenus des membres (questions, messages) restent dans la langue où ils ont été écrits. Voir [Traduction](#traduction).
 - **Mode « données réduites »** : il désactive toutes les photos ; on l'active dans le pied de page.
 - **Images compressées dans le navigateur** avant l'envoi, en WebP 1 600 px (environ 150 Ko au lieu de plusieurs Mo).
 - **Utilisable dès 360 px de large.**
@@ -319,6 +321,7 @@ Toute la logique sensible (points, argent, badges) vit **dans PostgreSQL**, et n
   - seul le webhook GitHub, qui utilise la clé serveur, peut marquer des tests comme passés.
 - **Webhooks** (GitHub, WhatsApp) : leur signature HMAC est vérifiée. La tâche quotidienne est protégée par `CRON_SECRET`.
 - **Fichiers** : chacun ne dépose que dans son dossier ; seules les images sont acceptées, avec 1 Mo maximum.
+- **Correction automatique des défis** ([src/lib/judge-runner.mjs](src/lib/judge-runner.mjs)) : le code du participant tourne dans un processus Node séparé, sous le modèle de permissions (ni fichiers, ni sous-processus, ni workers), sans variables d'environnement, avec 64 Mo de mémoire, 1 s par test et 10 s au total. Dans ce processus, il s'exécute dans un contexte `vm` vide : ni `process`, ni `require`, ni `import()`, et seules des chaînes JSON franchissent la frontière. Les résultats attendus ne quittent jamais le serveur. Les tests cachés et le code des autres restent privés jusqu'à la clôture. Seul le serveur enregistre un score ; une soumission toutes les 10 s, 50 au maximum. Le réseau n'est pas coupé par le modèle de permissions de Node 22 : en production à fort trafic, prévoir un exécuteur dédié (conteneur sans réseau, ou Judge0).
 - **Pair-Debugging** : les secrets (`.env`, clés d'API, jetons JWT) sont masqués sur la machine de l'hôte, avant tout envoi.
 
 Les migrations de [supabase/migrations/](supabase/migrations/), dans l'ordre :
@@ -335,6 +338,7 @@ Les migrations de [supabase/migrations/](supabase/migrations/), dans l'ordre :
 | `…_radar.sql` | Opportunités, score de correspondance, alertes, réponses, sources de collecte, alertes WhatsApp |
 | `…_centrale.sql` | Centrale d'achat : catalogue, ressources, facturation, crédits, plafonds, anti-spam, coopérative ; correctif d'accès aux XP et badges |
 | `…_recruiters.sql` | Espace recruteurs : abonnement, preuves et statut vérifié, recherche, présélection, propositions consenties, consultations |
+| `…_defis_auto.sql` | Correction automatique des défis : tests publics et cachés, solutions privées jusqu'à la clôture, départage au premier ayant atteint le score |
 | `…_ai_clones.sql` | Clones IA : sources, facturation 70/30, Pass Clones et répartition mensuelle, avis, remboursement, suspension |
 
 ---
@@ -374,6 +378,7 @@ npm run test:e2e     # réinitialise la base avant chaque suite, puis à la fin
 | [tests/e2e/radar.mjs](tests/e2e/radar.mjs) | Radar : scores, alertes, confidentialité, réponses, collecte d'un flux RSS local avec extraction et déduplication |
 | [tests/e2e/centrale.mjs](tests/e2e/centrale.mjs) | Centrale d'achat : marges, clés d'API, SMS et anti-spam, facturation horaire, crédits, plafond et pause, solde, quota, ristourne, proxy d'IA |
 | [tests/e2e/recruteurs.mjs](tests/e2e/recruteurs.mjs) | Espace recruteurs : accès réservé, filtres et score, profils masqués et blocage, vues agrégées, prolongations, propositions (acceptation, refus, relance, quota, expiration), revenus |
+| [tests/e2e/defis-auto.mjs](tests/e2e/defis-auto.mjs) | Correction automatique : correcteur (boucles infinies, mémoire, tentatives d'évasion), tests cachés, RLS, clôture et podium |
 | [tests/e2e/retours.mjs](tests/e2e/retours.mjs) | Retours du 11/11 : navigation par catégories, éditeur Markdown, sujets programmés et invitations, validation du Radar et échéances, accord de confidentialité en PDF, photo de profil |
 | [tests/e2e/clones.mjs](tests/e2e/clones.mjs) | Clone IA : réponses sourcées, facturation, répétitions, Pass, remboursement, suspension, création et publication |
 
@@ -400,12 +405,33 @@ Une suite seule : `npm run db:reset && node tests/e2e/clones.mjs`.
 
 ---
 
+## Traduction
+
+L'interface est en français, avec une traduction anglaise façon *gettext* : **la phrase française sert de clé**, et [src/lib/i18n/en.ts](src/lib/i18n/en.ts) la traduit. Une phrase sans traduction reste en français : rien ne casse quand on ajoute un écran.
+
+- Composant serveur : `const t = await getT()` ([src/lib/i18n/server.ts](src/lib/i18n/server.ts)), puis `{t("Défis passés")}` ou `t("Il reste {n} jours", { n })`.
+- Composant client : `const t = useT()` ([src/lib/i18n/client.tsx](src/lib/i18n/client.tsx)).
+- Code hors composant (libellés, messages) : `tc("…")`. Les tables de libellés (`labels.ts`, niveaux…) passent par `localized()`, qui traduit à la lecture ([src/lib/i18n/current.ts](src/lib/i18n/current.ts)).
+- Dates, durées relatives et montants suivent la langue (`timeAgo`, `fcfa`, `dateLocale()`).
+- Titres d'onglet : `generateMetadata` avec `pageTitle("Défis · Baobab Dev")`.
+
+Outil : [scripts/i18n-wrap.mjs](scripts/i18n-wrap.mjs).
+
+```bash
+node scripts/i18n-wrap.mjs --apply src/app/mon-ecran   # entoure les textes visibles avec t("…")
+node scripts/i18n-wrap.mjs --missing                   # phrases encore sans traduction anglaise
+```
+
+Restent en français : les notifications et e-mails générés côté base, l'accord de confidentialité PDF (document juridique) et les messages d'erreur renvoyés par PostgreSQL.
+
+---
+
 ## Feuille de route
 
 | Phase | État | Contenu |
 |---|---|---|
 | **MVP (P1)** | ✅ fait | Inscription, profil gamifié, Q&A, Showroom, Squads, Griot (avec démo WhatsApp), Pair-Debugging, Micro-Bourse en mode test, modération |
-| **V1 (P2)** | 🟡 en partie | ✅ Défis, Stack Afrique, GitHub vivant, Micro-Bourse complète, PWA hors ligne, images, discussions<br>⬜ Connexion Google et OTP SMS, paiements Mobile Money réels, notifications WhatsApp et email, traduction anglais, webhooks GitHub en temps réel, correction automatique des défis |
+| **V1 (P2)** | 🟡 en partie | ✅ Défis (jury et correction automatique), interface en anglais, Stack Afrique, GitHub vivant, Micro-Bourse complète, PWA hors ligne, images, discussions<br>⬜ Connexion Google et OTP SMS, paiements Mobile Money réels, notifications WhatsApp et email, webhooks GitHub en temps réel |
 | **V2 (P3)** | ✅ fait | Clone IA du senior, Code Forensic, détecteur de projets abandonnés, Radar d'opportunités, Centrale d'achat d'infrastructures, espace recruteurs |
 
 Pour le Pair-Debugging, il reste à faire l'extension VS Code et le client en ligne de commande. Le protocole texte qu'ils utiliseront est déjà en place.

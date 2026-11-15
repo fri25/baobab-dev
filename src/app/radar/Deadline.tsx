@@ -1,5 +1,7 @@
 "use client";
 
+import { dateLocale } from "@/lib/i18n/current";
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useState } from "react";
 
 // Fin de journée de la date limite, heure de Cotonou (UTC+1)
@@ -26,6 +28,7 @@ const TONE = {
 
 // Compte à rebours en direct (rafraîchi chaque minute, et chaque seconde pendant la dernière heure)
 export function Deadline({ date, compact = false }: { date: string; compact?: boolean }) {
+  const t = useT();
   const [now, setNow] = useState<number | null>(null);
   const ms = now === null ? null : endOf(date) - now;
 
@@ -35,8 +38,8 @@ export function Deadline({ date, compact = false }: { date: string; compact?: bo
     return () => clearInterval(id);
   }, [ms !== null && ms < 3_600_000]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const formatted = new Date(`${date}T12:00:00+01:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
-  if (ms === null) return <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted">avant le {formatted}</span>;
+  const formatted = new Date(`${date}T12:00:00+01:00`).toLocaleDateString(dateLocale(), { day: "numeric", month: "long" });
+  if (ms === null) return <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted">{t("avant le")}{" "}{formatted}</span>;
   const { text, tone } = label(ms);
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${TONE[tone]}`} title={`Date limite : ${formatted}`}>

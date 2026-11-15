@@ -1,5 +1,7 @@
 "use client";
 
+import { dateLocale } from "@/lib/i18n/current";
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useState } from "react";
 import { levelForXp } from "@/lib/levels";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +15,7 @@ export function XpProgress({
   compact?: boolean;
   profileId?: string;
 }) {
+  const t = useT();
   const [xp, setXp] = useState(initialXp);
   const [syncError, setSyncError] = useState(false);
 
@@ -53,7 +56,7 @@ export function XpProgress({
           {level.name}
         </span>
         <span className="font-mono text-muted">
-          {xp.toLocaleString("fr-FR")} XP{level.next ? ` · ${remaining} avant ${level.next.name}` : ""}
+          {xp.toLocaleString(dateLocale())}{" "}{t("XP")}{level.next ? ` · ${remaining} avant ${level.next.name}` : ""}
         </span>
       </div>
       <div
@@ -66,21 +69,21 @@ export function XpProgress({
         className="h-2 overflow-hidden rounded-full bg-border/70"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-leaf to-tech transition-[width] duration-700 ease-out motion-reduce:transition-none"
+          className="h-full rounded-full bg-leaf transition-[width] duration-700 ease-out motion-reduce:transition-none"
           style={{ width: `${progress}%` }}
         />
       </div>
       {!compact && (
         <p className="mt-2 text-sm text-muted">
           {level.next
-            ? `${earnedThisLevel.toLocaleString("fr-FR")} / ${totalThisLevel.toLocaleString("fr-FR")} XP · encore ${remaining.toLocaleString("fr-FR")} XP pour devenir ${level.next.name}`
-            : "Niveau maximal atteint"}
-          {level.level < 5 && " · le clone IA se débloque au niveau Expert"}
+            ? `${earnedThisLevel.toLocaleString(dateLocale())} / ${totalThisLevel.toLocaleString(dateLocale())} XP · encore ${remaining.toLocaleString(dateLocale())} XP pour devenir ${level.next.name}`
+            : t("Niveau maximal atteint")}
+          {level.level < 5 && t(" · le clone IA se débloque au niveau Expert")}
         </p>
       )}
       {syncError && profileId && (
         <p role="status" className="mt-2 text-xs text-muted">
-          La progression ne peut pas être actualisée en direct pour le moment.
+          {t("La progression ne peut pas être actualisée en direct pour le moment.")}
         </p>
       )}
     </section>

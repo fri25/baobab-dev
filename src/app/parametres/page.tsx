@@ -1,3 +1,4 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
@@ -5,7 +6,9 @@ import { parseTags } from "@/lib/format";
 import { OPEN_TO } from "@/lib/recruiter-labels";
 import { AvatarUploader } from "./AvatarUploader";
 
-export const metadata = { title: "Paramètres · Baobab Dev" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Paramètres · Baobab Dev") };
+}
 
 const input = "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2";
 const GOALS = ["apprendre", "aider", "collaborer", "missions"];
@@ -51,6 +54,7 @@ async function saveProfile(formData: FormData) {
 }
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+  const t = await getT();
   const { supabase, user } = await requireSession("/parametres");
   const { error, ok } = await searchParams;
   const [{ data: p }, { data: skills }, { data: badges }] = await Promise.all([
@@ -65,11 +69,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-bold">Mon profil</h1>
-      {error && <p className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{error}</p>}
-      {ok && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">Profil enregistré.</p>}
+      <h1 className="text-2xl font-bold">{t("Mon profil")}</h1>
+      {error && <p className="mt-4 rounded-lg bg-danger/10 p-3 text-sm text-danger">{error}</p>}
+      {ok && <p className="mt-4 rounded-lg bg-leaf/10 p-3 text-sm text-leaf">{t("Profil enregistré.")}</p>}
 
-      <div className="mt-6">
+      <div id="photo" className="mt-6 scroll-mt-20">
         <AvatarUploader
           user={{
             id: user.id,
@@ -83,16 +87,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
       <form action={saveProfile} className="mt-6 space-y-4">
         <label className="block text-sm font-medium">
-          Nom affiché
+          {t("Nom affiché")}
           <input name="full_name" defaultValue={p.full_name ?? ""} className={input} />
         </label>
         <label className="block text-sm font-medium">
-          Bio
+          {t("Bio")}
           <textarea name="bio" rows={3} defaultValue={p.bio ?? ""} className={input} />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium">
-            Pays
+            {t("Pays")}
             <select name="country" defaultValue={p.country ?? ""} className={input}>
               <option value="">—</option>
               {COUNTRIES.map((c) => (
@@ -101,39 +105,39 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </select>
           </label>
           <label className="block text-sm font-medium">
-            Ville
+            {t("Ville")}
             <input name="city" defaultValue={p.city ?? ""} className={input} />
           </label>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium">
-            Langues (fr, en, wo, fon…)
+            {t("Langues (fr, en, wo, fon…)")}
             <input name="languages" defaultValue={p.languages.join(", ")} className={input} />
           </label>
           <label className="block text-sm font-medium">
-            Fuseau horaire
+            {t("Fuseau horaire")}
             <input name="timezone" defaultValue={p.timezone ?? ""} className={input} />
           </label>
         </div>
         <label className="block text-sm font-medium">
-          Langages de programmation qui t’intéressent (séparés par des virgules)
+          {t("Langages de programmation qui t’intéressent (séparés par des virgules)")}
           <input
             name="programming_languages"
             defaultValue={p.programming_languages?.join(", ") ?? ""}
-            placeholder="JavaScript, Python, PHP, Go"
+            placeholder={t("JavaScript, Python, PHP, Go")}
             className={input}
           />
         </label>
         <label className="block text-sm font-medium">
-          Disponibilité
+          {t("Disponibilité")}
           <select name="availability" defaultValue={p.availability ?? "available"} className={input}>
-            <option value="available">Disponible</option>
-            <option value="limited">Disponibilité limitée</option>
-            <option value="busy">Occupé·e</option>
+            <option value="available">{t("Disponible")}</option>
+            <option value="limited">{t("Disponibilité limitée")}</option>
+            <option value="busy">{t("Occupé·e")}</option>
           </select>
         </label>
         <fieldset>
-          <legend className="text-sm font-medium">Objectifs</legend>
+          <legend className="text-sm font-medium">{t("Objectifs")}</legend>
           <div className="mt-1 flex flex-wrap gap-3 text-sm">
             {GOALS.map((g) => (
               <label key={g} className="flex items-center gap-1.5">
@@ -143,15 +147,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </div>
         </fieldset>
         <label className="block text-sm font-medium">
-          Technologies déclarées (séparées par des virgules)
+          {t("Technologies déclarées (séparées par des virgules)")}
           <input name="skills" defaultValue={skillNames("manual").join(", ")} className={input} />
           {skillNames("github").length > 0 && (
-            <span className="mt-1 block text-xs font-normal text-muted">Détectées sur GitHub : {skillNames("github").join(", ")}</span>
+            <span className="mt-1 block text-xs font-normal text-muted">{t("Détectées sur GitHub :")}{" "}{skillNames("github").join(", ")}</span>
           )}
         </label>
         {badges && badges.length > 0 && (
           <fieldset>
-            <legend className="text-sm font-medium">Badges épinglés (3 max.)</legend>
+            <legend className="text-sm font-medium">{t("Badges épinglés (3 max.)")}</legend>
             <div className="mt-1 flex flex-wrap gap-3 text-sm">
               {badges.map((b) => {
                 const badge = b.badges as unknown as { code: string; name: string; tier: string };
@@ -166,19 +170,18 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </fieldset>
         )}
         <fieldset className="rounded-lg border border-border bg-surface p-3">
-          <legend className="px-1 text-sm font-medium">Recruteurs</legend>
+          <legend className="px-1 text-sm font-medium">{t("Recruteurs")}</legend>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="recruiter_visible" defaultChecked={p.recruiter_visible} /> Mon profil apparaît dans la recherche des
-            recruteurs abonnés
+            <input type="checkbox" name="recruiter_visible" defaultChecked={p.recruiter_visible} />{" "}{t("Mon profil apparaît dans la recherche des recruteurs abonnés")}
           </label>
           <p className="mt-1 text-xs text-muted">
-            Aucun recruteur ne peut t&apos;écrire directement : tu reçois une proposition, que tu acceptes ou déclines dans{" "}
+            {t("Aucun recruteur ne peut t'écrire directement : tu reçois une proposition, que tu acceptes ou déclines dans")}{" "}
             <a href="/propositions" className="text-primary">
-              Propositions
+              {t("Propositions")}
             </a>
             .
           </p>
-          <p className="mt-3 text-sm">Ouvert·e à</p>
+          <p className="mt-3 text-sm">{t("Ouvert·e à")}</p>
           <div className="mt-1 flex flex-wrap gap-3 text-sm">
             {OPEN_TO.map((o) => (
               <label key={o.value} className="flex items-center gap-1.5">
@@ -188,17 +191,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </div>
         </fieldset>
         <fieldset className="rounded-lg border border-border bg-surface p-3">
-          <legend className="px-1 text-sm font-medium">Alertes WhatsApp</legend>
+          <legend className="px-1 text-sm font-medium">{t("Alertes WhatsApp")}</legend>
           <label className="block text-sm">
-            Numéro WhatsApp (format international)
+            {t("Numéro WhatsApp (format international)")}
             <input name="whatsapp_number" defaultValue={p.whatsapp_number ?? ""} placeholder="+229 97 00 00 00" className={input} />
           </label>
           <label className="mt-2 flex items-center gap-2 text-sm">
-            <input type="checkbox" name="whatsapp_alerts" defaultChecked={p.whatsapp_alerts} /> Recevoir sur WhatsApp les opportunités du Radar qui
-            correspondent à mon profil
+            <input type="checkbox" name="whatsapp_alerts" defaultChecked={p.whatsapp_alerts} />{" "}{t("Recevoir sur WhatsApp les opportunités du Radar qui correspondent à mon profil")}
           </label>
         </fieldset>
-        <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">Enregistrer</button>
+        <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink">{t("Enregistrer")}</button>
       </form>
     </main>
   );

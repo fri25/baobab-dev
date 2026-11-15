@@ -1,5 +1,7 @@
 "use client";
 
+import { dateLocale } from "@/lib/i18n/current";
+import { useT } from "@/lib/i18n/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -7,12 +9,13 @@ import { createClient } from "@/lib/supabase/client";
 // Radar en direct : toute validation, clôture ou modification d'opportunité rafraîchit la liste.
 // Avec des échéances imminentes, la page se rafraîchit aussi chaque minute.
 export function RadarLive({ imminent }: { imminent: number }) {
+  const t = useT();
   const router = useRouter();
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    setUpdatedAt(new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }));
+    setUpdatedAt(new Date().toLocaleTimeString(dateLocale(), { hour: "2-digit", minute: "2-digit" }));
   }, [imminent]);
 
   useEffect(() => {
@@ -22,7 +25,7 @@ export function RadarLive({ imminent }: { imminent: number }) {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         router.refresh();
-        setUpdatedAt(new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }));
+        setUpdatedAt(new Date().toLocaleTimeString(dateLocale(), { hour: "2-digit", minute: "2-digit" }));
       }, 500);
     };
     const channel = supabase
@@ -43,7 +46,7 @@ export function RadarLive({ imminent }: { imminent: number }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted" aria-live="polite">
       <span className={`h-2 w-2 rounded-full ${connected ? "animate-pulse bg-leaf" : "bg-border"}`} />
-      {connected ? "En direct" : "Hors ligne"}
+      {connected ? t("En direct") : t("Hors ligne")}
       {updatedAt && ` · mis à jour à ${updatedAt}`}
     </span>
   );

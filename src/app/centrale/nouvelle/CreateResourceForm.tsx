@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { createResource } from "../actions";
@@ -23,17 +24,18 @@ export function CreateResourceForm({
   projectId?: string;
   squadId?: string;
 }) {
+  const t = useT();
   const [state, action, pending] = useActionState(createResource, null);
   const [copied, setCopied] = useState(false);
 
   if (state && "resourceId" in state) {
     return (
       <div className="rounded-2xl border border-leaf bg-surface p-5">
-        <p className="font-semibold text-leaf">{offerName} est prêt.</p>
+        <p className="font-semibold text-leaf">{offerName}{" "}{t("est prêt.")}</p>
         {state.apiKey && (
           <div className="mt-3">
             <p className="text-sm">
-              Ta clé d&apos;API : <strong>copie-la maintenant</strong>, elle ne sera plus jamais affichée (seule son empreinte est conservée).
+              {t("Ta clé d'API :")}{" "}<strong>{t("copie-la maintenant")}</strong>{t(", elle ne sera plus jamais affichée (seule son empreinte est conservée).")}
             </p>
             <div className="mt-2 flex gap-2">
               <code className="min-w-0 flex-1 break-all rounded-lg bg-[#1f1a14] p-3 font-mono text-xs text-[#f3ece2]">{state.apiKey}</code>
@@ -45,13 +47,13 @@ export function CreateResourceForm({
                 }}
                 className="shrink-0 rounded-lg border border-border px-3 text-sm"
               >
-                {copied ? "Copiée" : "Copier"}
+                {copied ? t("Copiée") : t("Copier")}
               </button>
             </div>
           </div>
         )}
         <Link href={`/centrale/ressources/${state.resourceId}`} className="mt-4 inline-block rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-ink">
-          Voir la ressource
+          {t("Voir la ressource")}
         </Link>
       </div>
     );
@@ -61,16 +63,16 @@ export function CreateResourceForm({
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="offer" value={offerCode} />
-      {state && "error" in state && <p className="rounded-lg bg-primary/10 p-3 text-sm text-primary">{state.error}</p>}
+      {state && "error" in state && <p className="rounded-lg bg-danger/10 p-3 text-sm text-danger">{state.error}</p>}
       <label className="block text-sm font-medium">
-        Nom de la ressource
-        <input name="name" required maxLength={60} defaultValue={defaultName} pattern="[a-z0-9-]+" title="Minuscules, chiffres et tirets" className={`${input} font-mono`} />
+        {t("Nom de la ressource")}
+        <input name="name" required maxLength={60} defaultValue={defaultName} pattern="[a-z0-9-]+" title={t("Minuscules, chiffres et tirets")} className={`${input} font-mono`} />
       </label>
       {projects.length > 0 && (
         <label className="block text-sm font-medium">
-          Pour le projet (facultatif)
+          {t("Pour le projet (facultatif)")}
           <select name="project_id" defaultValue={projectId ?? ""} className={input}>
-            <option value="">Aucun</option>
+            <option value="">{t("Aucun")}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -81,9 +83,9 @@ export function CreateResourceForm({
       )}
       {squads.length > 0 && (
         <label className="block text-sm font-medium">
-          Pour la Squad (facultatif : ses membres verront la ressource)
+          {t("Pour la Squad (facultatif : ses membres verront la ressource)")}
           <select name="squad_id" defaultValue={squadId ?? ""} className={input}>
-            <option value="">Aucune</option>
+            <option value="">{t("Aucune")}</option>
             {squads.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -93,7 +95,7 @@ export function CreateResourceForm({
         </label>
       )}
       <button disabled={pending} className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-ink disabled:opacity-50">
-        {pending ? "Création…" : "Créer en un clic"}
+        {pending ? t("Création…") : t("Créer en un clic")}
       </button>
     </form>
   );

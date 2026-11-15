@@ -1,11 +1,13 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useEffect, useRef, useState } from "react";
 
 type Props = React.TextareaHTMLAttributes<HTMLTextAreaElement> & { draftKey: string };
 
 // Brouillon conservé sur l'appareil, même sans connexion (§9). Effacé à l'envoi du formulaire.
 export function DraftTextarea({ draftKey, defaultValue, ...props }: Props) {
+  const t = useT();
   const key = `brouillon:${draftKey}`;
   const ref = useRef<HTMLTextAreaElement>(null);
   const [saved, setSaved] = useState(false);
@@ -45,7 +47,7 @@ export function DraftTextarea({ draftKey, defaultValue, ...props }: Props) {
         }}
         {...props}
       />
-      {saved && <span className="text-xs text-muted">Brouillon enregistré sur cet appareil.</span>}
+      {saved && <span className="text-xs text-muted">{t("Brouillon enregistré sur cet appareil.")}</span>}
     </>
   );
 }

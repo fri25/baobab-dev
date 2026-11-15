@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { askGriot } from "@/lib/griot";
 import { sendWhatsApp as reply, toWhatsApp } from "@/lib/whatsapp";
 
+// Appels à l'IA ou à GitHub : au-delà du délai par défaut des fonctions Vercel
+export const maxDuration = 90; // le Griot coupe lui-même l'appel au modèle à 60 s et répond en mode dégradé
+
 // WhatsApp Business Cloud API : le Griot répond aux messages reçus (§6.1)
 
 // Vérification du webhook par Meta

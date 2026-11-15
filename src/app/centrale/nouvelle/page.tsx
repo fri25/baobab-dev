@@ -1,3 +1,4 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
@@ -5,13 +6,16 @@ import { INFRA_UNIT, price, saving } from "@/lib/centrale-labels";
 import { slugify } from "@/lib/format";
 import { CreateResourceForm } from "./CreateResourceForm";
 
-export const metadata = { title: "Nouvelle ressource · Centrale d'achat" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Nouvelle ressource · Centrale d'achat") };
+}
 
 export default async function NewResourcePage({
   searchParams,
 }: {
   searchParams: Promise<{ offre?: string; projet?: string; squad?: string }>;
 }) {
+  const t = await getT();
   const { offre, projet, squad } = await searchParams;
   const { supabase, user } = await requireSession("/centrale/nouvelle");
 
@@ -34,11 +38,11 @@ export default async function NewResourcePage({
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <Link href="/centrale" className="text-sm text-muted hover:text-primary">
-        ← Centrale d&apos;achat
+        {t("← Centrale d'achat")}
       </Link>
       {!offer ? (
         <>
-          <h1 className="mt-2 text-2xl font-bold">Héberger {project ? project.name : "un projet"}</h1>
+          <h1 className="mt-2 text-2xl font-bold">{t("Héberger")}{" "}{project ? project.name : t("un projet")}</h1>
           <ul className="mt-6 space-y-2">
             {offers?.map((o) => (
               <li key={o.code}>
@@ -68,7 +72,7 @@ export default async function NewResourcePage({
               {price(offer.price)} / {INFRA_UNIT[offer.unit]}
             </strong>{" "}
             <span className="text-muted line-through">{price(offer.public_price)}</span>{" "}
-            <span className="text-leaf">−{saving(offer.price, offer.public_price)} %</span> · déduit de tes crédits puis de ton portefeuille.
+            <span className="text-leaf">−{saving(offer.price, offer.public_price)} %</span>{" "}{t("· déduit de tes crédits puis de ton portefeuille.")}
           </p>
           <div className="mt-6">
             <CreateResourceForm

@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import Link from "next/link";
 import { useState } from "react";
 import { Markdown } from "@/components/Markdown";
@@ -29,6 +30,7 @@ const BILLING: Record<string, string> = {
 };
 
 function Turn({ q, isOwner }: { q: PastQuery & { sources?: CloneAnswer["sources"] }; isOwner: boolean }) {
+  const t = useT();
   const [rating, setRating] = useState(q.rating);
   const [flagged, setFlagged] = useState(Boolean(q.flagged_reason));
   const [note, setNote] = useState<string | null>(null);
@@ -37,7 +39,7 @@ function Turn({ q, isOwner }: { q: PastQuery & { sources?: CloneAnswer["sources"
     <li className="space-y-2">
       <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-primary-ink">{q.question}</p>
       <div className="max-w-[95%] rounded-2xl rounded-bl-sm border border-border bg-surface p-4">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">🤖 Réponse du clone IA</p>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{t("🤖 Réponse du clone IA")}</p>
         <Markdown text={q.answer} />
         {q.sources && q.sources.length > 0 && (
           <ol className="mt-3 space-y-1 border-t border-border pt-2 text-xs text-muted">
@@ -49,10 +51,10 @@ function Turn({ q, isOwner }: { q: PastQuery & { sources?: CloneAnswer["sources"
           </ol>
         )}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2 text-xs text-muted">
-          <span>{q.refunded ? "Remboursée" : (BILLING[q.billing] ?? q.billing)}</span>
+          <span>{q.refunded ? t("Remboursée") : (BILLING[q.billing] ?? q.billing)}</span>
           {!isOwner && q.status === "answered" && (
             <span className="flex items-center gap-3">
-              <span className="flex" aria-label="Noter la réponse">
+              <span className="flex" aria-label={t("Noter la réponse")}>
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
@@ -82,7 +84,7 @@ function Turn({ q, isOwner }: { q: PastQuery & { sources?: CloneAnswer["sources"
                   }}
                   className="hover:text-primary"
                 >
-                  Mauvaise réponse ?
+                  {t("Mauvaise réponse ?")}
                 </button>
               )}
             </span>
@@ -105,6 +107,7 @@ export function CloneChat({
   isOwner: boolean;
   billingHint: string;
 }) {
+  const tr = useT();
   const [turns, setTurns] = useState<(PastQuery & { sources?: CloneAnswer["sources"] })[]>(history);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -155,7 +158,7 @@ export function CloneChat({
         {turns.map((t) => (
           <Turn key={t.id} q={t} isOwner={isOwner} />
         ))}
-        {loading && <li className="animate-pulse text-sm text-muted">Le clone consulte les contenus de son senior…</li>}
+        {loading && <li className="animate-pulse text-sm text-muted">{tr("Le clone consulte les contenus de son senior…")}</li>}
       </ol>
 
       {error && (
@@ -163,7 +166,7 @@ export function CloneChat({
           {error}{" "}
           {needsTopup && (
             <Link href="/portefeuille" className="font-medium underline">
-              Recharger
+              {tr("Recharger")}
             </Link>
           )}
         </p>
@@ -180,11 +183,11 @@ export function CloneChat({
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder={isOwner ? "Teste ton clone avant de le publier…" : "Pose ta question…"}
+            placeholder={isOwner ? tr("Teste ton clone avant de le publier…") : tr("Pose ta question…")}
             className="flex-1 bg-transparent px-3 outline-none"
           />
           <button disabled={loading} className="rounded-xl bg-primary px-5 py-2 text-sm font-medium text-primary-ink disabled:opacity-50">
-            Demander
+            {tr("Demander")}
           </button>
         </div>
         <p className="px-3 pt-1 text-[11px] text-muted">{billingHint}</p>

@@ -1,4 +1,5 @@
-export const PROJECT_STATUS: Record<string, string> = {
+import { localized } from "@/lib/i18n/current";
+const PROJECT_STATUS_FR: Record<string, string> = {
   idea: "Idée",
   building: "En construction",
   launched: "Lancé",
@@ -6,30 +7,30 @@ export const PROJECT_STATUS: Record<string, string> = {
   abandoned: "À relancer",
 };
 
-export const SQUAD_STATUS: Record<string, string> = {
+const SQUAD_STATUS_FR: Record<string, string> = {
   recruiting: "Recrute",
   active: "En cours",
   completed: "Terminée",
   abandoned: "Abandonnée",
 };
 
-export const BOUNTY_STATUS: Record<string, { label: string; color: string }> = {
+const BOUNTY_STATUS_FR: Record<string, { label: string; color: string }> = {
   open: { label: "Ouvert", color: "var(--leaf)" },
   reserved: { label: "Réservé 48 h", color: "var(--gold)" },
   in_review: { label: "En revue", color: "var(--gold)" },
   paid: { label: "Prime versée", color: "var(--muted)" },
   expired: { label: "Expiré", color: "var(--muted)" },
   refunded: { label: "Remboursé", color: "var(--muted)" },
-  disputed: { label: "Litige", color: "var(--primary)" },
+  disputed: { label: "Litige", color: "var(--danger)" },
 };
 
-export const CHALLENGE_KIND: Record<string, string> = {
+const CHALLENGE_KIND_FR: Record<string, string> = {
   algo: "Algorithmique",
   interface: "Interface",
   api: "API",
 };
 
-export const STACK_CATEGORY: Record<string, string> = {
+const STACK_CATEGORY_FR: Record<string, string> = {
   paiement: "Paiement",
   sms: "SMS",
   ussd: "USSD",
@@ -38,13 +39,13 @@ export const STACK_CATEGORY: Record<string, string> = {
   autre: "Autre",
 };
 
-export const STACK_STATUS: Record<string, { label: string; className: string }> = {
+const STACK_STATUS_FR: Record<string, { label: string; className: string }> = {
   test: { label: "En test", className: "border border-border text-muted" },
   verifie: { label: "Vérifié ✓", className: "bg-leaf text-background" },
-  deconseille: { label: "Déconseillé", className: "bg-primary text-primary-ink" },
+  deconseille: { label: "Déconseillé", className: "bg-danger text-white" },
 };
 
-export const XP_REASONS: Record<string, string> = {
+const XP_REASONS_FR: Record<string, string> = {
   answer_upvoted: "Réponse votée positivement",
   answer_accepted: "Réponse acceptée",
   griot_citation: "Réponse citée par le Griot",
@@ -59,3 +60,12 @@ export const XP_REASONS: Record<string, string> = {
   project_adopted: "Reprise d'un projet abandonné",
   seed_history: "Contributions passées",
 };
+
+// Libellés traduits à la lecture (voir src/lib/i18n/current.ts)
+export const PROJECT_STATUS = localized(PROJECT_STATUS_FR);
+export const SQUAD_STATUS = localized(SQUAD_STATUS_FR);
+export const BOUNTY_STATUS = localized(BOUNTY_STATUS_FR);
+export const CHALLENGE_KIND = localized(CHALLENGE_KIND_FR);
+export const STACK_CATEGORY = localized(STACK_CATEGORY_FR);
+export const STACK_STATUS = localized(STACK_STATUS_FR);
+export const XP_REASONS = localized(XP_REASONS_FR);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n/client";
 import { useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { createClient } from "@/lib/supabase/client";
@@ -36,6 +37,7 @@ export function AvatarUploader({
 }: {
   user: { id: string; username: string; full_name: string | null; avatar_url: string | null; github_avatar: string | null };
 }) {
+  const t = useT();
   const [url, setUrl] = useState(user.avatar_url);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -84,13 +86,12 @@ export function AvatarUploader({
         }}
       >
         <Avatar user={{ ...user, avatar_url: url }} size={96} />
-        {busy && <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-xs text-white">envoi…</span>}
+        {busy && <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-xs text-white">{t("envoi…")}</span>}
       </div>
       <div className="min-w-0 flex-1 text-sm">
-        <p className="font-medium">Photo de profil professionnelle</p>
+        <p className="font-medium">{t("Photo de profil professionnelle")}</p>
         <p className="text-xs text-muted">
-          Visage bien éclairé, cadré des épaules, fond neutre. Elle apparaît sur ton profil, tes réponses et dans l&apos;espace
-          recruteurs. Recadrée en carré et compressée sur ton téléphone avant l&apos;envoi.
+          {t("Visage bien éclairé, cadré des épaules, fond neutre. Elle apparaît sur ton profil, tes réponses et dans l'espace recruteurs. Recadrée en carré et compressée sur ton téléphone avant l'envoi.")}
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button
@@ -99,11 +100,11 @@ export function AvatarUploader({
             onClick={() => input.current?.click()}
             className="rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-ink disabled:opacity-50"
           >
-            {url ? "Changer la photo" : "Ajouter une photo"}
+            {url ? t("Changer la photo") : t("Ajouter une photo")}
           </button>
           {url && (
             <button type="button" disabled={busy} onClick={reset} className="rounded-full border border-border px-4 py-1.5 text-xs disabled:opacity-50">
-              {user.github_avatar && url !== user.github_avatar ? "Revenir à la photo GitHub" : "Retirer"}
+              {user.github_avatar && url !== user.github_avatar ? t("Revenir à la photo GitHub") : t("Retirer")}
             </button>
           )}
         </div>

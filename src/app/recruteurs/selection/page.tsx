@@ -1,3 +1,4 @@
+import { getT, pageTitle } from "@/lib/i18n/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
@@ -7,7 +8,9 @@ import { levelForXp } from "@/lib/levels";
 import { CONTACT_STATUS, OFFER_KIND } from "@/lib/recruiter-labels";
 import { toggleShortlist } from "../actions";
 
-export const metadata = { title: "Présélection · Espace recruteurs" };
+export async function generateMetadata() {
+  return { title: await pageTitle("Présélection · Espace recruteurs") };
+}
 
 type Dev = { id: string; username: string; full_name: string | null; avatar_url: string | null; city: string | null; country: string | null; xp: number };
 
@@ -19,6 +22,7 @@ const STATUS_CLASS: Record<string, string> = {
 };
 
 export default async function SelectionPage() {
+  const t = await getT();
   const { supabase, user } = await requireSession("/recruteurs/selection");
   const { data: status } = await supabase.rpc("my_recruiter_status");
   if (!(status as { active: boolean }).active) redirect("/recruteurs");
@@ -41,13 +45,13 @@ export default async function SelectionPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <Link href="/recruteurs" className="text-sm text-muted hover:text-primary">
-        ← Recherche
+        {t("← Recherche")}
       </Link>
-      <h1 className="mt-2 text-2xl font-bold">Présélection et propositions</h1>
+      <h1 className="mt-2 text-2xl font-bold">{t("Présélection et propositions")}</h1>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <section>
-          <h2 className="font-semibold">Présélection · {shortlist?.length ?? 0}</h2>
+          <h2 className="font-semibold">{t("Présélection ·")}{" "}{shortlist?.length ?? 0}</h2>
           <ul className="mt-3 space-y-2">
             {(shortlist ?? []).map((s) => {
               const d = s.dev as unknown as Dev;
@@ -64,18 +68,18 @@ export default async function SelectionPage() {
                     {s.note && <p className="mt-1 text-xs italic">{s.note}</p>}
                   </div>
                   <form action={toggleShortlist.bind(null, d.id, "/recruteurs/selection")}>
-                    <button className="text-xs text-muted hover:text-primary">Retirer</button>
+                    <button className="text-xs text-muted hover:text-primary">{t("Retirer")}</button>
                   </form>
                 </li>
               );
             })}
-            {!shortlist?.length && <li className="text-sm text-muted">Aucun profil présélectionné.</li>}
+            {!shortlist?.length && <li className="text-sm text-muted">{t("Aucun profil présélectionné.")}</li>}
           </ul>
         </section>
 
         <section>
-          <h2 className="font-semibold">Propositions envoyées · {contacts?.length ?? 0}</h2>
-          {answered > 0 && <p className="text-xs text-muted">Taux d&apos;acceptation : {Math.round((accepted / answered) * 100)} %</p>}
+          <h2 className="font-semibold">{t("Propositions envoyées ·")}{" "}{contacts?.length ?? 0}</h2>
+          {answered > 0 && <p className="text-xs text-muted">{t("Taux d'acceptation :")}{" "}{Math.round((accepted / answered) * 100)} %</p>}
           <ul className="mt-3 space-y-2">
             {(contacts ?? []).map((c) => {
               const d = c.dev as unknown as Dev;
@@ -93,13 +97,13 @@ export default async function SelectionPage() {
                   {c.decline_reason && <p className="mt-1 text-xs text-muted">« {c.decline_reason} »</p>}
                   {c.conversation_id && (
                     <Link href={`/discussions/${c.conversation_id}`} className="mt-1 inline-block text-xs text-primary">
-                      Ouvrir la conversation →
+                      {t("Ouvrir la conversation →")}
                     </Link>
                   )}
                 </li>
               );
             })}
-            {!contacts?.length && <li className="text-sm text-muted">Aucune proposition envoyée.</li>}
+            {!contacts?.length && <li className="text-sm text-muted">{t("Aucune proposition envoyée.")}</li>}
           </ul>
         </section>
       </div>

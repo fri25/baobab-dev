@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test:e2e": "npm run db:reset && node tests/e2e/mvp.mjs && npm run db:reset && node tests/e2e/v1.mjs && npm run db:reset && node tests/e2e/images.mjs && npm run db:reset && node tests/e2e/discussions.mjs && npm run db:reset && node tests/e2e/clones.mjs && npm run db:reset && node tests/e2e/forensic.mjs && npm run db:reset && node tests/e2e/abandoned.mjs && npm run db:reset && node tests/e2e/radar.mjs && npm run db:reset && node tests/e2e/centrale.mjs && npm run db:reset && node tests/e2e/recruteurs.mjs && npm run db:reset && node tests/e2e/retours.mjs && npm run db:reset",
+    "test:e2e": "npm run db:reset && node tests/e2e/mvp.mjs && npm run db:reset && node tests/e2e/v1.mjs && npm run db:reset && node tests/e2e/images.mjs && npm run db:reset && node tests/e2e/discussions.mjs && npm run db:reset && node tests/e2e/clones.mjs && npm run db:reset && node tests/e2e/forensic.mjs && npm run db:reset && node tests/e2e/abandoned.mjs && npm run db:reset && node tests/e2e/radar.mjs && npm run db:reset && node tests/e2e/centrale.mjs && npm run db:reset && node tests/e2e/recruteurs.mjs && npm run db:reset && node tests/e2e/retours.mjs && npm run db:reset && node tests/e2e/defis-auto.mjs && npm run db:reset",
     "db:reset": "node tests/e2e/reset.mjs",
     "embed:backfill": "node scripts/embed-backfill.mjs"
   },
@@ -16,7 +16,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "highlight.js": "^11.12.0",
-    "next": "15.5.4",
+    "next": "15.5.29",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -31,7 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.4",
+    "eslint-config-next": "15.5.29",
     "supabase": "^2.48.3",
     "tailwindcss": "^4",
     "typescript": "^5"
